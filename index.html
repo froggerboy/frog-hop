@@ -9,8 +9,8 @@
 <title>Frog Hop</title>
 <style>
 *{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0c2630;font-family:-apple-system,BlinkMacSystemFont,"Avenir Next",system-ui,sans-serif;touch-action:none}
-canvas{width:100%;height:100%;display:block}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0c2630;font-family:-apple-system,BlinkMacSystemFont,"Avenir Next",system-ui,sans-serif;touch-action:auto;-webkit-touch-callout:none}
+canvas{width:100%;height:100%;display:block;touch-action:none}
 #hud{position:fixed;top:env(safe-area-inset-top,0);left:0;right:0;padding:12px 14px;display:flex;align-items:flex-start;justify-content:space-between;pointer-events:none;z-index:5}
 .hudbox{min-width:78px;padding:8px 10px;border-radius:16px;background:rgba(7,28,35,.68);border:1.5px solid rgba(255,255,255,.22);box-shadow:0 7px 20px rgba(0,0,0,.18);color:#fff;text-align:center;backdrop-filter:blur(6px)}
 .hudlabel{display:block;font-size:9px;font-weight:900;letter-spacing:1.7px;text-transform:uppercase;opacity:.72}
@@ -19,7 +19,7 @@ canvas{width:100%;height:100%;display:block}
 #centerScore .num{font-size:37px;line-height:40px;font-weight:950}
 #centerScore .label{font-size:9px;letter-spacing:2.2px;font-weight:900;opacity:.78}
 .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(5,18,24,.36)}
-#overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(5,18,24,.36);z-index:10}
+#overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(5,18,24,.36);z-index:100000;touch-action:manipulation;pointer-events:auto}
 .card{width:min(88vw,390px);max-height:78vh;overflow:auto;padding:31px 24px 27px;border:2px solid rgba(255,239,170,.68);border-radius:30px;background:linear-gradient(180deg,rgba(13,50,56,.97),rgba(7,31,39,.98));box-shadow:0 24px 70px rgba(0,0,0,.4);text-align:center;color:#fff}
 .logo{font-size:clamp(39px,11vw,58px);line-height:1;font-weight:950;letter-spacing:1px;color:#c8f86b;text-shadow:0 4px 0 #315b2c;margin:0 0 8px}
 .subtitle{font-size:17px;line-height:1.4;color:#ffe7a3;margin:0 0 22px;font-weight:700}
@@ -44,7 +44,7 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 #shopBtn{margin-top:10px}
 
 #shopBtn{position:relative;z-index:50;pointer-events:auto;touch-action:manipulation}
-#btn{position:relative;z-index:99999;pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer;-webkit-user-select:none;user-select:none;display:block;margin:0 auto;min-width:190px}
+#btn{position:relative;z-index:100001;pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer;-webkit-user-select:none;user-select:none;display:block;margin:0 auto;min-width:190px}
 #shop{z-index:200}
 
 #shop{z-index:20;pointer-events:auto}
@@ -487,47 +487,25 @@ function jump(){
   game.f.rot=-.45;
 }
 
-function handlePlay(e){e.preventDefault();e.stopPropagation();start();}
-// Use the earliest possible iPhone touch/pointer event as well as click.
-btn.addEventListener('pointerdown',handlePlay,{capture:true,passive:false});
-btn.addEventListener('touchstart',handlePlay,{capture:true,passive:false});
-btn.addEventListener('pointerup',handlePlay,{capture:true,passive:false});
-btn.addEventListener('touchend',handlePlay,{capture:true,passive:false});
-btn.addEventListener('click',handlePlay,{capture:true,passive:false});
+function handlePlay(e){
+  if(e){ e.preventDefault(); e.stopPropagation(); }
+  start();
+}
 
-// Final iPhone-safe fallback: detect a tap by screen coordinates even if Safari
-// reports the canvas/body as the event target. This deliberately only fires
-// while the home/game-over overlay is visible and only inside the PLAY button.
-let playTouchHandled=false;
-function playHitAt(x,y){
-  if(!overlay || overlay.classList.contains('hidden')) return false;
-  const r=btn.getBoundingClientRect();
-  return x>=r.left && x<=r.right && y>=r.top && y<=r.bottom;
-}
-function globalPlayPointer(e){
-  if(e.type==='pointerdown') playTouchHandled=false;
-  if(e.type==='pointerup' && playHitAt(e.clientX,e.clientY)){
-    e.preventDefault(); e.stopPropagation(); playTouchHandled=true; start();
-  }
-}
-document.addEventListener('pointerup',globalPlayPointer,{capture:true,passive:false});
-document.addEventListener('touchstart',e=>{
-  const t=e.touches && e.touches[0];
-  if(t && playHitAt(t.clientX,t.clientY)){
-    e.preventDefault(); e.stopPropagation(); playTouchHandled=true; start();
-  }
-},{capture:true,passive:false});
-document.addEventListener('touchend',e=>{
-  const t=e.changedTouches && e.changedTouches[0];
-  if(!t || playTouchHandled) return;
-  if(playHitAt(t.clientX,t.clientY)){
-    e.preventDefault(); e.stopPropagation(); playTouchHandled=true; start();
-  }
-},{capture:true,passive:false});
-document.addEventListener('click',e=>{
-  if(playTouchHandled){playTouchHandled=false; return;}
-  if(playHitAt(e.clientX,e.clientY)){e.preventDefault();e.stopPropagation();start();}
-},{capture:true,passive:false});
+// Simple iPhone-safe home-screen input. The whole home overlay accepts a tap
+// on the PLAY button; collection/music keep their own controls.
+btn.onclick=handlePlay;
+btn.ontouchend=handlePlay;
+btn.onpointerup=handlePlay;
+overlay.addEventListener('click',function(e){
+  if(e.target===btn || e.target.closest('#btn')) return;
+  if(e.target.closest('#shopBtn') || e.target.closest('#musicBtn')) return;
+},false);
+overlay.addEventListener('touchend',function(e){
+  const t=e.target;
+  if(t && (t.closest('#shopBtn') || t.closest('#musicBtn'))) return;
+  if(t && t.closest('#btn')) return;
+},false);
 
 const shopButton=document.getElementById('shopBtn');
 const closeShopButton=document.getElementById('closeShop');
