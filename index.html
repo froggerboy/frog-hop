@@ -281,6 +281,17 @@ function bg(){
 }
 
 function snake(x,edge,length,top,phase=0){
+  const snakeStage=Math.floor(game.score/10)%6;
+  const snakePalettes=[
+    [snakeMain,snakeDark,snakeLight],
+    ['#4f6fd1','#263c8a','#b9d5ff'],
+    ['#b35bc5','#6d2f7d','#f0b6ff'],
+    ['#d06a3a','#7f321e','#ffd08a'],
+    ['#d1a43a','#785d18','#fff0a2'],
+    ['#39a8a0','#17625f','#a7fff1']
+  ];
+  const [snakeMain,snakeDark,snakeLight]=snakePalettes[snakeStage];
+
   ctx.save();
   const dir=top?-1:1;
   const w=22;
