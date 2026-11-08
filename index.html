@@ -112,9 +112,11 @@ function loop(t){
   for(const p of game.pipes){
    p.x-=game.speed*dt;
    if(!p.scored&&p.x+p.w<game.f.x){p.scored=true;game.score++;scoreEl.textContent=game.score}
-   let hitX=game.f.x+18>p.x-30&&game.f.x-18<p.x+p.w+30;
-   let hitY=game.f.y-18<p.g-p.gap/2||game.f.y+18>p.g+p.gap/2;
+   let hitX=game.f.x+12>p.x&&game.f.x-12<p.x+p.w;
+   let hitY=game.f.y+12>p.g&&game.f.y-12<p.g+p.gap;
    if(hitX&&hitY)over()
+   
+   
   }
   game.pipes=game.pipes.filter(p=>p.x>-100);
   if(game.f.y<15||game.f.y>H*.72-5)over()
