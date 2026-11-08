@@ -275,81 +275,86 @@ function frog(){
   ctx.translate(f.x,f.y);
   ctx.rotate(f.rot*.65);
 
-  // Animation phase: legs extend strongly during the upward part of a hop.
-  const airborne=Math.abs(f.vy)>1.0;
-  const kick=Math.sin(game.time*.34)*0.5+0.5;
+  // More natural side-on frog: compact body, distinct head, folded hind leg,
+  // small front arm, and a readable kicking animation while hopping.
   const rising=f.vy<0;
-  const legKick=rising ? 0.95 : 0.25;
+  const kick=Math.sin(game.time*.32)*0.5+0.5;
+  const legKick=rising ? (0.55+kick*.45) : (0.15+kick*.18);
 
-  // Shadow.
-  ctx.fillStyle='rgba(3,24,29,.23)';
-  ctx.beginPath();ctx.ellipse(0,22,30,7,0,0,Math.PI*2);ctx.fill();
+  // Soft shadow.
+  ctx.fillStyle='rgba(3,24,29,.22)';
+  ctx.beginPath();ctx.ellipse(1,24,31,6,0,0,Math.PI*2);ctx.fill();
 
-  // Back leg, side-on: thigh then long lower leg and webbed foot.
+  // Rear hind leg — thick thigh tucked under the body, then a lower leg that kicks.
   ctx.strokeStyle='#245f31';ctx.lineCap='round';ctx.lineJoin='round';
-  ctx.lineWidth=10;
+  ctx.lineWidth=11;
   ctx.beginPath();
-  ctx.moveTo(-9,10);
-  ctx.quadraticCurveTo(-26,18,-30,8-14*legKick);
-  ctx.quadraticCurveTo(-42,2-20*legKick,-49,-10-23*legKick);
+  ctx.moveTo(-11,10);
+  ctx.quadraticCurveTo(-27,18,-28,4-10*legKick);
+  ctx.quadraticCurveTo(-30,-5-10*legKick,-42,-14-18*legKick);
   ctx.stroke();
 
-  ctx.lineWidth=4;
+  // Webbed rear foot.
+  const fx=-42, fy=-14-18*legKick;
+  ctx.strokeStyle='#2c7436';ctx.lineWidth=3.2;
   ctx.beginPath();
-  ctx.moveTo(-48,-10-23*legKick);
-  ctx.lineTo(-61,-17-25*legKick);
-  ctx.moveTo(-48,-10-23*legKick);
-  ctx.lineTo(-58,-5-24*legKick);
-  ctx.moveTo(-48,-10-23*legKick);
-  ctx.lineTo(-55,2-21*legKick);
+  ctx.moveTo(fx,fy);ctx.lineTo(fx-12,fy-5);
+  ctx.moveTo(fx,fy);ctx.lineTo(fx-10,fy+3);
+  ctx.moveTo(fx,fy);ctx.lineTo(fx-6,fy+9);
   ctx.stroke();
 
-  // Front leg.
-  ctx.lineWidth=8;
+  // Small front arm with toes.
+  ctx.strokeStyle='#245f31';ctx.lineWidth=7;
   ctx.beginPath();
-  ctx.moveTo(13,9);
-  ctx.quadraticCurveTo(26,15,31,5-8*legKick);
-  ctx.quadraticCurveTo(38,0,43,-8-12*legKick);
+  ctx.moveTo(17,9);
+  ctx.quadraticCurveTo(28,12,31,3-5*legKick);
+  ctx.quadraticCurveTo(34,-1,38,-5-8*legKick);
   ctx.stroke();
-  ctx.lineWidth=3;
+  ctx.lineWidth=2.4;
   ctx.beginPath();
-  ctx.moveTo(42,-8-12*legKick);ctx.lineTo(52,-13-14*legKick);
-  ctx.moveTo(42,-8-12*legKick);ctx.lineTo(52,-6-13*legKick);
-  ctx.moveTo(42,-8-12*legKick);ctx.lineTo(50,1-12*legKick);
+  ctx.moveTo(38,-5-8*legKick);ctx.lineTo(46,-9-9*legKick);
+  ctx.moveTo(38,-5-8*legKick);ctx.lineTo(47,-4-8*legKick);
+  ctx.moveTo(38,-5-8*legKick);ctx.lineTo(45,1-7*legKick);
   ctx.stroke();
 
-  // Body, side-on.
-  const body=ctx.createRadialGradient(-8,-12,3,0,5,34);
-  body.addColorStop(0,'#d1fb76');
-  body.addColorStop(.35,'#82dc4d');
-  body.addColorStop(.78,'#4aa53a');
+  // Main body — slightly elongated so it reads as a frog rather than a ball.
+  const body=ctx.createRadialGradient(-10,-10,2,2,4,36);
+  body.addColorStop(0,'#d7fa79');
+  body.addColorStop(.35,'#8cde50');
+  body.addColorStop(.75,'#4aa43a');
   body.addColorStop(1,'#2d6f31');
   ctx.fillStyle=body;ctx.strokeStyle='#143c26';ctx.lineWidth=3.5;
-  ctx.beginPath();ctx.ellipse(0,0,30,22,-.04,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.ellipse(-2,1,31,21,-.06,0,Math.PI*2);ctx.fill();ctx.stroke();
 
-  // Pale belly patch.
+  // Belly/chest patch.
   ctx.fillStyle='#dcefa0';
-  ctx.beginPath();ctx.ellipse(8,7,17,11,-.1,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(9,8,18,10,-.12,0,Math.PI*2);ctx.fill();
 
-  // Head facing right.
-  ctx.fillStyle='#8bdf51';
-  ctx.beginPath();ctx.ellipse(25,-13,23,20,-.12,0,Math.PI*2);ctx.fill();ctx.stroke();
+  // Distinct frog head facing right.
+  const head=ctx.createRadialGradient(18,-19,2,25,-10,25);
+  head.addColorStop(0,'#a4ed5d');
+  head.addColorStop(.6,'#76cd49');
+  head.addColorStop(1,'#438f36');
+  ctx.fillStyle=head;
+  ctx.beginPath();ctx.ellipse(24,-12,22,18,-.08,0,Math.PI*2);ctx.fill();ctx.stroke();
 
-  // Eye mound and eye.
-  ctx.fillStyle='#73c94a';
-  ctx.beginPath();ctx.arc(36,-29,11,0,Math.PI*2);ctx.fill();ctx.stroke();
-  ctx.fillStyle='#fbfff1';ctx.beginPath();ctx.arc(38,-30,7,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#122018';ctx.beginPath();ctx.arc(40,-30,3.6,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(41,-32,1.2,0,Math.PI*2);ctx.fill();
+  // Single visible eye, kept proportionate to the head.
+  ctx.fillStyle='#5eae40';
+  ctx.beginPath();ctx.ellipse(35,-26,7.5,7,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#f7fff0';
+  ctx.beginPath();ctx.arc(37,-27,4.8,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#17231b';
+  ctx.beginPath();ctx.arc(38.5,-27,2.25,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#fff';
+  ctx.beginPath();ctx.arc(39.2,-27.8,.75,0,Math.PI*2);ctx.fill();
 
-  // Nostril and smile.
-  ctx.fillStyle='#214a27';ctx.beginPath();ctx.arc(42,-10,1.6,0,Math.PI*2);ctx.fill();
-  ctx.strokeStyle='#214a27';ctx.lineWidth=2.5;
-  ctx.beginPath();ctx.arc(37,-8,12,.05,1.15);ctx.stroke();
-
-  // Tiny throat highlight.
-  ctx.strokeStyle='rgba(38,88,38,.5)';ctx.lineWidth=2;
-  ctx.beginPath();ctx.arc(23,-2,10,-.6,1.0);ctx.stroke();
+  // Nostril, mouth and subtle cheek line.
+  ctx.fillStyle='#214a27';
+  ctx.beginPath();ctx.arc(40,-10,1.25,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#214a27';ctx.lineWidth=2.2;
+  ctx.beginPath();ctx.moveTo(35,-5);ctx.quadraticCurveTo(42,-1,47,-6);ctx.stroke();
+  ctx.strokeStyle='rgba(38,88,38,.48)';ctx.lineWidth=1.8;
+  ctx.beginPath();ctx.arc(24,-2,9,-.6,.85);ctx.stroke();
 
   ctx.restore();
 }
