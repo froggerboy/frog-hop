@@ -37,14 +37,17 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 .skinname{font-weight:900;font-size:15px}
 .skincost{font-size:13px;margin-top:4px;color:#fff5a0}
 .secondary{margin-top:8px;background:rgba(255,255,255,.12)!important}
+
+.runflies{font-size:9px;letter-spacing:.7px;font-weight:800;opacity:.72;margin-top:1px}
+#shopBtn{margin-top:10px}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <div id="hud">
   <div class="hudbox"><span class="hudlabel">Best</span><span class="hudnum" id="best">0</span></div>
-  <div id="centerScore"><div class="num" id="score">0</div><div class="label">SCORE</div></div>
-  <div class="hudbox"><span class="hudlabel">Banked ✨</span><span class="hudnum" id="bankedHUD">0</span></div><div class="hudbox"><span class="hudlabel">Run</span><span class="hudnum" id="fireflyCount">0</span></div>
+  <div id="centerScore"><div class="num" id="score">0</div><div class="label">SCORE</div><div class="runflies">✨ <span id="fireflyCount">0</span> this run</div></div>
+  <div class="hudbox"><span class="hudlabel">Banked ✨</span><span class="hudnum" id="bankedHUD">0</span></div>
 </div>
 
 <div id="shop" class="overlay hidden">
@@ -60,7 +63,7 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
   <div class="card">
     <div class="logo">FROG HOP</div>
     <p class="subtitle" id="msg">Leap through the snakes and survive the swamp!</p>
-    <button id="btn">PLAY</button>
+    <button id="btn">PLAY</button><button id="shopBtn" class="secondary">🐸 FROG SKINS</button>
     <div class="small">Tap anywhere to hop<br>Your best score saves automatically</div>
   </div>
 </div>
@@ -99,11 +102,12 @@ function renderShop(){
     const selected=selectedSkin===skin.id;
     const div=document.createElement('div');
     div.className='skin'+(selected?' selected':'')+(!unlocked?' locked':'');
-    div.innerHTML=`<div class="skinpreview">${skin.emoji}</div><div class="skinname">${skin.name}</div><div class="skincost">${unlocked?(selected?'✓ EQUIPPED':'TAP TO EQUIP'):'✨ '+skin.cost+' FIREFLIES'}</div>`;
+    div.innerHTML=`<div class="skinpreview" style="color:${skin.body};text-shadow:0 2px 0 ${skin.accent}">🐸</div><div class="skinname">${skin.name}</div><div class="skincost">${unlocked?(selected?'✓ EQUIPPED':'TAP TO EQUIP'):'✨ '+skin.cost+' FIREFLIES'}</div>`;
     div.onclick=()=>{
       if(unlocked){
         selectedSkin=skin.id;
         saveCollection();
+        bankedHudEl.textContent=bankedFireflies;
         renderShop();
       }else if(bankedFireflies>=skin.cost){
         bankedFireflies-=skin.cost;
@@ -124,6 +128,7 @@ function openShop(){
 function closeShop(){
   document.getElementById('shop').classList.add('hidden');
 }
+document.getElementById('shopBtn').onclick=e=>{e.stopPropagation();openShop()};document.getElementById('closeShop').onclick=closeShop;
 const c=document.getElementById('c'),ctx=c.getContext('2d'),scoreEl=document.getElementById('score'),bestEl=document.getElementById('best'),fireflyEl=document.getElementById('fireflyCount'),bankedHudEl=document.getElementById('bankedHUD');
 let W=0,H=0,dpr=1,game=null,last=0;
 
@@ -239,6 +244,7 @@ function over(){
   bestEl.textContent=b;
   msg.innerHTML=`You scored <b>${game.score}</b><br>Best: <b>${b}</b>`;
   btn.textContent='PLAY AGAIN';
+  document.getElementById('shopBtn').textContent='🐸 FROG SKINS';
   overlay.classList.remove('hidden');
 }
 function jump(){
