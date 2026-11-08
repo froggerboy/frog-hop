@@ -18,6 +18,7 @@ canvas{width:100%;height:100%;display:block}
 #centerScore{position:absolute;left:50%;transform:translateX(-50%);top:9px;text-align:center;color:#fff;text-shadow:0 3px 8px rgba(0,0,0,.3)}
 #centerScore .num{font-size:37px;line-height:40px;font-weight:950}
 #centerScore .label{font-size:9px;letter-spacing:2.2px;font-weight:900;opacity:.78}
+.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(5,18,24,.36)}
 #overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(5,18,24,.36);z-index:10}
 .card{width:min(88vw,390px);max-height:78vh;overflow:auto;padding:31px 24px 27px;border:2px solid rgba(255,239,170,.68);border-radius:30px;background:linear-gradient(180deg,rgba(13,50,56,.97),rgba(7,31,39,.98));box-shadow:0 24px 70px rgba(0,0,0,.4);text-align:center;color:#fff}
 .logo{font-size:clamp(39px,11vw,58px);line-height:1;font-weight:950;letter-spacing:1px;color:#c8f86b;text-shadow:0 4px 0 #315b2c;margin:0 0 8px}
@@ -44,7 +45,7 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 #shopBtn{position:relative;z-index:50;pointer-events:auto;touch-action:manipulation}
 #shop{z-index:200}
 
-#shop{z-index:1000;pointer-events:auto}
+#shop{z-index:20;pointer-events:auto}
 #shop .card{pointer-events:auto}
 #shopBtn,#closeShop,.skin{pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .shopcard{max-width:470px;width:calc(100% - 24px);max-height:88vh;overflow-y:auto;padding:22px 18px}
@@ -133,7 +134,7 @@ function renderShop(){
         )+
       '</div>';
 
-    div.addEventListener('pointerdown',function(e){
+    function chooseSkin(e){
       e.preventDefault();
       e.stopPropagation();
 
@@ -149,7 +150,10 @@ function renderShop(){
         bankedHudEl.textContent=bankedFireflies;
         renderShop();
       }
-    });
+    }
+    div.addEventListener('pointerdown',chooseSkin,true);
+    div.addEventListener('touchstart',chooseSkin,{capture:true,passive:false});
+    div.addEventListener('click',chooseSkin,true);
 
     grid.appendChild(div);
   }
@@ -288,42 +292,54 @@ function jump(){
   game.f.vy=-7.85;
   game.f.rot=-.45;
 }
+
 btn.onclick=e=>{e.preventDefault();e.stopPropagation();start()};
 
 const shopButton=document.getElementById('shopBtn');
-shopButton.addEventListener('pointerdown',e=>{
-  e.preventDefault();
-  e.stopPropagation();
-  openShop();
-},true);
-shopButton.addEventListener('click',e=>{
-  e.preventDefault();
-  e.stopPropagation();
-  openShop();
-},true);
+const closeShopButton=document.getElementById('closeShop');
 
-document.getElementById('closeShop').addEventListener('pointerdown',e=>{
+function handleShopOpen(e){
+  e.preventDefault();
+  e.stopPropagation();
+  openShop();
+}
+function handleShopClose(e){
   e.preventDefault();
   e.stopPropagation();
   closeShop();
-},true);
-document.getElementById('closeShop').addEventListener('click',e=>{
-  e.preventDefault();
-  e.stopPropagation();
-  closeShop();
-},true);
-addEventListener('pointerdown',e=>{
-  if(e.target===btn || e.target===shopButton || e.target.closest?.('#shop,.skin,button')) return;
+}
+
+/* iPhone-safe button handling */
+shopButton.addEventListener('pointerdown',handleShopOpen,true);
+shopButton.addEventListener('touchstart',handleShopOpen,{capture:true,passive:false});
+shopButton.addEventListener('click',handleShopOpen,true);
+
+closeShopButton.addEventListener('pointerdown',handleShopClose,true);
+closeShopButton.addEventListener('touchstart',handleShopClose,{capture:true,passive:false});
+closeShopButton.addEventListener('click',handleShopClose,true);
+
+/* Game input is attached directly to the canvas so the UI cannot swallow taps. */
+function handleGameTap(e){
+  if(e.target.closest?.('#shop,.skin,button')) return;
   if(document.getElementById('shop')?.classList.contains('hidden')===false) return;
-  if(game?.run)jump();else start();
-});
+  e.preventDefault();
+  if(game?.run) jump();
+  else start();
+}
+
+c.addEventListener('pointerdown',handleGameTap,{passive:false});
+c.addEventListener('touchstart',handleGameTap,{capture:false,passive:false});
+
 addEventListener('keydown',e=>{
   const shopOpen=!document.getElementById('shop')?.classList.contains('hidden');
   if(shopOpen){
     if(e.code==='Escape') closeShop();
     return;
   }
-  if(e.code==='Space'){e.preventDefault();game?.run?jump():start()}
+  if(e.code==='Space'){
+    e.preventDefault();
+    game?.run?jump():start();
+  }
 });
 
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
