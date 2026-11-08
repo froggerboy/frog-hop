@@ -26,6 +26,17 @@ button{appearance:none;border:0;font:inherit;font-weight:900;font-size:21px;lett
 button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 .small{margin-top:18px;color:#d7e6e0;font-size:13px;line-height:1.45}
 .hidden{display:none!important}
+
+.shopcard{max-width:430px;width:calc(100% - 28px);max-height:82vh;overflow:auto}
+.bank{font-weight:800;font-size:18px;margin:8px 0 14px;color:#fff5a0}
+.skingrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:10px 0 14px}
+.skin{border:2px solid rgba(255,255,255,.15);border-radius:16px;padding:10px;background:rgba(0,0,0,.18);color:#fff;cursor:pointer}
+.skin.selected{border-color:#fff5a0;box-shadow:0 0 0 2px rgba(255,245,160,.18)}
+.skin.locked{opacity:.8}
+.skinpreview{height:70px;display:flex;align-items:center;justify-content:center;font-size:46px}
+.skinname{font-weight:900;font-size:15px}
+.skincost{font-size:13px;margin-top:4px;color:#fff5a0}
+.secondary{margin-top:8px;background:rgba(255,255,255,.12)!important}
 </style>
 </head>
 <body>
@@ -33,7 +44,17 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 <div id="hud">
   <div class="hudbox"><span class="hudlabel">Best</span><span class="hudnum" id="best">0</span></div>
   <div id="centerScore"><div class="num" id="score">0</div><div class="label">SCORE</div></div>
-  <div class="hudbox"><span class="hudlabel">Fireflies</span><span class="hudnum" id="fireflyCount">0</span></div>
+  <div class="hudbox"><span class="hudlabel">Banked ✨</span><span class="hudnum" id="bankedHUD">0</span></div><div class="hudbox"><span class="hudlabel">Run</span><span class="hudnum" id="fireflyCount">0</span></div>
+</div>
+
+<div id="shop" class="overlay hidden">
+  <div class="card shopcard">
+    <div class="eyebrow">FROG HOP COLLECTION</div>
+    <h1>🐸 Frog Skins</h1>
+    <div class="bank">✨ <span id="bankedFireflies">0</span> Fireflies</div>
+    <div id="skinGrid" class="skingrid"></div>
+    <button id="closeShop" class="secondary">BACK</button>
+  </div>
 </div>
 <div id="overlay">
   <div class="card">
@@ -45,7 +66,65 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 </div>
 
 <script>
-const c=document.getElementById('c'),ctx=c.getContext('2d'),scoreEl=document.getElementById('score'),bestEl=document.getElementById('best'),fireflyEl=document.getElementById('fireflyCount');
+
+const SKINS = [
+  {id:'green',name:'Swampy',cost:0,body:'#63b85a',belly:'#d9f0a0',accent:'#3b8f3c',emoji:'🐸'},
+  {id:'blue',name:'Bluebolt',cost:25,body:'#4f9ee8',belly:'#c9e8ff',accent:'#2866a8',emoji:'🐸'},
+  {id:'purple',name:'Mystic',cost:50,body:'#9b62d8',belly:'#ead8ff',accent:'#65349b',emoji:'🐸'},
+  {id:'gold',name:'Golden',cost:100,body:'#f0b83f',belly:'#fff0a6',accent:'#b97910',emoji:'🐸'},
+  {id:'red',name:'Ember',cost:175,body:'#e85b4f',belly:'#ffd1b8',accent:'#a52f28',emoji:'🐸'},
+  {id:'midnight',name:'Midnight',cost:250,body:'#3c506d',belly:'#b7c7dc',accent:'#202c40',emoji:'🐸'}
+];
+
+let bankedFireflies = Number(localStorage.getItem('frogHopFireflies') || 0);
+let unlockedSkins = JSON.parse(localStorage.getItem('frogHopSkins') || '["green"]');
+let selectedSkin = localStorage.getItem('frogHopSkin') || 'green';
+
+function saveCollection(){
+  localStorage.setItem('frogHopFireflies', String(bankedFireflies));
+  localStorage.setItem('frogHopSkins', JSON.stringify(unlockedSkins));
+  localStorage.setItem('frogHopSkin', selectedSkin);
+}
+
+function currentSkin(){
+  return SKINS.find(s=>s.id===selectedSkin) || SKINS[0];
+}
+
+function renderShop(){
+  document.getElementById('bankedFireflies').textContent=bankedFireflies;
+  const grid=document.getElementById('skinGrid');
+  grid.innerHTML='';
+  for(const skin of SKINS){
+    const unlocked=unlockedSkins.includes(skin.id);
+    const selected=selectedSkin===skin.id;
+    const div=document.createElement('div');
+    div.className='skin'+(selected?' selected':'')+(!unlocked?' locked':'');
+    div.innerHTML=`<div class="skinpreview">${skin.emoji}</div><div class="skinname">${skin.name}</div><div class="skincost">${unlocked?(selected?'✓ EQUIPPED':'TAP TO EQUIP'):'✨ '+skin.cost+' FIREFLIES'}</div>`;
+    div.onclick=()=>{
+      if(unlocked){
+        selectedSkin=skin.id;
+        saveCollection();
+        renderShop();
+      }else if(bankedFireflies>=skin.cost){
+        bankedFireflies-=skin.cost;
+        unlockedSkins.push(skin.id);
+        selectedSkin=skin.id;
+        saveCollection();
+        renderShop();
+      }
+    };
+    grid.appendChild(div);
+  }
+}
+
+function openShop(){
+  renderShop();
+  document.getElementById('shop').classList.remove('hidden');
+}
+function closeShop(){
+  document.getElementById('shop').classList.add('hidden');
+}
+const c=document.getElementById('c'),ctx=c.getContext('2d'),scoreEl=document.getElementById('score'),bestEl=document.getElementById('best'),fireflyEl=document.getElementById('fireflyCount'),bankedHudEl=document.getElementById('bankedHUD');
 let W=0,H=0,dpr=1,game=null,last=0;
 
 // Celebration effects for scores 10, 20, 30, ...
@@ -148,6 +227,7 @@ function start(){
   };
   scoreEl.textContent='0';
   fireflyEl.textContent='0';
+  bankedHudEl.textContent=bankedFireflies;
   overlay.classList.add('hidden');
   jump();
 }
@@ -546,10 +626,13 @@ function updateFireflies(dt){
     const dy=f.y-game.f.y;
     if(dx*dx+dy*dy < 30*30){
       game.fireflyCount++;
+      bankedFireflies++;
       game.score++;
       scoreEl.textContent=game.score;
       fireflyEl.textContent=game.fireflyCount;
+      bankedHudEl.textContent=bankedFireflies;
       game.fireflies.splice(i,1);
+      saveCollection();
 
       if(game.fireflyCount % 10 === 0 && game.score!==lastCelebratedScore){
         lastCelebratedScore=game.score;
