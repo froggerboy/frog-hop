@@ -499,9 +499,20 @@ function spawnFirefly(){
   const margin = 26;
   const usable = Math.max(8, bottom - top - margin*2);
 
+  // Randomize both horizontal and vertical placement inside the opening.
+  // Keep a safe margin from the snakes and occasionally bias the firefly
+  // toward the upper or lower part of the gap instead of always centering it.
+  const horizontalOffset = (Math.random() - 0.5) * Math.max(20, target.w * 0.8);
+  let verticalRatio = Math.random();
+  if(Math.random() < 0.5){
+    verticalRatio = Math.random() < 0.5
+      ? Math.random() * 0.35
+      : 0.65 + Math.random() * 0.35;
+  }
+
   game.fireflies.push({
-    x: target.x + target.w/2,
-    baseY: top + margin + Math.random()*usable,
+    x: target.x + target.w/2 + horizontalOffset,
+    baseY: top + margin + verticalRatio * usable,
     y: 0,
     phase: Math.random()*Math.PI*2,
     life: 0
