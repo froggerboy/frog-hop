@@ -242,15 +242,19 @@ let lastCelebratedScore=0;
 
 
 function checkEyeMilestone(){
-  const now=Math.floor((game.score||0)/20)*20;
-  if(now>0 && now!==game.lastEyeMilestone){
+  const score=game.score||0;
+  const now=Math.floor(score/20)*20;
+  if(now!==game.lastEyeMilestone){
     game.lastEyeMilestone=now;
-    // Eye milestone only changes the frog's eyes; celebration is handled
-    // separately whenever the score lands exactly on a 10-point milestone.
-    if(now<=100){
-      // no celebration here
-    }
   }
+  // Keep the eye state explicitly tied to score so it cannot be lost when
+  // the frog skin or accessory changes.
+  if(score>=100) game.eyeType='diamond';
+  else if(score>=80) game.eyeType='sapphire';
+  else if(score>=60) game.eyeType='ruby';
+  else if(score>=40) game.eyeType='star';
+  else if(score>=20) game.eyeType='heart';
+  else game.eyeType='normal';
 }
 
 function celebrate(score){
@@ -340,7 +344,7 @@ function start(){
   confetti=[]; celebration=0; celebrationText=''; lastCelebratedScore=0;
   game={
     run:true,score:0,time:0,speed:3.8,next:0,
-    fireflies:[],fireflyCount:0,fireflyTimer:0,lastEyeMilestone:0,lastSpecialFireflyMilestone:0,
+    fireflies:[],fireflyCount:0,fireflyTimer:0,lastEyeMilestone:0,eyeType:'normal',lastSpecialFireflyMilestone:0,
     targetCenter:H*.46,
     f:{x:W*.25,y:H*.46,vy:0,rot:0,blink:0},
     pipes:[]
@@ -625,15 +629,7 @@ function snake(x,edge,length,top,phase=0){
   ctx.restore();
 }
 
-function eyeMilestone(){
-  const n=Math.floor((game.score||0)/20)*20;
-  if(n>=100)return 'diamond';
-  if(n>=80)return 'sapphire';
-  if(n>=60)return 'ruby';
-  if(n>=40)return 'star';
-  if(n>=20)return 'heart';
-  return 'normal';
-}
+function eyeMilestone(){ return game.eyeType || 'normal'; }
 function drawSpecialEye(x,y,type){
   ctx.save();
   ctx.translate(x,y);
@@ -801,10 +797,20 @@ function frog(){
 
   // Accessory worn by the frog. Only one can be equipped at a time.
   if(selectedAccessory==='cap'){
-    ctx.save();ctx.translate(39,-31);ctx.rotate(-.10);
-    ctx.fillStyle='#d94a42';ctx.strokeStyle='#7f2420';ctx.lineWidth=2.5;
-    ctx.beginPath();ctx.ellipse(0,0,15,7,0,Math.PI,Math.PI*2);ctx.fill();ctx.stroke();
-    ctx.beginPath();ctx.moveTo(-13,0);ctx.quadraticCurveTo(-4,5,10,3);ctx.lineTo(18,5);ctx.quadraticCurveTo(5,-1,-5,-2);ctx.closePath();ctx.fill();ctx.stroke();
+    // Backwards cap: rounded crown with the brim clearly pointing behind the frog.
+    ctx.save();ctx.translate(39,-31);ctx.rotate(-.06);
+    ctx.fillStyle='#d94a42';ctx.strokeStyle='#7f2420';ctx.lineWidth=2.4;
+    ctx.beginPath();
+    ctx.moveTo(-14,1);ctx.quadraticCurveTo(-14,-13,-2,-16);
+    ctx.quadraticCurveTo(10,-18,15,-7);ctx.quadraticCurveTo(16,-2,13,2);
+    ctx.quadraticCurveTo(1,5,-14,1);ctx.closePath();ctx.fill();ctx.stroke();
+    // Backwards brim, extending toward the frog's rear (left).
+    ctx.beginPath();
+    ctx.moveTo(-10,-1);ctx.quadraticCurveTo(-18,-2,-25,2);
+    ctx.quadraticCurveTo(-20,7,-10,7);ctx.quadraticCurveTo(-4,6,1,3);ctx.closePath();ctx.fill();ctx.stroke();
+    // Cap seam/highlight for a more rounded, dimensional look.
+    ctx.strokeStyle='rgba(255,170,160,.75)';ctx.lineWidth=1.3;
+    ctx.beginPath();ctx.moveTo(-2,-14);ctx.quadraticCurveTo(7,-12,11,-5);ctx.stroke();
     ctx.restore();
   }else if(selectedAccessory==='party'){
     ctx.save();ctx.translate(41,-42);ctx.rotate(-.12);
@@ -936,7 +942,7 @@ function updateFireflies(dt){
     const center=H*.5;
     const range=Math.min(f.verticalRange||Math.max(70,H*.42),center-edge);
     f.y=Math.max(edge,Math.min(H-edge,center+Math.sin(f.life*0.04+f.phase)*range));
-    f.baseX-=game.speed*dt;
+    f.baseX-=game.speed*0.78*dt;
     f.x=f.baseX+Math.sin(f.life*0.16+f.phase*1.3)*80;
     if(f.x<-30){game.fireflies.splice(i,1);continue}
     if(Math.hypot(f.x-game.f.x,f.y-game.f.y)<30){
