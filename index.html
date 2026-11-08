@@ -94,7 +94,7 @@ const SKINS = [
   {id:'green',name:'Swampy',cost:0,body:'#63b85a',belly:'#d9f0a0',accent:'#3b8f3c',highlight:'#a8ee60',emoji:'🐸'},
   {id:'blue',name:'Bluebolt',cost:25,body:'#4f9ee8',belly:'#c9e8ff',accent:'#2866a8',highlight:'#8fc7ff',emoji:'🐸'},
   {id:'purple',name:'Mystic',cost:50,body:'#9b62d8',belly:'#ead8ff',accent:'#65349b',highlight:'#c59af0',emoji:'🐸'},
-  {id:'gold',name:'Golden',cost:100,body:'#f0b83f',belly:'#fff0a6',accent:'#b97910',highlight:'#ffd76a',emoji:'🐸'},
+  {id:'gold',name:'Yellow',cost:100,body:'#f5d84a',belly:'#fff5b0',accent:'#b49a12',highlight:'#fff08a',emoji:'🐸'},
   {id:'red',name:'Ember',cost:175,body:'#e85b4f',belly:'#ffd1b8',accent:'#a52f28',highlight:'#ff8b6d',emoji:'🐸'},
   {id:'midnight',name:'Midnight',cost:250,body:'#3c506d',belly:'#b7c7dc',accent:'#202c40',highlight:'#647d9e',emoji:'🐸'},
   {id:'rainbow',name:'Rainbow',cost:500,body:'#ff5b5b',belly:'#fff2a8',accent:'#7b3fb2',highlight:'#ffdf5b',emoji:'🌈🐸',special:'rainbow'},
@@ -198,6 +198,17 @@ let celebration=0;
 let celebrationText='';
 let lastCelebratedScore=0;
 
+
+function checkEyeMilestone(){
+  const now=Math.floor((game.score||0)/20)*20;
+  if(now>0 && now!==game.lastEyeMilestone){
+    game.lastEyeMilestone=now;
+    if(now<=100){
+      celebrate(now);
+    }
+  }
+}
+
 function celebrate(score){
   celebration=75;
   celebrationText=String(score);
@@ -285,7 +296,7 @@ function start(){
   confetti=[]; celebration=0; celebrationText=''; lastCelebratedScore=0;
   game={
     run:true,score:0,time:0,speed:3.8,next:0,
-    fireflies:[],fireflyCount:0,fireflyTimer:0,
+    fireflies:[],fireflyCount:0,fireflyTimer:0,lastEyeMilestone:0,
     targetCenter:H*.46,
     f:{x:W*.25,y:H*.46,vy:0,rot:0,blink:0},
     pipes:[]
@@ -556,6 +567,74 @@ function snake(x,edge,length,top,phase=0){
   ctx.restore();
 }
 
+function eyeMilestone(){
+  const n=Math.floor((game.score||0)/20)*20;
+  if(n>=100)return 'diamond';
+  if(n>=80)return 'sapphire';
+  if(n>=60)return 'ruby';
+  if(n>=40)return 'star';
+  if(n>=20)return 'heart';
+  return 'normal';
+}
+function drawSpecialEye(x,y,type){
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.lineJoin='round';
+  ctx.lineCap='round';
+
+  if(type==='heart'){
+    ctx.fillStyle='#ff4f79';
+    ctx.beginPath();
+    ctx.moveTo(0,5);
+    ctx.bezierCurveTo(-10,-1,-7,-9,0,-5);
+    ctx.bezierCurveTo(7,-9,10,-1,0,5);
+    ctx.fill();
+  }else if(type==='star'){
+    ctx.fillStyle='#ffe45c';
+    ctx.strokeStyle='#a97800';
+    ctx.lineWidth=1.5;
+    ctx.beginPath();
+    for(let i=0;i<10;i++){
+      const a=-Math.PI/2+i*Math.PI/5;
+      const r=i%2?3.5:7;
+      const px=Math.cos(a)*r,py=Math.sin(a)*r;
+      i?ctx.lineTo(px,py):ctx.moveTo(px,py);
+    }
+    ctx.closePath();ctx.fill();ctx.stroke();
+  }else if(type==='ruby'){
+    ctx.fillStyle='#e5394f';
+    ctx.strokeStyle='#8d1426';
+    ctx.lineWidth=1.5;
+    ctx.beginPath();
+    ctx.moveTo(0,-7);ctx.lineTo(6,-3);ctx.lineTo(5,4);ctx.lineTo(0,7);
+    ctx.lineTo(-5,4);ctx.lineTo(-6,-3);ctx.closePath();
+    ctx.fill();ctx.stroke();
+    ctx.strokeStyle='rgba(255,255,255,.7)';
+    ctx.beginPath();ctx.moveTo(-3,-3);ctx.lineTo(0,-5);ctx.lineTo(2,-2);ctx.stroke();
+  }else if(type==='sapphire'){
+    ctx.fillStyle='#4b9cff';
+    ctx.strokeStyle='#174b9c';
+    ctx.lineWidth=1.5;
+    ctx.beginPath();
+    ctx.moveTo(0,-7);ctx.lineTo(6,-4);ctx.lineTo(6,3);ctx.lineTo(0,7);
+    ctx.lineTo(-6,3);ctx.lineTo(-6,-4);ctx.closePath();
+    ctx.fill();ctx.stroke();
+    ctx.strokeStyle='rgba(255,255,255,.75)';
+    ctx.beginPath();ctx.moveTo(-3,-3);ctx.lineTo(0,-5);ctx.lineTo(3,-2);ctx.stroke();
+  }else if(type==='diamond'){
+    ctx.fillStyle='#dffaff';
+    ctx.strokeStyle='#54cfe8';
+    ctx.lineWidth=1.5;
+    ctx.beginPath();
+    ctx.moveTo(0,-8);ctx.lineTo(7,0);ctx.lineTo(0,8);ctx.lineTo(-7,0);ctx.closePath();
+    ctx.fill();ctx.stroke();
+    ctx.strokeStyle='rgba(255,255,255,.95)';
+    ctx.beginPath();
+    ctx.moveTo(-4,0);ctx.lineTo(0,-4);ctx.lineTo(4,0);ctx.lineTo(0,4);ctx.stroke();
+  }
+  ctx.restore();
+}
+
 function frog(){
   const f=game.f;
   const skin=currentSkin();
@@ -645,9 +724,22 @@ function frog(){
   // Eye bump and eye.
   ctx.fillStyle=skin.special==='rainbow' ? '#8d4fc4' : bodyMain;
   ctx.beginPath();ctx.ellipse(35,-26,7.5,7,0,0,Math.PI*2);ctx.fill();ctx.stroke();
-  ctx.fillStyle='#f7fff0';ctx.beginPath();ctx.arc(37,-27,4.8,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#17231b';ctx.beginPath();ctx.arc(38.5,-27,2.25,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(39.2,-27.8,.75,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(50,-25,7.5,7,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+  const eyeType=eyeMilestone();
+  if(eyeType==='normal'){
+    ctx.fillStyle='#f7fff0';ctx.beginPath();ctx.arc(37,-27,4.8,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#17231b';ctx.beginPath();ctx.arc(38.5,-27,2.25,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(39.2,-27.8,.75,0,Math.PI*2);ctx.fill();
+  }else{
+    drawSpecialEye(37,-27,eyeType);
+  }
+  if(eyeType==='normal'){
+    ctx.fillStyle='#f7fff0';ctx.beginPath();ctx.arc(52,-26,4.8,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#17231b';ctx.beginPath();ctx.arc(53.5,-26,2.25,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(54.2,-26.8,.75,0,Math.PI*2);ctx.fill();
+  }else{
+    drawSpecialEye(52,-26,eyeType);
+  }
 
   // Face.
   ctx.fillStyle=bodyDark;ctx.beginPath();ctx.arc(40,-10,1.2,0,Math.PI*2);ctx.fill();
@@ -766,7 +858,7 @@ function updateFireflies(dt){
     if(dx*dx+dy*dy < 30*30){
       game.fireflyCount++;
       bankedFireflies++;
-      game.score++;
+      game.score++;checkEyeMilestone();
       scoreEl.textContent=game.score;
       fireflyEl.textContent=game.fireflyCount;
       bankedHudEl.textContent=bankedFireflies;
@@ -849,7 +941,7 @@ function loop(t){
 
       if(!p.scored && p.x+p.w<game.f.x){
         p.scored=true;
-        game.score++;
+        game.score++;checkEyeMilestone();
         scoreEl.textContent=game.score;
         if(game.score>=10 && game.score%10===0 && game.score!==lastCelebratedScore){
           lastCelebratedScore=game.score;
