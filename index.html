@@ -181,10 +181,10 @@ function renderShop(){
 
     function chooseSkin(e){
       e.preventDefault(); e.stopPropagation();
-      if(unlocked){ selectedSkin=skin.id; saveCollection(); renderShop(); }
+      if(unlocked){ selectedSkin=skin.id; saveCollection(); initAudio(); sfxEquip(); renderShop(); }
       else if(bankedFireflies>=skin.cost){
         bankedFireflies-=skin.cost; unlockedSkins.push(skin.id); selectedSkin=skin.id;
-        saveCollection(); bankedHudEl.textContent=bankedFireflies; renderShop();
+        saveCollection(); bankedHudEl.textContent=bankedFireflies; initAudio(); sfxUnlock(); renderShop();
       }
     }
     div.addEventListener('pointerdown',chooseSkin,true);
@@ -199,9 +199,9 @@ function renderShop(){
   const none=document.createElement('div');
   none.className='skin accessory'+(selectedAccessory==='none'?' equipped':'');
   none.innerHTML='<div class="accessorypreview">🐸</div><div class="skinname">No Accessory</div><div class="scorecost">'+(selectedAccessory==='none'?'✓ EQUIPPED':'TAP TO EQUIP')+'</div>';
-  none.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();selectedAccessory='none';saveCollection();renderShop()},true);
-  none.addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();selectedAccessory='none';saveCollection();renderShop()},{capture:true,passive:false});
-  none.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();selectedAccessory='none';saveCollection();renderShop()},true);
+  none.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();selectedAccessory='none';saveCollection();initAudio();sfxEquip();renderShop()},true);
+  none.addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();selectedAccessory='none';saveCollection();initAudio();sfxEquip();renderShop()},{capture:true,passive:false});
+  none.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();selectedAccessory='none';saveCollection();initAudio();sfxEquip();renderShop()},true);
   ag.appendChild(none);
 
   for(const item of ACCESSORIES){
@@ -212,7 +212,7 @@ function renderShop(){
     div.innerHTML='<div class="accessorypreview">'+item.emoji+'</div><div class="skinname">'+item.name+'</div><div class="scorecost">'+(unlocked?(equipped?'✓ EQUIPPED':'TAP TO EQUIP'):'🔒 BEST SCORE '+item.score)+'</div>';
     function chooseAccessory(e){
       e.preventDefault();e.stopPropagation();
-      if(unlocked){selectedAccessory=item.id;saveCollection();renderShop();}
+      if(unlocked){selectedAccessory=item.id;saveCollection();initAudio();sfxEquip();renderShop();}
     }
     div.addEventListener('pointerdown',chooseAccessory,true);
     div.addEventListener('touchstart',chooseAccessory,{capture:true,passive:false});
@@ -233,6 +233,41 @@ function closeShop(){
 
 const c=document.getElementById('c'),ctx=c.getContext('2d'),scoreEl=document.getElementById('score'),bestEl=document.getElementById('best'),fireflyEl=document.getElementById('fireflyCount'),bankedHudEl=document.getElementById('bankedHUD');
 let W=0,H=0,dpr=1,game=null,last=0;
+
+// Lightweight WebAudio sound pack. Audio starts after the first user interaction.
+let audioCtx=null, masterGain=null, soundEnabled=true;
+function initAudio(){
+  if(audioCtx) { if(audioCtx.state==='suspended') audioCtx.resume(); return; }
+  try{
+    audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    masterGain=audioCtx.createGain(); masterGain.gain.value=.16; masterGain.connect(audioCtx.destination);
+  }catch(e){ soundEnabled=false; }
+}
+function tone(freq,dur,type='sine',vol=.18,when=0,slide=0){
+  if(!soundEnabled)return; initAudio(); if(!audioCtx||!masterGain)return;
+  const t=audioCtx.currentTime+when, o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.type=type; o.frequency.setValueAtTime(freq,t);
+  if(slide) o.frequency.exponentialRampToValueAtTime(Math.max(40,freq+slide),t+dur);
+  g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(Math.max(.0001,vol),t+.012);
+  g.gain.exponentialRampToValueAtTime(.0001,t+dur); o.connect(g); g.connect(masterGain); o.start(t); o.stop(t+dur+.02);
+}
+function noise(dur=.08,vol=.08,when=0){
+  if(!soundEnabled)return; initAudio(); if(!audioCtx||!masterGain)return;
+  const t=audioCtx.currentTime+when, n=audioCtx.createBufferSource(), b=audioCtx.createBuffer(1,audioCtx.sampleRate*dur,audioCtx.sampleRate), data=b.getChannelData(0);
+  for(let i=0;i<data.length;i++) data[i]=(Math.random()*2-1)*Math.pow(1-i/data.length,2);
+  const g=audioCtx.createGain(); g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  n.buffer=b; n.connect(g); g.connect(masterGain); n.start(t); n.stop(t+dur+.01);
+}
+function sfxJump(){ tone(330,.09,'sine',.12,0,170); tone(520,.12,'triangle',.08,.025,-80); }
+function sfxPass(){ tone(620,.06,'triangle',.08); tone(880,.08,'triangle',.07,.045,80); }
+function sfxHit(){ noise(.16,.11); tone(150,.18,'sawtooth',.10,0,-90); }
+function sfxFirefly(){ tone(880,.08,'sine',.09); tone(1320,.12,'sine',.08,.055,140); }
+function sfxSpecialFirefly(){ tone(660,.09,'triangle',.10); tone(990,.12,'triangle',.11,.07,180); tone(1480,.18,'sine',.08,.14,180); }
+function sfxMilestone(){ tone(523,.09,'triangle',.10); tone(659,.09,'triangle',.09,.07); tone(784,.16,'triangle',.10,.14); }
+function sfxUnlock(){ tone(392,.09,'triangle',.10); tone(523,.09,'triangle',.10,.08); tone(659,.13,'triangle',.11,.16); tone(1047,.25,'sine',.09,.28); }
+function sfxEquip(){ tone(520,.06,'sine',.08); tone(780,.11,'sine',.07,.05); }
+function sfxCroak(){ tone(180,.16,'square',.045,0,-35); tone(130,.18,'square',.035,.08,-25); }
+function sfxGameOver(){ tone(440,.12,'triangle',.09); tone(330,.14,'triangle',.08,.1,-40); tone(220,.28,'triangle',.07,.22,-70); }
 
 // Celebration effects for scores 10, 20, 30, ...
 let confetti=[];
@@ -255,6 +290,7 @@ function checkEyeMilestone(){
   else if(score>=40) game.eyeType='star';
   else if(score>=20) game.eyeType='heart';
   else game.eyeType='normal';
+  if(now>0 && now!==game.lastEyeSoundMilestone){ game.lastEyeSoundMilestone=now; initAudio(); sfxMilestone(); }
 }
 
 function celebrate(score){
@@ -344,7 +380,7 @@ function start(){
   confetti=[]; celebration=0; celebrationText=''; lastCelebratedScore=0;
   game={
     run:true,score:0,time:0,speed:3.8,next:0,
-    fireflies:[],fireflyCount:0,fireflyTimer:0,lastEyeMilestone:0,eyeType:'normal',lastSpecialFireflyMilestone:0,
+    fireflies:[],fireflyCount:0,fireflyTimer:0,lastEyeMilestone:0,lastEyeSoundMilestone:0,eyeType:'normal',lastSpecialFireflyMilestone:0,croakTimer:8,
     targetCenter:H*.46,
     f:{x:W*.25,y:H*.46,vy:0,rot:0,blink:0},
     pipes:[]
@@ -357,6 +393,7 @@ function start(){
 }
 function over(){
   if(!game||!game.run)return;
+  initAudio(); sfxGameOver();
   game.run=false;
   const b=Math.max(best(),game.score);
   localStorage.setItem(BEST_KEY,b);
@@ -368,6 +405,8 @@ function over(){
 }
 function jump(){
   if(!game?.run)return;
+  initAudio();
+  sfxJump();
   game.f.vy=-7.85;
   game.f.rot=-.45;
 }
@@ -413,6 +452,7 @@ closeShopButton.addEventListener('click',handleShopClose,true);
 
 /* Game input is attached directly to the canvas so the UI cannot swallow taps. */
 function handleGameTap(e){
+  initAudio();
   if(e.target.closest?.('#shop,.skin,button')) return;
   if(document.getElementById('shop')?.classList.contains('hidden')===false) return;
   e.preventDefault();
@@ -424,6 +464,7 @@ c.addEventListener('pointerdown',handleGameTap,{passive:false});
 c.addEventListener('touchstart',handleGameTap,{capture:false,passive:false});
 
 addEventListener('keydown',e=>{
+  initAudio();
   const shopOpen=!document.getElementById('shop')?.classList.contains('hidden');
   if(shopOpen){
     if(e.code==='Escape') closeShop();
@@ -953,8 +994,10 @@ function updateFireflies(dt){
       game.score+=value;checkEyeMilestone();
       scoreEl.textContent=game.score;
       bankedFireflies+=value;saveCollection();bankedHudEl.textContent=bankedFireflies;
+      initAudio(); if(f.special) sfxSpecialFirefly(); else sfxFirefly();
       if(game.score>=10 && game.score%10===0 && game.score!==lastCelebratedScore){
         lastCelebratedScore=game.score;
+        initAudio(); sfxMilestone();
         celebrate(game.score);
       }
     }
@@ -1010,6 +1053,8 @@ function loop(t){
   const dt=Math.min((t-last)/16.67,2);last=t;
   if(game?.run){
     game.time+=dt;
+    game.croakTimer-=dt/60;
+    if(game.croakTimer<=0){ if(Math.random()<.45){ initAudio(); sfxCroak(); } game.croakTimer=9+Math.random()*12; }
     updateCelebration(dt);
     game.f.vy+=.42*dt;
     game.f.y+=game.f.vy*dt;
@@ -1025,6 +1070,7 @@ function loop(t){
 
       if(!p.scored && p.x+p.w<game.f.x){
         p.scored=true;
+        initAudio(); sfxPass();
         game.score++;checkEyeMilestone();
         scoreEl.textContent=game.score;
         if(game.score>=10 && game.score%10===0 && game.score!==lastCelebratedScore){
