@@ -31,11 +31,11 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 .shopcard{max-width:430px;width:calc(100% - 28px);max-height:82vh;overflow:auto}
 .bank{font-weight:800;font-size:18px;margin:8px 0 14px;color:#fff5a0}
 .skingrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:10px 0 14px}
-.skin{border:2px solid rgba(255,255,255,.15);border-radius:16px;padding:10px;background:rgba(0,0,0,.18);color:#fff;cursor:pointer}
+.skin{border:2px solid rgba(255,255,255,.15);border-radius:16px;padding:8px;background:rgba(0,0,0,.18);color:#fff;cursor:pointer}
 .skin.selected{border-color:#fff5a0;box-shadow:0 0 0 2px rgba(255,245,160,.18)}
 .skinpreview svg{filter:drop-shadow(0 4px 2px rgba(0,0,0,.2))}
 .skin.locked{opacity:.8}
-.skinpreview{height:70px;display:flex;align-items:center;justify-content:center;font-size:46px}
+.skinpreview{height:62px;display:flex;align-items:center;justify-content:center;font-size:46px}
 .skinname{font-weight:900;font-size:15px}
 .skincost{font-size:13px;margin-top:4px;color:#fff5a0}
 .secondary{margin-top:8px;background:rgba(255,255,255,.12)!important}
@@ -74,7 +74,7 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
     <div class="eyebrow">FROG HOP COLLECTION</div>
     <h1>🐸 FROG SKINS</h1>
     <div class="bank">✨ <span id="bankedFireflies">0</span> BANKED FIREFLIES</div>
-    <div class="shophint">Collect fireflies during your runs to unlock new frogs.</div>
+    <div class="shophint">Collect fireflies during your runs to unlock new frogs. Keep going for the Rainbow and Legendary Gold rewards!</div>
     <div id="skinGrid" class="skingrid"></div>
     <button id="closeShop" class="secondary" type="button">BACK</button>
   </div>
@@ -96,7 +96,9 @@ const SKINS = [
   {id:'purple',name:'Mystic',cost:50,body:'#9b62d8',belly:'#ead8ff',accent:'#65349b',highlight:'#c59af0',emoji:'🐸'},
   {id:'gold',name:'Golden',cost:100,body:'#f0b83f',belly:'#fff0a6',accent:'#b97910',highlight:'#ffd76a',emoji:'🐸'},
   {id:'red',name:'Ember',cost:175,body:'#e85b4f',belly:'#ffd1b8',accent:'#a52f28',highlight:'#ff8b6d',emoji:'🐸'},
-  {id:'midnight',name:'Midnight',cost:250,body:'#3c506d',belly:'#b7c7dc',accent:'#202c40',highlight:'#647d9e',emoji:'🐸'}
+  {id:'midnight',name:'Midnight',cost:250,body:'#3c506d',belly:'#b7c7dc',accent:'#202c40',highlight:'#647d9e',emoji:'🐸'},
+  {id:'rainbow',name:'Rainbow',cost:500,body:'#ff5b5b',belly:'#fff2a8',accent:'#7b3fb2',highlight:'#ffdf5b',emoji:'🌈🐸',special:'rainbow'},
+  {id:'royalgold',name:'Legendary Gold',cost:1000,body:'#ffd34d',belly:'#fff7c2',accent:'#9a6500',highlight:'#fff0a0',emoji:'👑🐸',special:'royalgold'}
 ];
 
 let bankedFireflies = Number(localStorage.getItem('frogHopFireflies') || 0);
@@ -128,12 +130,15 @@ function renderShop(){
     div.innerHTML=
       '<div class="skinpreview">'+
         '<svg viewBox="0 0 100 70" width="92" height="64" aria-hidden="true">'+
+          (skin.special==='rainbow'
+            ? '<defs><linearGradient id="rb'+skin.id+'" x1="0" x2="1"><stop offset="0" stop-color="#ff4d4d"/><stop offset=".2" stop-color="#ff9f43"/><stop offset=".4" stop-color="#ffe34d"/><stop offset=".6" stop-color="#59d66f"/><stop offset=".8" stop-color="#4da6ff"/><stop offset="1" stop-color="#b85cff"/></linearGradient></defs>'
+            : '')+
           '<ellipse cx="49" cy="46" rx="31" ry="15" fill="'+skin.accent+'"/>'+
-          '<ellipse cx="51" cy="41" rx="30" ry="16" fill="'+skin.body+'"/>'+
+          '<ellipse cx="51" cy="41" rx="30" ry="16" fill="'+(skin.special==='rainbow'?'url(#rbrainbow)':'skin.body')+'"/>'+
           '<ellipse cx="59" cy="45" rx="19" ry="9" fill="'+skin.belly+'"/>'+
-          '<ellipse cx="62" cy="27" rx="23" ry="17" fill="'+skin.body+'"/>'+
-          '<circle cx="51" cy="16" r="9" fill="'+skin.accent+'"/>'+
-          '<circle cx="72" cy="16" r="9" fill="'+skin.accent+'"/>'+
+          '<ellipse cx="62" cy="27" rx="23" ry="17" fill="'+(skin.special==='rainbow'?'url(#rbrainbow)':'skin.body')+'"/>'+
+          '<circle cx="51" cy="16" r="9" fill="'+(skin.special==='rainbow'?'url(#rbrainbow)':skin.accent)+'"/>'+
+          '<circle cx="72" cy="16" r="9" fill="'+(skin.special==='rainbow'?'url(#rbrainbow)':skin.accent)+'"/>'+
           '<circle cx="52" cy="15" r="5.5" fill="'+skin.highlight+'"/>'+
           '<circle cx="72" cy="15" r="5.5" fill="'+skin.highlight+'"/>'+
           '<circle cx="53" cy="15" r="2.5" fill="#17231b"/>'+
@@ -599,11 +604,29 @@ function frog(){
   ctx.stroke();
 
   // Main body.
-  const body=ctx.createRadialGradient(-10,-10,2,2,5,38);
-  body.addColorStop(0,bodyLight);
-  body.addColorStop(.35,bodyMain);
-  body.addColorStop(.75,bodyMain);
-  body.addColorStop(1,bodyDark);
+  let body;
+  if(skin.special==='rainbow'){
+    body=ctx.createLinearGradient(-35,-25,35,25);
+    body.addColorStop(0,'#ff4d4d');
+    body.addColorStop(.18,'#ff9f43');
+    body.addColorStop(.36,'#ffe34d');
+    body.addColorStop(.54,'#59d66f');
+    body.addColorStop(.72,'#4da6ff');
+    body.addColorStop(.88,'#7b68ee');
+    body.addColorStop(1,'#b85cff');
+  }else if(skin.special==='royalgold'){
+    body=ctx.createRadialGradient(-12,-12,2,2,5,40);
+    body.addColorStop(0,'#fff5b0');
+    body.addColorStop(.3,'#ffd84d');
+    body.addColorStop(.72,'#f0b52d');
+    body.addColorStop(1,'#9a6500');
+  }else{
+    body=ctx.createRadialGradient(-10,-10,2,2,5,38);
+    body.addColorStop(0,bodyLight);
+    body.addColorStop(.35,bodyMain);
+    body.addColorStop(.75,bodyMain);
+    body.addColorStop(1,bodyDark);
+  }
   ctx.fillStyle=body;ctx.strokeStyle=bodyDark;ctx.lineWidth=3.5;
   ctx.beginPath();ctx.ellipse(-3,1,32,21,-.05,0,Math.PI*2);ctx.fill();ctx.stroke();
 
@@ -620,7 +643,7 @@ function frog(){
   ctx.beginPath();ctx.ellipse(24,-12,22,18,-.08,0,Math.PI*2);ctx.fill();ctx.stroke();
 
   // Eye bump and eye.
-  ctx.fillStyle=bodyMain;
+  ctx.fillStyle=skin.special==='rainbow' ? '#8d4fc4' : bodyMain;
   ctx.beginPath();ctx.ellipse(35,-26,7.5,7,0,0,Math.PI*2);ctx.fill();ctx.stroke();
   ctx.fillStyle='#f7fff0';ctx.beginPath();ctx.arc(37,-27,4.8,0,Math.PI*2);ctx.fill();
   ctx.fillStyle='#17231b';ctx.beginPath();ctx.arc(38.5,-27,2.25,0,Math.PI*2);ctx.fill();
@@ -688,29 +711,27 @@ function spawn(){
 function spawnFirefly(){
   if(!game || !game.run || game.fireflies.length) return;
 
-  // Put the firefly inside the opening of an approaching snake pair.
-  const target = game.pipes.find(p => p.x > game.f.x + 80 && p.x < W + 180);
-  if(!target) return;
+  // Fireflies are deliberately rarer now: they won't appear at every snake pair.
+  // Pick an approaching pair, then place the firefly well inside the opening,
+  // horizontally away from the snake heads.
+  const targets = game.pipes.filter(p => p.x > game.f.x + 100 && p.x < W + 230);
+  if(!targets.length) return;
 
+  const target = targets[Math.floor(Math.random()*targets.length)];
   const top = target.g - target.gap/2;
   const bottom = target.g + target.gap/2;
-  const margin = 26;
-  const usable = Math.max(8, bottom - top - margin*2);
 
-  // Randomize both horizontal and vertical placement inside the opening.
-  // Keep a safe margin from the snakes and occasionally bias the firefly
-  // toward the upper or lower part of the gap instead of always centering it.
-  const horizontalOffset = (Math.random() - 0.5) * Math.max(20, target.w * 0.8);
-  let verticalRatio = Math.random();
-  if(Math.random() < 0.5){
-    verticalRatio = Math.random() < 0.5
-      ? Math.random() * 0.35
-      : 0.65 + Math.random() * 0.35;
-  }
+  // Keep clear of the snake heads and the curved bodies.
+  const verticalMargin = 38;
+  const usable = Math.max(20, bottom - top - verticalMargin*2);
+  const verticalRatio = .18 + Math.random()*.64;
+
+  // Put it in the "dip" between the two snakes rather than over their heads.
+  const horizontalOffset = 72 + Math.random()*48;
 
   game.fireflies.push({
-    x: target.x + target.w/2 + horizontalOffset,
-    baseY: top + margin + verticalRatio * usable,
+    x: target.x + horizontalOffset,
+    baseY: top + verticalMargin + verticalRatio * usable,
     y: 0,
     phase: Math.random()*Math.PI*2,
     life: 0
@@ -723,8 +744,8 @@ function updateFireflies(dt){
 
   game.fireflyTimer += dt;
 
-  // The first firefly appears after roughly 3–5 seconds.
-  if(game.fireflies.length===0 && game.fireflyTimer > 3 + Math.random()*2){
+  // Fireflies are now spaced out: roughly every 7–11 seconds.
+  if(game.fireflies.length===0 && game.fireflyTimer > 7 + Math.random()*4){
     spawnFirefly();
     game.fireflyTimer=0;
   }
