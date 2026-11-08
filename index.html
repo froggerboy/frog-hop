@@ -108,12 +108,26 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
     <div class="logo">FROG HOP</div>
     <p class="subtitle" id="msg">Leap through the snakes, collect fireflies and become the ultimate frog.</p>
     <div class="homeStats"><div class="homeStat"><b id="homeBest">0</b><span>Best</span></div><div class="homeStat"><b id="homeBank">0</b><span>Fireflies</span></div><div class="homeStat"><b id="homeSkin">🐸</b><span>Frog</span></div></div>
-    <button id="btn" type="button" aria-label="Play Frog Hop" onclick="window.frogHopStart && window.frogHopStart(event); return false;" ontouchend="window.frogHopStart && window.frogHopStart(event); return false;">▶ PLAY</button><button id="shopBtn" class="secondary">🐸 COLLECTION</button><button id="musicBtn" class="secondary musicbtn">🎵 MUSIC: ON</button>
+    <button id="btn" type="button" aria-label="Play Frog Hop" onclick="if(window.__frogStartClick){window.__frogStartClick(event)}; return false;">▶ PLAY</button><button id="shopBtn" class="secondary">🐸 COLLECTION</button><button id="musicBtn" class="secondary musicbtn">🎵 MUSIC: ON</button>
     <div class="small" id="personalityLine">Your frog: Chill 😌<br>Tap anywhere to hop · Your best score saves automatically</div>
   </div>
 </div>
 
 <script>
+// EARLY iPHONE PLAY ENTRY: this is defined before the rest of the game script.
+window.__frogStartClick=function(e){
+  try{ if(e){e.preventDefault();e.stopPropagation();} }catch(_){}
+  const ov=document.getElementById("overlay");
+  if(ov){ ov.style.display="none"; ov.classList.add("hidden"); }
+  // start() is a function declaration, so it is available when this runs.
+  setTimeout(function(){
+    try{ start(); }catch(err){
+      // If startup fails, show a visible retry state rather than silently doing nothing.
+      try{ if(ov){ov.style.display="flex";ov.classList.remove("hidden");} }catch(_){}
+      console.error("Frog Hop start error",err);
+    }
+  },0);
+};
 
 const SKINS = [
   {id:'green',name:'Swampy',cost:0,body:'#63b85a',belly:'#d9f0a0',accent:'#3b8f3c',highlight:'#a8ee60',emoji:'🐸'},
@@ -503,11 +517,8 @@ function jump(){
 }
 
 function handlePlay(e){
-  try{ if(e){ e.preventDefault(); e.stopPropagation(); } }catch(_){}
   if(game && game.run) return false;
-  // iPhone-safe: immediately remove the home overlay, then initialise the run.
-  try{ overlay.classList.add('hidden'); }catch(_){}
-  setTimeout(()=>{ try{ start(); }catch(err){ console.error('Frog Hop start error',err); } },0);
+  window.__frogStartClick(e);
   return false;
 }
 window.frogHopStart = handlePlay;
@@ -550,10 +561,8 @@ document.addEventListener('click', function(e){
 // Explicit DOM lookup: never rely on Safari exposing element IDs as globals.
 const playButton=document.getElementById('btn');
 if(playButton){
-  const activatePlay=(e)=>{ handlePlay(e); };
-  playButton.addEventListener('pointerdown',activatePlay,{capture:true,passive:false});
-  playButton.addEventListener('touchstart',activatePlay,{capture:true,passive:false});
-  playButton.addEventListener('touchend',activatePlay,{capture:true,passive:false});
+  const activatePlay=(e)=>{ window.__frogStartClick(e); };
+  playButton.addEventListener('pointerup',activatePlay,{capture:true,passive:false});
   playButton.addEventListener('click',activatePlay,{capture:true,passive:false});
 }
 
