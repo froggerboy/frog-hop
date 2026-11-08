@@ -948,7 +948,8 @@ function updateFireflies(dt){
     if(Math.hypot(f.x-game.f.x,f.y-game.f.y)<30){
       game.fireflies.splice(i,1);
       const value=f.value||1;
-      game.fireflyCount++;
+      game.fireflyCount+=value;
+      fireflyEl.textContent=game.fireflyCount;
       game.score+=value;checkEyeMilestone();
       scoreEl.textContent=game.score;
       bankedFireflies+=value;saveCollection();bankedHudEl.textContent=bankedFireflies;
