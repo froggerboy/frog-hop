@@ -850,7 +850,7 @@ function updateFireflies(dt){
     const range=Math.min(f.verticalRange||Math.max(70,H*.42),center-edge);
     f.y=Math.max(edge,Math.min(H-edge,center+Math.sin(f.life*0.04+f.phase)*range));
     f.baseX-=game.speed*dt;
-    f.x=f.baseX+Math.sin(f.life*0.16+f.phase*1.3)*38;
+    f.x=f.baseX+Math.sin(f.life*0.16+f.phase*1.3)*55;
     if(f.x<-30){game.fireflies.splice(i,1);continue}
     if(Math.hypot(f.x-game.f.x,f.y-game.f.y)<30){
       game.fireflies.splice(i,1);
