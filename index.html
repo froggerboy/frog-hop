@@ -488,6 +488,9 @@ function jump(){
 }
 
 function handlePlay(e){e.preventDefault();e.stopPropagation();start();}
+// Use the earliest possible iPhone touch/pointer event as well as click.
+btn.addEventListener('pointerdown',handlePlay,{capture:true,passive:false});
+btn.addEventListener('touchstart',handlePlay,{capture:true,passive:false});
 btn.addEventListener('pointerup',handlePlay,{capture:true,passive:false});
 btn.addEventListener('touchend',handlePlay,{capture:true,passive:false});
 btn.addEventListener('click',handlePlay,{capture:true,passive:false});
@@ -508,6 +511,12 @@ function globalPlayPointer(e){
   }
 }
 document.addEventListener('pointerup',globalPlayPointer,{capture:true,passive:false});
+document.addEventListener('touchstart',e=>{
+  const t=e.touches && e.touches[0];
+  if(t && playHitAt(t.clientX,t.clientY)){
+    e.preventDefault(); e.stopPropagation(); playTouchHandled=true; start();
+  }
+},{capture:true,passive:false});
 document.addEventListener('touchend',e=>{
   const t=e.changedTouches && e.changedTouches[0];
   if(!t || playTouchHandled) return;
