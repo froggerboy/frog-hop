@@ -108,7 +108,7 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
     <div class="logo">FROG HOP</div>
     <p class="subtitle" id="msg">Leap through the snakes, collect fireflies and become the ultimate frog.</p>
     <div class="homeStats"><div class="homeStat"><b id="homeBest">0</b><span>Best</span></div><div class="homeStat"><b id="homeBank">0</b><span>Fireflies</span></div><div class="homeStat"><b id="homeSkin">🐸</b><span>Frog</span></div></div>
-    <a id="btn" href="#play" role="button" aria-label="Play Frog Hop">▶ PLAY</a><button id="shopBtn" class="secondary">🐸 COLLECTION</button><button id="musicBtn" class="secondary musicbtn">🎵 MUSIC: ON</button>
+    <button id="btn" type="button" aria-label="Play Frog Hop" onclick="window.frogHopStart && window.frogHopStart(event); return false;" ontouchend="window.frogHopStart && window.frogHopStart(event); return false;">▶ PLAY</button><button id="shopBtn" class="secondary">🐸 COLLECTION</button><button id="musicBtn" class="secondary musicbtn">🎵 MUSIC: ON</button>
     <div class="small" id="personalityLine">Your frog: Chill 😌<br>Tap anywhere to hop · Your best score saves automatically</div>
   </div>
 </div>
@@ -488,19 +488,22 @@ function jump(){
 }
 
 function handlePlay(e){
-  if(e){ e.preventDefault(); e.stopPropagation(); }
-  start();
+  try{ if(e){ e.preventDefault(); e.stopPropagation(); } }catch(_){}
+  if(game && game.run) return false;
+  try { start(); } catch(err) {
+    console.error("Frog Hop start error",err);
+    setTimeout(()=>{ try{ start(); }catch(_){} },0);
+  }
+  return false;
 }
 window.frogHopStart = handlePlay;
 
-// Native-link fallback for iPhone/Safari: the Play control is a real link.
-// Safari changes the URL hash before any JavaScript click handler is needed.
 let playHashBusy=false;
 function handlePlayHash(){
   if(location.hash!=="#play" || playHashBusy) return;
   playHashBusy=true;
-  try { start(); } catch(err) { console.error("Frog Hop start error",err); }
-  setTimeout(()=>{ history.replaceState(null,"",location.pathname+location.search+"#home"); playHashBusy=false; },80);
+  try { handlePlay(); } catch(err) { console.error("Frog Hop hash start error",err); }
+  setTimeout(()=>{ try{ history.replaceState(null,"",location.pathname+location.search); }catch(_){} playHashBusy=false; },80);
 }
 addEventListener("hashchange",handlePlayHash);
 if(location.hash==="#play") setTimeout(handlePlayHash,50);
@@ -533,7 +536,11 @@ document.addEventListener('click', function(e){
 // Explicit DOM lookup: never rely on Safari exposing element IDs as globals.
 const playButton=document.getElementById('btn');
 if(playButton){
-  playButton.addEventListener('click',()=>setTimeout(handlePlayHash,0),false);
+  const activatePlay=(e)=>{ handlePlay(e); };
+  playButton.addEventListener('pointerdown',activatePlay,{capture:true,passive:false});
+  playButton.addEventListener('touchstart',activatePlay,{capture:true,passive:false});
+  playButton.addEventListener('touchend',activatePlay,{capture:true,passive:false});
+  playButton.addEventListener('click',activatePlay,{capture:true,passive:false});
 }
 
 const shopButton=document.getElementById('shopBtn');
