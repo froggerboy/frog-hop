@@ -60,20 +60,21 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 
 #shopBtn{position:relative;z-index:9999;cursor:pointer}
 
-.collectiontabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 12px}
+.collectiontabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 12px}
 .collectiontab{margin:0!important;padding:10px 8px!important;font-size:12px!important}
 .collectiontab.active{background:rgba(255,245,160,.2)!important;border-color:#fff5a0!important}
 .accessorypreview{font-size:46px;height:62px;display:flex;align-items:center;justify-content:center}
 .accessory.locked{opacity:.55}
 .accessory.equipped{border-color:#fff5a0;box-shadow:0 0 0 2px rgba(255,245,160,.18)}
 .scorecost{font-size:13px;margin-top:4px;color:#fff5a0}
+.achgrid{display:grid;grid-template-columns:1fr;gap:9px;margin:10px 0 14px;text-align:left}.achievement{border:1.5px solid rgba(255,255,255,.15);border-radius:14px;padding:11px 12px;background:rgba(0,0,0,.16)}.achievement.done{border-color:#fff5a0;background:rgba(255,245,160,.10)}.achievement .atitle{font-weight:900}.achievement .adesc{font-size:12px;opacity:.72;margin-top:3px}.achievement .astatus{font-size:12px;color:#fff5a0;margin-top:5px;font-weight:800}.combo{position:fixed;left:50%;top:88px;transform:translateX(-50%);z-index:6;color:#fff5a0;font-weight:950;font-size:18px;text-shadow:0 3px 8px rgba(0,0,0,.45);pointer-events:none}.musicbtn{margin-top:8px!important;padding:9px 14px!important;font-size:12px!important}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <div id="hud">
   <div class="hudbox"><span class="hudlabel">Best</span><span class="hudnum" id="best">0</span></div>
-  <div id="centerScore"><div class="num" id="score">0</div><div class="label">SCORE</div><div class="runflies">✨ <span id="fireflyCount">0</span> this run</div></div>
+  <div id="centerScore"><div class="num" id="score">0</div><div class="label" id="envLabel">SWAMP</div><div class="runflies">✨ <span id="fireflyCount">0</span> this run</div></div><div id="comboHud" class="combo hidden">✨ COMBO x2</div>
   <div class="hudbox"><span class="hudlabel">Banked ✨</span><span class="hudnum" id="bankedHUD">0</span></div>
 </div>
 
@@ -84,7 +85,7 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
     <div class="bank">✨ <span id="bankedFireflies">0</span> BANKED FIREFLIES</div>
     <div class="collectiontabs">
       <button id="skinsTab" class="collectiontab active" type="button">🐸 FROG SKINS</button>
-      <button id="accessoriesTab" class="collectiontab" type="button">🎩 ACCESSORIES</button>
+      <button id="accessoriesTab" class="collectiontab" type="button">🎩 ACCESSORIES</button><button id="achievementsTab" class="collectiontab" type="button">🏆 ACHIEVEMENTS</button>
     </div>
     <div id="skinsPanel">
       <div class="shophint">Collect fireflies during your runs to unlock new frogs. Keep going for the Rainbow and Legendary Gold rewards!</div>
@@ -94,6 +95,10 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
       <div class="shophint">Reach new best scores to unlock accessories. You can wear one accessory at a time with any frog skin.</div>
       <div id="accessoryGrid" class="skingrid"></div>
     </div>
+    <div id="achievementsPanel" class="hidden">
+      <div class="shophint">Complete missions to earn extra fireflies and prove you are the ultimate frog hopper.</div>
+      <div id="achievementGrid" class="achgrid"></div>
+    </div>
     <button id="closeShop" class="secondary" type="button">BACK</button>
   </div>
 </div>
@@ -101,7 +106,7 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
   <div class="card">
     <div class="logo">FROG HOP</div>
     <p class="subtitle" id="msg">Leap through the snakes and survive the swamp!</p>
-    <button id="btn">PLAY</button><button id="shopBtn" class="secondary">🐸 FROG SKINS</button>
+    <button id="btn">PLAY</button><button id="shopBtn" class="secondary">🐸 COLLECTION</button><button id="musicBtn" class="secondary musicbtn">🎵 MUSIC: ON</button>
     <div class="small">Tap anywhere to hop<br>Your best score saves automatically</div>
   </div>
 </div>
@@ -131,6 +136,26 @@ let bankedFireflies = Number(localStorage.getItem('frogHopFireflies') || 0);
 let unlockedSkins = JSON.parse(localStorage.getItem('frogHopSkins') || '["green"]');
 let selectedSkin = localStorage.getItem('frogHopSkin') || 'green';
 let selectedAccessory = localStorage.getItem('frogHopAccessory') || 'none';
+
+const ACHIEVEMENTS=[
+ {id:'firsthop',title:'First Hop',desc:'Score 10 points',need:g=>g.score>=10,reward:10},
+ {id:'firefly10',title:'Firefly Hunter',desc:'Collect 10 fireflies in one run',need:g=>g.fireflyCount>=10,reward:15},
+ {id:'snake50',title:'Snake Charmer',desc:'Pass 50 snakes in one run',need:g=>g.snakesPassed>=50,reward:25},
+ {id:'best50',title:'Getting Good',desc:'Reach a best score of 50',need:g=>best()>=50,reward:20},
+ {id:'firefly100',title:'Firefly Master',desc:'Collect 100 fireflies across your runs',need:g=>Number(localStorage.getItem('frogHopTotalFireflies')||0)>=100,reward:50},
+ {id:'diamond',title:'Diamond Frog',desc:'Reach a best score of 100',need:g=>best()>=100,reward:100},
+ {id:'unstoppable',title:'Unstoppable',desc:'Score 250 points',need:g=>g.score>=250,reward:150}
+];
+let completedAchievements=JSON.parse(localStorage.getItem('frogHopAchievements')||'[]');
+function saveAchievements(){localStorage.setItem('frogHopAchievements',JSON.stringify(completedAchievements));}
+function renderAchievements(){
+ const grid=document.getElementById('achievementGrid'); if(!grid)return; grid.innerHTML='';
+ for(const a of ACHIEVEMENTS){const done=completedAchievements.includes(a.id);const d=document.createElement('div');d.className='achievement'+(done?' done':'');d.innerHTML=`<div class="atitle">${done?'🏆':'🔒'} ${a.title}</div><div class="adesc">${a.desc}</div><div class="astatus">${done?'COMPLETED':'Reward: ✨ '+a.reward}</div>`;grid.appendChild(d)}
+}
+function checkAchievements(){
+ for(const a of ACHIEVEMENTS){if(completedAchievements.includes(a.id))continue;if(a.need(game)){completedAchievements.push(a.id);bankedFireflies+=a.reward;saveAchievements();saveCollection();bankedHudEl.textContent=bankedFireflies;initAudio();sfxUnlock();celebrateAchievement(a.title,a.reward);}}
+}
+
 
 function saveCollection(){
   localStorage.setItem('frogHopFireflies', String(bankedFireflies));
@@ -235,7 +260,7 @@ const c=document.getElementById('c'),ctx=c.getContext('2d'),scoreEl=document.get
 let W=0,H=0,dpr=1,game=null,last=0;
 
 // Lightweight WebAudio sound pack. Audio starts after the first user interaction.
-let audioCtx=null, masterGain=null, soundEnabled=true;
+let audioCtx=null, masterGain=null, musicGain=null, soundEnabled=true, musicEnabled=localStorage.getItem('frogHopMusic')!=='off', musicTimer=null, musicStep=0;
 function initAudio(){
   if(audioCtx) { if(audioCtx.state==='suspended') audioCtx.resume(); return; }
   try{
@@ -243,6 +268,14 @@ function initAudio(){
     masterGain=audioCtx.createGain(); masterGain.gain.value=.16; masterGain.connect(audioCtx.destination);
   }catch(e){ soundEnabled=false; }
 }
+function startMusic(){
+ if(!audioCtx||!musicEnabled||musicTimer)return;
+ musicGain=audioCtx.createGain();musicGain.gain.value=.025;musicGain.connect(audioCtx.destination);
+ const notes=[196,247,294,330,294,247,220,247];
+ musicTimer=setInterval(()=>{if(!musicEnabled||!audioCtx)return;const f=notes[musicStep++%notes.length];const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.0001,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.16,audioCtx.currentTime+.025);g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+.28);o.connect(g);g.connect(musicGain);o.start();o.stop(audioCtx.currentTime+.3)},360);
+}
+function toggleMusic(){musicEnabled=!musicEnabled;localStorage.setItem('frogHopMusic',musicEnabled?'on':'off');musicBtn.textContent='🎵 MUSIC: '+(musicEnabled?'ON':'OFF');if(musicEnabled){initAudio();startMusic()}else if(musicGain){musicGain.gain.setTargetAtTime(0,audioCtx.currentTime,.08)}}
+
 function tone(freq,dur,type='sine',vol=.18,when=0,slide=0){
   if(!soundEnabled)return; initAudio(); if(!audioCtx||!masterGain)return;
   const t=audioCtx.currentTime+when, o=audioCtx.createOscillator(), g=audioCtx.createGain();
@@ -314,6 +347,11 @@ function celebrate(score){
   }
 }
 
+function celebrateAchievement(title,reward){
+ celebration=105; celebrationText='🏆 '+title; confetti=[];
+ for(let i=0;i<90;i++){const a=Math.random()*Math.PI*2,s=2+Math.random()*6;confetti.push({x:W*.5+(Math.random()-.5)*90,y:H*.25+(Math.random()-.5)*35,vx:Math.cos(a)*s,vy:Math.sin(a)*s-2,r:2+Math.random()*3,rot:Math.random()*Math.PI,vr:(Math.random()-.5)*.35,life:70+Math.random()*40,shape:Math.random()<.55?'rect':'circle'});}
+}
+
 function updateCelebration(dt){
   if(celebration>0) celebration-=dt;
   for(const c of confetti){
@@ -380,7 +418,7 @@ function start(){
   confetti=[]; celebration=0; celebrationText=''; lastCelebratedScore=0;
   game={
     run:true,score:0,time:0,speed:3.8,next:0,
-    fireflies:[],fireflyCount:0,fireflyTimer:0,lastEyeMilestone:0,lastEyeSoundMilestone:0,eyeType:'normal',lastSpecialFireflyMilestone:0,croakTimer:8,
+    fireflies:[],fireflyCount:0,fireflyTimer:0,lastEyeMilestone:0,lastEyeSoundMilestone:0,eyeType:'normal',lastSpecialFireflyMilestone:0,croakTimer:8,fireflyCombo:0,bestFireflyCombo:0,comboTimer:0,snakesPassed:0,reaction:'normal',reactionTimer:0,
     targetCenter:H*.46,
     f:{x:W*.25,y:H*.46,vy:0,rot:0,blink:0},
     pipes:[]
@@ -395,10 +433,14 @@ function over(){
   if(!game||!game.run)return;
   initAudio(); sfxGameOver();
   game.run=false;
-  const b=Math.max(best(),game.score);
+  const oldBest=best();
+  const b=Math.max(oldBest,game.score);
   localStorage.setItem(BEST_KEY,b);
+  localStorage.setItem('frogHopTotalFireflies',String(Number(localStorage.getItem('frogHopTotalFireflies')||0)+game.fireflyCount));
+  checkAchievements();
   bestEl.textContent=b;
-  msg.innerHTML=`You scored <b>${game.score}</b><br>Best: <b>${b}</b>`;
+  const newBest=game.score>oldBest;
+  msg.innerHTML=`<div style="font-size:28px;font-weight:950;margin-bottom:10px">${newBest?'🏆 NEW RECORD!':'GAME OVER'}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0"><div style="background:rgba(255,255,255,.08);border-radius:14px;padding:10px"><div style="font-size:10px;opacity:.7">SCORE</div><b style="font-size:25px">${game.score}</b></div><div style="background:rgba(255,245,160,.10);border-radius:14px;padding:10px"><div style="font-size:10px;opacity:.7">BEST</div><b style="font-size:25px">${b}</b></div></div><div style="font-size:15px;margin-top:8px;line-height:1.8">✨ Fireflies this run: <b>${game.fireflyCount}</b><br>🐍 Snakes passed: <b>${game.snakesPassed}</b><br>🔥 Best combo: <b>x${game.bestFireflyCombo||1}</b></div>`;
   btn.textContent='PLAY AGAIN';
   document.getElementById('shopBtn').textContent='🐸 FROG SKINS';
   overlay.classList.remove('hidden');
@@ -406,6 +448,7 @@ function over(){
 function jump(){
   if(!game?.run)return;
   initAudio();
+  startMusic();
   sfxJump();
   game.f.vy=-7.85;
   game.f.rot=-.45;
@@ -415,20 +458,28 @@ btn.onclick=e=>{e.preventDefault();e.stopPropagation();start()};
 
 const shopButton=document.getElementById('shopBtn');
 const closeShopButton=document.getElementById('closeShop');
+const musicBtn=document.getElementById('musicBtn');
+musicBtn.textContent='🎵 MUSIC: '+(musicEnabled?'ON':'OFF');
+musicBtn.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();toggleMusic()},true);musicBtn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();toggleMusic()},true);
 const skinsTab=document.getElementById('skinsTab');
 const accessoriesTab=document.getElementById('accessoriesTab');
+const achievementsTab=document.getElementById('achievementsTab');
 const skinsPanel=document.getElementById('skinsPanel');
 const accessoriesPanel=document.getElementById('accessoriesPanel');
+const achievementsPanel=document.getElementById('achievementsPanel');
+const comboHud=document.getElementById('comboHud');
+const envLabel=document.getElementById('envLabel');
 function showCollectionTab(tab){
-  const acc=tab==='accessories';
-  skinsPanel.classList.toggle('hidden',acc); accessoriesPanel.classList.toggle('hidden',!acc);
-  skinsTab.classList.toggle('active',!acc); accessoriesTab.classList.toggle('active',acc);
+  skinsPanel.classList.toggle('hidden',tab!=='skins'); accessoriesPanel.classList.toggle('hidden',tab!=='accessories'); achievementsPanel.classList.toggle('hidden',tab!=='achievements');
+  skinsTab.classList.toggle('active',tab==='skins'); accessoriesTab.classList.toggle('active',tab==='accessories'); achievementsTab.classList.toggle('active',tab==='achievements');
   renderShop();
 }
 function handleSkinsTab(e){e.preventDefault();e.stopPropagation();showCollectionTab('skins')}
 function handleAccessoriesTab(e){e.preventDefault();e.stopPropagation();showCollectionTab('accessories')}
+function handleAchievementsTab(e){e.preventDefault();e.stopPropagation();showCollectionTab('achievements')}
 skinsTab.addEventListener('pointerdown',handleSkinsTab,true); skinsTab.addEventListener('touchstart',handleSkinsTab,{capture:true,passive:false}); skinsTab.addEventListener('click',handleSkinsTab,true);
 accessoriesTab.addEventListener('pointerdown',handleAccessoriesTab,true); accessoriesTab.addEventListener('touchstart',handleAccessoriesTab,{capture:true,passive:false}); accessoriesTab.addEventListener('click',handleAccessoriesTab,true);
+achievementsTab.addEventListener('pointerdown',handleAchievementsTab,true); achievementsTab.addEventListener('touchstart',handleAchievementsTab,{capture:true,passive:false}); achievementsTab.addEventListener('click',handleAchievementsTab,true);
 
 function handleShopOpen(e){
   e.preventDefault();
@@ -481,6 +532,9 @@ function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill()}
 
 function bg(){
   const t=game?.time||0;
+  const scoreNow=game?.score||0;
+  const env=scoreNow>=50?'MOONLIT':scoreNow>=25?'JUNGLE':'SWAMP';
+  if(envLabel)envLabel.textContent=env;
   const cycle=(t/3600)%1; // 60 seconds per full day/night cycle at 60fps
   const sun=Math.sin(cycle*Math.PI*2);
   const daylight=Math.max(0,(sun+0.18)/1.18);
@@ -586,9 +640,21 @@ function bg(){
     ctx.strokeStyle='#2c6d45';ctx.lineWidth=2;
     ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px+18,py-9);ctx.stroke();
   }
+
+
+  if(env==='JUNGLE'){
+    ctx.fillStyle='rgba(69,145,70,.16)';ctx.fillRect(0,H*.48,W,H*.22);
+    ctx.fillStyle='rgba(24,70,42,.22)';ctx.fillRect(0,0,W,H*.48);
+    for(let i=0;i<9;i++){const x=(i*137+t*.12)%(W+80)-40;ctx.fillStyle='rgba(15,54,34,.55)';ctx.beginPath();ctx.arc(x,40+(i%3)*25,45+(i%3)*12,0,Math.PI*2);ctx.fill();}
+  }else if(env==='MOONLIT'){
+    ctx.fillStyle='rgba(32,45,100,.18)';ctx.fillRect(0,H*.52,W,H*.18);
+    ctx.fillStyle='rgba(15,22,58,.30)';ctx.fillRect(0,0,W,H*.7);
+    ctx.fillStyle='rgba(190,220,255,.12)';ctx.fillRect(0,H*.48,W,H*.2);
+  }
 }
 
-function snake(x,edge,length,top,phase=0){
+
+function snake(x,edge,length,top,phase=0,type='normal'){
   const snakeStage=Math.floor((game.score||0)/10)%6;
   const snakePalettes=[
     ['#4f9f45','#2b6935','#d7f06b'],
@@ -598,10 +664,18 @@ function snake(x,edge,length,top,phase=0){
     ['#d1a43a','#785d18','#fff0a2'],
     ['#39a8a0','#17625f','#a7fff1']
   ];
-  const [snakeMain,snakeDark,snakeLight]=snakePalettes[snakeStage];
+  let [snakeMain,snakeDark,snakeLight]=snakePalettes[snakeStage];
+  if(type==='blue'){snakeMain='#4da6ff';snakeDark='#244f9b';snakeLight='#bde7ff'}
+  if(type==='ghost'){snakeMain='#b7f5e9';snakeDark='#5b9e9a';snakeLight='#f0ffff'}
+  if(type==='fire'){snakeMain='#ff7545';snakeDark='#8e281b';snakeLight='#ffe08a'}
+  if(type==='slither') x+=Math.sin((game.time*.045)+phase)*26;
+  if(type==='blue') x+=Math.sin((game.time*.022)+phase)*7;
+  if(type==='fire') x+=Math.sin((game.time*.06)+phase)*10;
 
 
   ctx.save();
+  if(type==='ghost')ctx.globalAlpha=.72;
+  if(type==='fire'){ctx.shadowColor='rgba(255,90,30,.55)';ctx.shadowBlur=12;}
   const dir=top?-1:1;
   const w=22;
   const amp=24;
@@ -877,10 +951,15 @@ function frog(){
     ctx.fillStyle='#7ee8ff';ctx.beginPath();ctx.moveTo(0,-11);ctx.lineTo(5,-3);ctx.lineTo(0,5);ctx.lineTo(-5,-3);ctx.closePath();ctx.fill();ctx.restore();
   }
 
-  // Face.
+  // Face / reactions.
   ctx.fillStyle=bodyDark;ctx.beginPath();ctx.arc(40,-10,1.2,0,Math.PI*2);ctx.fill();
   ctx.strokeStyle=bodyDark;ctx.lineWidth=2.2;
-  ctx.beginPath();ctx.moveTo(35,-5);ctx.quadraticCurveTo(42,-1,48,-6);ctx.stroke();
+  ctx.beginPath();
+  if(game.reaction==='excited') ctx.moveTo(34,-5),ctx.quadraticCurveTo(42,2,50,-5);
+  else if(game.reaction==='happy' || game.score>=50) ctx.moveTo(34,-5),ctx.quadraticCurveTo(42,1,50,-5);
+  else ctx.moveTo(35,-5),ctx.quadraticCurveTo(42,-1,48,-6);
+  ctx.stroke();
+  if(game.reaction==='excited'){ctx.fillStyle='rgba(255,120,120,.65)';ctx.beginPath();ctx.arc(25,-5,3,0,Math.PI*2);ctx.arc(56,-7,3,0,Math.PI*2);ctx.fill();}
   ctx.strokeStyle='rgba(38,88,38,.48)';ctx.lineWidth=1.8;
   ctx.beginPath();ctx.arc(24,-2,9,-.6,.85);ctx.stroke();
 
@@ -931,7 +1010,7 @@ function spawn(){
 
   game.pipes.push({
     x:W+95,w:58,g:center,gap,
-    scored:false,phase:Math.random()*Math.PI*2
+    scored:false,phase:Math.random()*Math.PI*2,type:(game.score>=100?'fire':game.score>=75?'ghost':game.score>=50?'slither':game.score>=25?'blue':'normal')
   });
 }
 
@@ -953,7 +1032,7 @@ function drawSpecialFirefly(f){
 }
 
 function spawnFirefly(){
-  if(!game || !game.run || game.fireflies.length) return;
+  if(!game || !game.run || game.fireflies.length>=2) return;
   const targets=game.pipes.filter(p=>p.x>game.f.x+100 && p.x<W+230);
   if(!targets.length) return;
   const target=targets[Math.floor(Math.random()*targets.length)];
@@ -991,11 +1070,22 @@ function updateFireflies(dt){
       const value=f.value||1;
       game.fireflyCount+=value;
       fireflyEl.textContent=game.fireflyCount;
-      game.score+=value;checkEyeMilestone();
+      game.fireflyCombo = game.comboTimer>0 ? Math.min(5,game.fireflyCombo+1) : 1;
+      game.bestFireflyCombo=Math.max(game.bestFireflyCombo,game.fireflyCombo);
+      game.fireflyTimer=2.0;
+      game.comboTimer=4.5;
+      const multiplier=game.fireflyCombo>=5?3:game.fireflyCombo>=3?2:1;
+      const awarded=value*multiplier;
+      game.score+=awarded;checkEyeMilestone();checkAchievements();
       scoreEl.textContent=game.score;
-      bankedFireflies+=value;saveCollection();bankedHudEl.textContent=bankedFireflies;
+      const totalFF=Number(localStorage.getItem('frogHopTotalFireflies')||0)+value;
+      localStorage.setItem('frogHopTotalFireflies',String(totalFF));
+      bankedFireflies+=awarded;saveCollection();bankedHudEl.textContent=bankedFireflies;
+      game.reaction=f.special?'excited':'happy';game.reactionTimer=1.4;
       initAudio(); if(f.special) sfxSpecialFirefly(); else sfxFirefly();
-      if(game.score>=10 && game.score%10===0 && game.score!==lastCelebratedScore){
+      if(game.fireflyCombo>=2){comboHud.textContent='✨ COMBO x'+game.fireflyCombo+(multiplier>1?' • DOUBLE!':'');comboHud.classList.remove('hidden');}
+      if((game.score===25||game.score===50)){ game.reaction='happy'; game.reactionTimer=2.8; celebration=85; celebrationText=game.score===25?'🌴 JUNGLE!':'🌙 MOONLIT!'; initAudio(); sfxUnlock(); }
+        if(game.score>=10 && game.score%10===0 && game.score!==lastCelebratedScore){
         lastCelebratedScore=game.score;
         initAudio(); sfxMilestone();
         celebrate(game.score);
@@ -1041,10 +1131,10 @@ function draw(){
   if(!game)return;
   for(const p of game.pipes){
     const length=Math.max(330,H*.66);
-    snake(p.x,p.g-p.gap/2,length,true,p.phase);
-    snake(p.x,p.g+p.gap/2,length,false,p.phase+1.2);
+    snake(p.x,p.g-p.gap/2,length,true,p.phase,p.type);
+    snake(p.x,p.g+p.gap/2,length,false,p.phase+1.2,p.type);
   }
-  for(const f of game.fireflies){if(f.special)drawSpecialFirefly(f);else drawFireflies();}
+  for(const f of game.fireflies){if(f.special)drawSpecialFirefly(f);} drawFireflies();
   frog();
   drawCelebration();
 }
@@ -1053,6 +1143,8 @@ function loop(t){
   const dt=Math.min((t-last)/16.67,2);last=t;
   if(game?.run){
     game.time+=dt;
+    game.comboTimer-=dt/60; if(game.comboTimer<=0){game.fireflyCombo=0;comboHud.classList.add('hidden')}
+    game.reactionTimer-=dt/60; if(game.reactionTimer<=0)game.reaction='normal';
     game.croakTimer-=dt/60;
     if(game.croakTimer<=0){ if(Math.random()<.45){ initAudio(); sfxCroak(); } game.croakTimer=9+Math.random()*12; }
     updateCelebration(dt);
@@ -1069,9 +1161,9 @@ function loop(t){
       p.x-=game.speed*dt;
 
       if(!p.scored && p.x+p.w<game.f.x){
-        p.scored=true;
+        p.scored=true; game.snakesPassed++; checkAchievements();
         initAudio(); sfxPass();
-        game.score++;checkEyeMilestone();
+        game.score++;checkEyeMilestone();checkAchievements();
         scoreEl.textContent=game.score;
         if(game.score>=10 && game.score%10===0 && game.score!==lastCelebratedScore){
           lastCelebratedScore=game.score;
