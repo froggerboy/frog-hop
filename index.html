@@ -55,6 +55,8 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 .skinpreview{height:62px;font-size:48px;display:flex;align-items:center;justify-content:center}
 .skin.locked{filter:saturate(.7)}
 .skin.locked .skincost{opacity:.85}
+
+#shopBtn{position:relative;z-index:9999;cursor:pointer}
 </style>
 </head>
 <body>
@@ -286,9 +288,43 @@ function jump(){
   game.f.vy=-7.85;
   game.f.rot=-.45;
 }
-btn.onclick=e=>{e.stopPropagation();start()};
-addEventListener('pointerdown',e=>{if(e.target===btn)return;if(game?.run)jump();else start()});
-addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();game?.run?jump():start()}});
+btn.onclick=e=>{e.preventDefault();e.stopPropagation();start()};
+
+const shopButton=document.getElementById('shopBtn');
+shopButton.addEventListener('pointerdown',e=>{
+  e.preventDefault();
+  e.stopPropagation();
+  openShop();
+},true);
+shopButton.addEventListener('click',e=>{
+  e.preventDefault();
+  e.stopPropagation();
+  openShop();
+},true);
+
+document.getElementById('closeShop').addEventListener('pointerdown',e=>{
+  e.preventDefault();
+  e.stopPropagation();
+  closeShop();
+},true);
+document.getElementById('closeShop').addEventListener('click',e=>{
+  e.preventDefault();
+  e.stopPropagation();
+  closeShop();
+},true);
+addEventListener('pointerdown',e=>{
+  if(e.target===btn || e.target===shopButton || e.target.closest?.('#shop,.skin,button')) return;
+  if(document.getElementById('shop')?.classList.contains('hidden')===false) return;
+  if(game?.run)jump();else start();
+});
+addEventListener('keydown',e=>{
+  const shopOpen=!document.getElementById('shop')?.classList.contains('hidden');
+  if(shopOpen){
+    if(e.code==='Escape') closeShop();
+    return;
+  }
+  if(e.code==='Space'){e.preventDefault();game?.run?jump():start()}
+});
 
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
 function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill()}
