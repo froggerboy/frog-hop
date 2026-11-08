@@ -709,129 +709,109 @@ function drawWeather(){
 }
 
 function bg(){
-  const t=game?.time||0;
-  const scoreNow=game?.score||0;
+  // iPhone-safe background renderer. Keep this layer deliberately simple so a
+  // Safari canvas quirk cannot wipe the whole game world.
+  const t=Number(game?.time||0);
+  const scoreNow=Number(game?.score||0);
   const env=scoreNow>=50?'MOONLIT':scoreNow>=25?'JUNGLE':'SWAMP';
-  if(envLabel)envLabel.textContent=env;
-  const cycle=(t/3600)%1; // 60 seconds per full day/night cycle at 60fps
+  if(envLabel) envLabel.textContent=env;
+
+  const cycle=(t/3600)%1;
   const sun=Math.sin(cycle*Math.PI*2);
-  const daylight=Math.max(0,(sun+0.18)/1.18);
+  const daylight=Math.max(0,Math.min(1,(sun+0.18)/1.18));
   const night=1-daylight;
 
-  // Layered sky that smoothly cycles through day, sunset, night and sunrise.
-  const mix=(a,b,k)=>a.map((v,i)=>Math.round(v+(b[i]-v)*k));
-  const dayTop=[75,166,214], dayMid=[151,211,196], dayLow=[239,201,132];
-  const nightTop=[7,20,48], nightMid=[23,55,82], nightLow=[39,67,78];
-  const cTop=mix(nightTop,dayTop,daylight), cMid=mix(nightMid,dayMid,daylight), cLow=mix(nightLow,dayLow,daylight);
-  const rgb=v=>`rgb(${v[0]},${v[1]},${v[2]})`;
+  // Sky gradient.
+  const topR=Math.round(7+(75-7)*daylight), topG=Math.round(20+(166-20)*daylight), topB=Math.round(48+(214-48)*daylight);
+  const midR=Math.round(23+(151-23)*daylight), midG=Math.round(55+(211-55)*daylight), midB=Math.round(82+(196-82)*daylight);
+  const lowR=Math.round(39+(239-39)*daylight), lowG=Math.round(67+(201-67)*daylight), lowB=Math.round(78+(132-78)*daylight);
   const sky=ctx.createLinearGradient(0,0,0,H);
-  sky.addColorStop(0,rgb(cTop));
-  sky.addColorStop(.48,rgb(cMid));
-  sky.addColorStop(1,rgb(cLow));
+  sky.addColorStop(0,`rgb(${topR},${topG},${topB})`);
+  sky.addColorStop(.5,`rgb(${midR},${midG},${midB})`);
+  sky.addColorStop(1,`rgb(${lowR},${lowG},${lowB})`);
   ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
 
-  // Tiny stars.
+  // Stars.
   ctx.fillStyle=`rgba(255,255,225,${0.08+night*.65})`;
-  for(let i=0;i<28;i++){
-    const x=(i*97)%W, y=35+(i*53)%(H*.38);
-    const r=(i%3===0)?1.3:.8;
-    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+  for(let i=0;i<24;i++){
+    const x=(i*97)%Math.max(1,W);
+    const y=35+(i*53)%(Math.max(1,H*.38));
+    ctx.beginPath();ctx.arc(x,y,i%3===0?1.3:.8,0,Math.PI*2);ctx.fill();
   }
 
-  // Sun / moon travel across the sky.
-  const celestialX=W*.18 + cycle*W*.64;
-  const celestialY=H*(.17 + Math.abs(Math.sin(cycle*Math.PI))*-.015);
+  // Sun and moon.
+  const sx=W*(.18+cycle*.64), sy=H*.17;
   if(daylight>.12){
-    const glow=ctx.createRadialGradient(celestialX,celestialY,4,celestialX,celestialY,125);
-    glow.addColorStop(0,`rgba(255,245,180,${.95*daylight})`);
-    glow.addColorStop(.22,`rgba(255,215,105,${.28*daylight})`);
-    glow.addColorStop(1,'rgba(255,210,125,0)');
-    ctx.fillStyle=glow;ctx.beginPath();ctx.arc(celestialX,celestialY,125,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle=`rgba(255,239,166,${.9*daylight})`;
-    ctx.beginPath();ctx.arc(celestialX,celestialY,29,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=`rgba(255,226,130,${.18*daylight})`;ctx.beginPath();ctx.arc(sx,sy,80,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=`rgba(255,239,166,${.9*daylight})`;ctx.beginPath();ctx.arc(sx,sy,25,0,Math.PI*2);ctx.fill();
   }
   if(night>.18){
-    const mx=W*.18 + ((cycle+.5)%1)*W*.64;
-    const my=H*.17;
-    ctx.fillStyle=`rgba(245,246,213,${.82*night})`;
-    ctx.beginPath();ctx.arc(mx,my,25,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle=rgb(cTop);
-    ctx.beginPath();ctx.arc(mx+9,my-6,23,0,Math.PI*2);ctx.fill();
+    const mx=W*(.18+((cycle+.5)%1)*.64), my=H*.17;
+    ctx.fillStyle=`rgba(245,246,213,${.82*night})`;ctx.beginPath();ctx.arc(mx,my,23,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=`rgba(${topR},${topG},${topB},1)`;ctx.beginPath();ctx.arc(mx+8,my-5,21,0,Math.PI*2);ctx.fill();
   }
 
-  // Far hills.
-  ctx.fillStyle='#315863';
-  ctx.beginPath();ctx.moveTo(0,H*.59);
+  // Distant swamp/jungle silhouette.
+  ctx.fillStyle=env==='JUNGLE'?'#245449':'#315863';
+  ctx.beginPath();ctx.moveTo(0,H*.58);
   for(let i=0;i<=12;i++){
     const px=i*W/12;
-    const peak=H*(.48+(i%3)*.025);
-    ctx.quadraticCurveTo(px+W/24,H*.42,px+W/12,peak);
+    const py=H*(.48+(i%3)*.025);
+    ctx.quadraticCurveTo(px+W/24,H*.42,px+W/12,py);
   }
   ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.fill();
 
-  // Layered swamp trees.
+  // Trees.
   for(let layer=0;layer<2;layer++){
-    for(let i=0;i<11;i++){
+    for(let i=0;i<9;i++){
       let px=(i*109+layer*47-t*(.10+layer*.05))%(W+130);if(px<0)px+=W+130;
-      const base=H*(.72+layer*.025);
-      const trunk=55+(i%3)*16;
-      ctx.fillStyle=layer?'#16444b':'#1d5056';
-      ctx.fillRect(px-7,base-trunk,14,trunk);
-      for(let j=0;j<5;j++){
-        ctx.beginPath();
-        ctx.arc(px+(j%2?17:-17),base-trunk-16-j*12,30-j*2.2,0,Math.PI*2);
-        ctx.fill();
+      const base=H*(.70+layer*.025), trunk=55+(i%3)*16;
+      ctx.fillStyle=layer?'#16444b':'#1d5056';ctx.fillRect(px-6,base-trunk,12,trunk);
+      for(let j=0;j<4;j++){
+        ctx.beginPath();ctx.arc(px+(j%2?15:-15),base-trunk-14-j*12,27-j*2,0,Math.PI*2);ctx.fill();
       }
     }
   }
 
-  // Foreground reeds with highlights.
-  for(let i=0;i<28;i++){
-    let px=(i*59-t*.42)%(W+90);if(px<0)px+=W+90;
-    const h=85+(i%5)*20;
-    ctx.strokeStyle=i%2?'#1e6b55':'#2b805e';
-    ctx.lineWidth=5;ctx.lineCap='round';
-    ctx.beginPath();ctx.moveTo(px,H*.75);ctx.quadraticCurveTo(px-7,H*.75-h*.52,px+8,H*.75-h);ctx.stroke();
-    ctx.strokeStyle='rgba(111,190,112,.28)';ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(px+3,H*.75);ctx.quadraticCurveTo(px,H*.75-h*.48,px+10,H*.75-h*.92);ctx.stroke();
-  }
-
   // Water.
   const water=ctx.createLinearGradient(0,H*.68,0,H);
-  water.addColorStop(0,'#21818a');water.addColorStop(.45,'#126574');water.addColorStop(1,'#072f42');
-  ctx.fillStyle=water;ctx.fillRect(0,H*.68,W,H*.32);
+  water.addColorStop(0,env==='MOONLIT'?'#205d75':'#21818a');
+  water.addColorStop(1,'#072f42');ctx.fillStyle=water;ctx.fillRect(0,H*.68,W,H*.32);
 
-  // Water ripples.
-  for(let i=0;i<16;i++){
-    let px=(i*119-t*(1.1+i%2*.35))%(W+130);if(px<0)px+=W+130;
-    const py=H*.73+(i%6)*45;
-    ctx.strokeStyle='rgba(159,231,211,.38)';ctx.lineWidth=2;
+  // Reeds and ripples.
+  for(let i=0;i<22;i++){
+    let px=(i*59-t*.42)%(W+90);if(px<0)px+=W+90;
+    const h=75+(i%5)*17;
+    ctx.strokeStyle=i%2?'#1e6b55':'#2b805e';ctx.lineWidth=4;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(px,H*.75);ctx.quadraticCurveTo(px-7,H*.75-h*.52,px+8,H*.75-h);ctx.stroke();
+  }
+  for(let i=0;i<12;i++){
+    let px=(i*119-t*(1.0+i%2*.3))%(W+130);if(px<0)px+=W+130;
+    const py=H*.73+(i%5)*46;
+    ctx.strokeStyle='rgba(159,231,211,.32)';ctx.lineWidth=2;
     ctx.beginPath();ctx.moveTo(px,py);ctx.quadraticCurveTo(px+28,py-4,px+57,py);ctx.stroke();
   }
 
   // Lily pads.
-  for(let i=0;i<9;i++){
+  for(let i=0;i<7;i++){
     let px=(i*181-t*.65)%(W+90);if(px<0)px+=W+90;
     const py=H*.76+(i%3)*57;
-    ctx.fillStyle='#4fa75a';ctx.strokeStyle='#286b45';ctx.lineWidth=2.5;
-    ctx.beginPath();ctx.ellipse(px,py,31,12,0,0,Math.PI*2);ctx.fill();ctx.stroke();
-    ctx.strokeStyle='#2c6d45';ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px+18,py-9);ctx.stroke();
+    ctx.fillStyle='#4fa75a';ctx.strokeStyle='#286b45';ctx.lineWidth=2;
+    ctx.beginPath();ctx.ellipse(px,py,28,11,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.strokeStyle='#2c6d45';ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px+16,py-8);ctx.stroke();
   }
 
-
+  // Environment tint.
   if(env==='JUNGLE'){
-    ctx.fillStyle='rgba(69,145,70,.16)';ctx.fillRect(0,H*.48,W,H*.22);
-    ctx.fillStyle='rgba(24,70,42,.22)';ctx.fillRect(0,0,W,H*.48);
-    for(let i=0;i<9;i++){const x=(i*137+t*.12)%(W+80)-40;ctx.fillStyle='rgba(15,54,34,.55)';ctx.beginPath();ctx.arc(x,40+(i%3)*25,45+(i%3)*12,0,Math.PI*2);ctx.fill();}
+    ctx.fillStyle='rgba(24,70,42,.20)';ctx.fillRect(0,0,W,H*.52);
   }else if(env==='MOONLIT'){
-    ctx.fillStyle='rgba(32,45,100,.18)';ctx.fillRect(0,H*.52,W,H*.18);
-    ctx.fillStyle='rgba(15,22,58,.30)';ctx.fillRect(0,0,W,H*.7);
-    ctx.fillStyle='rgba(190,220,255,.12)';ctx.fillRect(0,H*.48,W,H*.2);
+    ctx.fillStyle='rgba(15,22,58,.28)';ctx.fillRect(0,0,W,H*.70);
+    ctx.fillStyle='rgba(190,220,255,.10)';ctx.fillRect(0,H*.48,W,H*.20);
   }
-  drawWeather();
-}
 
+  // Weather is intentionally last and isolated.
+  try{drawWeather();}catch(err){console.warn('weather render skipped',err);}
+}
 
 function snake(x,edge,length,top,phase=0,type='normal'){
   const snakeStage=Math.floor((game.score||0)/10)%6;
