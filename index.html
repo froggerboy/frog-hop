@@ -44,6 +44,7 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 #shopBtn{margin-top:10px}
 
 #shopBtn{position:relative;z-index:50;pointer-events:auto;touch-action:manipulation}
+#btn{position:relative;z-index:60;pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer}
 #shop{z-index:200}
 
 #shop{z-index:20;pointer-events:auto}
@@ -486,7 +487,10 @@ function jump(){
   game.f.rot=-.45;
 }
 
-btn.onclick=e=>{e.preventDefault();e.stopPropagation();start()};
+function handlePlay(e){e.preventDefault();e.stopPropagation();if(!game?.run) start(); else start();}
+btn.addEventListener('pointerdown',handlePlay,{capture:true,passive:false});
+btn.addEventListener('touchstart',handlePlay,{capture:true,passive:false});
+btn.addEventListener('click',handlePlay,{capture:true,passive:false});
 
 const shopButton=document.getElementById('shopBtn');
 const closeShopButton=document.getElementById('closeShop');
