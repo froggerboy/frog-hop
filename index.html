@@ -9,20 +9,20 @@
 <title>Frog Hop</title>
 <style>
 *{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#102b35;font-family:-apple-system,BlinkMacSystemFont,"Avenir Next",system-ui,sans-serif;touch-action:none}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0c2630;font-family:-apple-system,BlinkMacSystemFont,"Avenir Next",system-ui,sans-serif;touch-action:none}
 canvas{width:100%;height:100%;display:block}
 #hud{position:fixed;top:env(safe-area-inset-top,0);left:0;right:0;padding:12px 14px;display:flex;align-items:flex-start;justify-content:space-between;pointer-events:none;z-index:5}
-.hudbox{min-width:76px;padding:7px 10px;border-radius:15px;background:rgba(11,32,39,.72);border:1.5px solid rgba(255,255,255,.24);box-shadow:0 6px 18px rgba(0,0,0,.16);color:#fff;text-align:center}
-.hudlabel{display:block;font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;opacity:.72}
-.hudnum{display:block;font-size:22px;line-height:22px;font-weight:900}
-#centerScore{position:absolute;left:50%;transform:translateX(-50%);top:12px;text-align:center;color:#fff;text-shadow:0 3px 8px rgba(0,0,0,.28)}
-#centerScore .num{font-size:34px;line-height:38px;font-weight:950}
-#centerScore .label{font-size:9px;letter-spacing:2px;font-weight:900;opacity:.8}
-#overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(6,19,27,.42);z-index:10}
-.card{width:min(88vw,390px);max-height:78vh;overflow:auto;padding:30px 24px 26px;border:2px solid rgba(255,239,170,.72);border-radius:30px;background:linear-gradient(180deg,rgba(17,51,56,.97),rgba(10,35,43,.97));box-shadow:0 24px 70px rgba(0,0,0,.38);text-align:center;color:#fff}
-.logo{font-size:clamp(38px,11vw,56px);line-height:1;font-weight:950;letter-spacing:1px;color:#bdf45b;text-shadow:0 4px 0 #315b2c;margin:0 0 8px}
+.hudbox{min-width:78px;padding:8px 10px;border-radius:16px;background:rgba(7,28,35,.68);border:1.5px solid rgba(255,255,255,.22);box-shadow:0 7px 20px rgba(0,0,0,.18);color:#fff;text-align:center;backdrop-filter:blur(6px)}
+.hudlabel{display:block;font-size:9px;font-weight:900;letter-spacing:1.7px;text-transform:uppercase;opacity:.72}
+.hudnum{display:block;font-size:23px;line-height:24px;font-weight:900}
+#centerScore{position:absolute;left:50%;transform:translateX(-50%);top:9px;text-align:center;color:#fff;text-shadow:0 3px 8px rgba(0,0,0,.3)}
+#centerScore .num{font-size:37px;line-height:40px;font-weight:950}
+#centerScore .label{font-size:9px;letter-spacing:2.2px;font-weight:900;opacity:.78}
+#overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(5,18,24,.36);z-index:10}
+.card{width:min(88vw,390px);max-height:78vh;overflow:auto;padding:31px 24px 27px;border:2px solid rgba(255,239,170,.68);border-radius:30px;background:linear-gradient(180deg,rgba(13,50,56,.97),rgba(7,31,39,.98));box-shadow:0 24px 70px rgba(0,0,0,.4);text-align:center;color:#fff}
+.logo{font-size:clamp(39px,11vw,58px);line-height:1;font-weight:950;letter-spacing:1px;color:#c8f86b;text-shadow:0 4px 0 #315b2c;margin:0 0 8px}
 .subtitle{font-size:17px;line-height:1.4;color:#ffe7a3;margin:0 0 22px;font-weight:700}
-button{appearance:none;border:0;font:inherit;font-weight:900;font-size:21px;letter-spacing:.5px;border-radius:17px;padding:14px 38px;background:linear-gradient(#a9ef4c,#79c934);color:#17341d;box-shadow:0 6px 0 #4f8b27,0 10px 22px rgba(0,0,0,.22)}
+button{appearance:none;border:0;font:inherit;font-weight:900;font-size:21px;letter-spacing:.5px;border-radius:17px;padding:14px 38px;background:linear-gradient(#b6f65b,#75c932);color:#17341d;box-shadow:0 6px 0 #4f8b27,0 10px 22px rgba(0,0,0,.22)}
 button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 .small{margin-top:18px;color:#d7e6e0;font-size:13px;line-height:1.45}
 .hidden{display:none!important}
@@ -43,10 +43,11 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
     <div class="small">Tap anywhere to hop<br>Your best score saves automatically</div>
   </div>
 </div>
+
 <script>
 const c=document.getElementById('c'),ctx=c.getContext('2d'),scoreEl=document.getElementById('score'),bestEl=document.getElementById('best');
 let W=0,H=0,dpr=1,game=null,last=0;
-const BEST_KEY='frogHopBestV5';
+const BEST_KEY='frogHopBestV6';
 const best=()=>Number(localStorage.getItem(BEST_KEY)||0);
 bestEl.textContent=best();
 
@@ -57,14 +58,16 @@ function size(){
   ctx.setTransform(dpr,0,0,dpr,0,0);
 }
 addEventListener('resize',size); size();
-requestAnimationFrame(()=>draw());
 
 const overlay=document.getElementById('overlay'),btn=document.getElementById('btn'),msg=document.getElementById('msg');
 
 function start(){
-  game={run:true,score:0,time:0,speed:3.75,next:0,
+  game={
+    run:true,score:0,time:0,speed:3.8,next:0,
+    targetCenter:H*.46,
     f:{x:W*.25,y:H*.46,vy:0,rot:0,blink:0},
-    pipes:[]};
+    pipes:[]
+  };
   scoreEl.textContent='0';
   overlay.classList.add('hidden');
   jump();
@@ -82,252 +85,260 @@ function over(){
 function jump(){
   if(!game?.run)return;
   game.f.vy=-7.85;
-  game.f.rot=-.42;
+  game.f.rot=-.45;
 }
 btn.onclick=e=>{e.stopPropagation();start()};
 addEventListener('pointerdown',e=>{if(e.target===btn)return;if(game?.run)jump();else start()});
 addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();game?.run?jump():start()}});
 
-function rr(px,py,w,h,r){
-  ctx.beginPath();ctx.roundRect(px,py,w,h,r);ctx.fill();
-}
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill()}
 
 function bg(){
   const t=game?.time||0;
+
+  // Layered twilight sky.
   const sky=ctx.createLinearGradient(0,0,0,H);
-  sky.addColorStop(0,'#244e62');sky.addColorStop(.42,'#5d8f89');sky.addColorStop(.7,'#c5a36f');sky.addColorStop(1,'#0e4851');
+  sky.addColorStop(0,'#102d45');
+  sky.addColorStop(.28,'#2e6172');
+  sky.addColorStop(.55,'#6c9b91');
+  sky.addColorStop(.72,'#b9a474');
+  sky.addColorStop(1,'#0d4a55');
   ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
 
-  // moon/sun glow
-  const gx=W*.78, gy=H*.18;
-  const glow=ctx.createRadialGradient(gx,gy,4,gx,gy,105);
-  glow.addColorStop(0,'rgba(255,239,175,.95)');
-  glow.addColorStop(.28,'rgba(255,220,132,.38)');
-  glow.addColorStop(1,'rgba(255,220,132,0)');
-  ctx.fillStyle=glow;ctx.beginPath();ctx.arc(gx,gy,105,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#ffe9a9';ctx.beginPath();ctx.arc(gx,gy,31,0,Math.PI*2);ctx.fill();
+  // Tiny stars.
+  ctx.fillStyle='rgba(255,255,225,.55)';
+  for(let i=0;i<28;i++){
+    const x=(i*97)%W, y=35+(i*53)%(H*.38);
+    const r=(i%3===0)?1.3:.8;
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+  }
 
-  // distant hills
-  ctx.fillStyle='#315963';
-  ctx.beginPath();ctx.moveTo(0,H*.58);
-  for(let i=0;i<=10;i++){
-    const px=i*W/10, py=H*(.49+((i*7)%3)*.035);
-    ctx.quadraticCurveTo(px+W/20,H*.43,px+W/10,py);
+  // Moon with layered glow.
+  const gx=W*.79, gy=H*.16;
+  const glow=ctx.createRadialGradient(gx,gy,2,gx,gy,145);
+  glow.addColorStop(0,'rgba(255,239,176,.98)');
+  glow.addColorStop(.18,'rgba(255,226,143,.34)');
+  glow.addColorStop(.52,'rgba(255,210,125,.10)');
+  glow.addColorStop(1,'rgba(255,210,125,0)');
+  ctx.fillStyle=glow;ctx.beginPath();ctx.arc(gx,gy,145,0,Math.PI*2);ctx.fill();
+  const moon=ctx.createRadialGradient(gx-8,gy-10,4,gx,gy,34);
+  moon.addColorStop(0,'#fff4bf');moon.addColorStop(1,'#ffd983');
+  ctx.fillStyle=moon;ctx.beginPath();ctx.arc(gx,gy,34,0,Math.PI*2);ctx.fill();
+
+  // Far hills.
+  ctx.fillStyle='#315863';
+  ctx.beginPath();ctx.moveTo(0,H*.59);
+  for(let i=0;i<=12;i++){
+    const px=i*W/12;
+    const peak=H*(.48+(i%3)*.025);
+    ctx.quadraticCurveTo(px+W/24,H*.42,px+W/12,peak);
   }
   ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.fill();
 
-  // tree silhouettes
-  for(let i=0;i<9;i++){
-    let px=(i*117-t*.18)%(W+150); if(px<0)px+=W+150;
-    const base=H*.72, trunk=40+(i%3)*18;
-    ctx.fillStyle=i%2?'#173f45':'#1c4b4b';
-    ctx.fillRect(px-7,base-trunk,14,trunk);
-    for(let j=0;j<4;j++){
-      ctx.beginPath();ctx.arc(px+(j%2?16:-15),base-trunk-18-j*14,28-j*2,0,Math.PI*2);ctx.fill();
+  // Layered swamp trees.
+  for(let layer=0;layer<2;layer++){
+    for(let i=0;i<11;i++){
+      let px=(i*109+layer*47-t*(.10+layer*.05))%(W+130);if(px<0)px+=W+130;
+      const base=H*(.72+layer*.025);
+      const trunk=55+(i%3)*16;
+      ctx.fillStyle=layer?'#16444b':'#1d5056';
+      ctx.fillRect(px-7,base-trunk,14,trunk);
+      for(let j=0;j<5;j++){
+        ctx.beginPath();
+        ctx.arc(px+(j%2?17:-17),base-trunk-16-j*12,30-j*2.2,0,Math.PI*2);
+        ctx.fill();
+      }
     }
   }
 
-  // reeds
-  for(let i=0;i<22;i++){
-    let px=(i*71-t*.35)%(W+90); if(px<0)px+=W+90;
-    ctx.strokeStyle=i%2?'#1c5a4d':'#2c7055';ctx.lineWidth=4;ctx.lineCap='round';
-    ctx.beginPath();ctx.moveTo(px,H*.79);ctx.quadraticCurveTo(px-5,H*.63,px+8,H*.49);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(px+5,H*.78);ctx.quadraticCurveTo(px+18,H*.65,px+13,H*.56);ctx.stroke();
+  // Foreground reeds with highlights.
+  for(let i=0;i<28;i++){
+    let px=(i*59-t*.42)%(W+90);if(px<0)px+=W+90;
+    const h=85+(i%5)*20;
+    ctx.strokeStyle=i%2?'#1e6b55':'#2b805e';
+    ctx.lineWidth=5;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(px,H*.75);ctx.quadraticCurveTo(px-7,H*.75-h*.52,px+8,H*.75-h);ctx.stroke();
+    ctx.strokeStyle='rgba(111,190,112,.28)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(px+3,H*.75);ctx.quadraticCurveTo(px,H*.75-h*.48,px+10,H*.75-h*.92);ctx.stroke();
   }
 
-  // water
-  const water=ctx.createLinearGradient(0,H*.69,0,H);
-  water.addColorStop(0,'#23717a');water.addColorStop(1,'#0a3849');
-  ctx.fillStyle=water;ctx.fillRect(0,H*.69,W,H*.31);
-  for(let i=0;i<12;i++){
-    let px=(i*131-t*1.3)%(W+100);if(px<0)px+=W+100;
-    const py=H*.74+(i%5)*43;
-    ctx.strokeStyle='rgba(147,218,196,.42)';ctx.lineWidth=2;
+  // Water.
+  const water=ctx.createLinearGradient(0,H*.68,0,H);
+  water.addColorStop(0,'#21818a');water.addColorStop(.45,'#126574');water.addColorStop(1,'#072f42');
+  ctx.fillStyle=water;ctx.fillRect(0,H*.68,W,H*.32);
+
+  // Water ripples.
+  for(let i=0;i<16;i++){
+    let px=(i*119-t*(1.1+i%2*.35))%(W+130);if(px<0)px+=W+130;
+    const py=H*.73+(i%6)*45;
+    ctx.strokeStyle='rgba(159,231,211,.38)';ctx.lineWidth=2;
     ctx.beginPath();ctx.moveTo(px,py);ctx.quadraticCurveTo(px+28,py-4,px+57,py);ctx.stroke();
   }
 
-  // lily pads
-  for(let i=0;i<8;i++){
-    let px=(i*177-t*.7)%(W+80);if(px<0)px+=W+80;
-    const py=H*.77+(i%3)*58;
-    ctx.fillStyle='#4f9d58';ctx.beginPath();ctx.ellipse(px,py,27,10,0,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle='#2d6c42';ctx.lineWidth=2;ctx.stroke();
-    ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px+15,py-8);ctx.stroke();
+  // Lily pads.
+  for(let i=0;i<9;i++){
+    let px=(i*181-t*.65)%(W+90);if(px<0)px+=W+90;
+    const py=H*.76+(i%3)*57;
+    ctx.fillStyle='#4fa75a';ctx.strokeStyle='#286b45';ctx.lineWidth=2.5;
+    ctx.beginPath();ctx.ellipse(px,py,31,12,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.strokeStyle='#2c6d45';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px+18,py-9);ctx.stroke();
   }
 }
 
-function snake(x,edge,length,top){
+function snake(x,edge,length,top,phase=0){
   ctx.save();
-
   const dir=top?-1:1;
-  const amp=18;
-  const w=26;
-
-  // Winding snake body from the gap edge toward the screen edge.
-  const y0=edge;
-  const y1=edge+dir*length;
-  const bend=dir*length*.34;
-
-  function pathBody(){
+  const w=22;
+  const amp=24;
+  const bodyPath=()=>{
     ctx.beginPath();
-    ctx.moveTo(x,y0);
-    ctx.bezierCurveTo(
-      x+amp,y0+dir*55,
-      x-amp,y0+dir*115,
-      x,y0+dir*175
-    );
-    ctx.bezierCurveTo(
-      x+amp,y0+dir*235,
-      x-amp,y0+dir*295,
-      x,y1
-    );
+    ctx.moveTo(x,edge);
+    ctx.bezierCurveTo(x+amp,edge+dir*48,x-amp,edge+dir*104,x,edge+dir*158);
+    ctx.bezierCurveTo(x+amp,edge+dir*214,x-amp,edge+dir*275,x+Math.sin(phase)*8,edge+dir*length);
+  };
+
+  // Soft shadow.
+  ctx.save();ctx.translate(5,6);
+  ctx.strokeStyle='rgba(0,0,0,.23)';ctx.lineWidth=w+8;ctx.lineCap='round';bodyPath();ctx.stroke();ctx.restore();
+
+  // Main snake body with highlight.
+  const grad=ctx.createLinearGradient(x-18,0,x+18,0);
+  grad.addColorStop(0,'#194c2e');grad.addColorStop(.24,'#3c8c3e');grad.addColorStop(.52,'#82c957');grad.addColorStop(.78,'#3f8f3e');grad.addColorStop(1,'#173f2b');
+  ctx.strokeStyle=grad;ctx.lineWidth=w;ctx.lineCap='round';bodyPath();ctx.stroke();
+
+  // Bright dorsal highlight.
+  ctx.strokeStyle='rgba(196,241,119,.42)';ctx.lineWidth=4;bodyPath();ctx.stroke();
+
+  // Belly scales / pattern.
+  for(let i=0;i<12;i++){
+    const yy=edge+dir*(18+i*27);
+    const xx=x+Math.sin(i*.9+phase)*amp*.45;
+    ctx.fillStyle=i%2?'rgba(221,224,126,.72)':'rgba(239,230,143,.56)';
+    ctx.beginPath();ctx.ellipse(xx,yy,5,7,dir*.12,0,Math.PI*2);ctx.fill();
   }
 
-  // Shadow
-  ctx.save();
-  ctx.translate(5,4);
-  ctx.strokeStyle='rgba(0,0,0,.20)';
-  ctx.lineWidth=w+9;
-  ctx.lineCap='round';
-  pathBody();
-  ctx.stroke();
-  ctx.restore();
+  // Head at the opening, angled into the gap.
+  const hx=x,hy=edge+dir*2;
+  ctx.fillStyle='#5cad45';ctx.strokeStyle='#123c28';ctx.lineWidth=4;
+  ctx.beginPath();ctx.ellipse(hx,hy+dir*11,30,24,0,0,Math.PI*2);ctx.fill();ctx.stroke();
 
-  // Main body
-  const body=ctx.createLinearGradient(x-w/2,0,x+w/2,0);
-  body.addColorStop(0,'#24572e');
-  body.addColorStop(.45,'#72c34d');
-  body.addColorStop(1,'#2a6635');
-  ctx.strokeStyle=body;
-  ctx.lineWidth=w;
-  ctx.lineCap='round';
-  pathBody();
-  ctx.stroke();
+  // Snout.
+  ctx.fillStyle='#77c950';ctx.beginPath();ctx.ellipse(hx,hy+dir*18,21,13,0,0,Math.PI*2);ctx.fill();ctx.stroke();
 
-  // Belly stripe
-  ctx.strokeStyle='#d8c16d';
-  ctx.lineWidth=8;
-  ctx.globalAlpha=.9;
-  pathBody();
-  ctx.stroke();
-  ctx.globalAlpha=1;
-
-  // Scale marks
-  for(let i=0;i<10;i++){
-    const yy=y0+dir*(22+i*31);
-    const wave=Math.sin(i*.9)*amp*.45;
-    ctx.fillStyle='rgba(255,255,255,.18)';
-    ctx.beginPath();
-    ctx.arc(x+wave,yy,2.7,0,Math.PI*2);
-    ctx.fill();
+  // Eye stalks and eyes.
+  for(const s of [-1,1]){
+    ctx.fillStyle='#6bc34d';ctx.beginPath();ctx.arc(hx+s*12,hy-dir*6,10,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#f8fff2';ctx.beginPath();ctx.arc(hx+s*12,hy-dir*7,6.2,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#15251a';ctx.beginPath();ctx.arc(hx+s*13,hy-dir*7,2.8,0,Math.PI*2);ctx.fill();
   }
 
-  // Head sits right at the gap, making it unmistakably a snake.
-  const hx=x, hy=edge+dir*2;
-  ctx.fillStyle='#72c34d';
-  ctx.strokeStyle='#163b25';
-  ctx.lineWidth=4;
-  ctx.beginPath();
-  ctx.ellipse(hx,hy+dir*10,29,24,0,0,Math.PI*2);
-  ctx.fill(); ctx.stroke();
+  // Nostrils.
+  ctx.fillStyle='#173421';
+  ctx.beginPath();ctx.arc(hx-6,hy+dir*17,1.7,0,Math.PI*2);ctx.arc(hx+6,hy+dir*17,1.7,0,Math.PI*2);ctx.fill();
 
-  // Eye bumps / eyes
-  const eyeY=hy+dir*2;
-  ctx.fillStyle='#8ed75b';
-  ctx.beginPath();
-  ctx.arc(hx-13,eyeY-dir*10,9,0,Math.PI*2);
-  ctx.arc(hx+13,eyeY-dir*10,9,0,Math.PI*2);
-  ctx.fill();
-  ctx.stroke();
+  // Mouth.
+  ctx.strokeStyle='#173421';ctx.lineWidth=2.4;
+  ctx.beginPath();ctx.moveTo(hx-11,hy+dir*22);ctx.quadraticCurveTo(hx,hy+dir*28,hx+11,hy+dir*22);ctx.stroke();
 
-  ctx.fillStyle='#fff';
+  // Forked tongue pointing into the gap.
+  ctx.strokeStyle='#ef5b62';ctx.lineWidth=2.8;ctx.lineCap='round';
   ctx.beginPath();
-  ctx.arc(hx-13,eyeY-dir*10,6,0,Math.PI*2);
-  ctx.arc(hx+13,eyeY-dir*10,6,0,Math.PI*2);
-  ctx.fill();
-
-  ctx.fillStyle='#152018';
-  ctx.beginPath();
-  ctx.arc(hx-12,eyeY-dir*10,2.8,0,Math.PI*2);
-  ctx.arc(hx+14,eyeY-dir*10,2.8,0,Math.PI*2);
-  ctx.fill();
-
-  // Mouth + forked tongue pointing into the gap.
-  ctx.strokeStyle='#19301f';
-  ctx.lineWidth=2.5;
-  ctx.beginPath();
-  ctx.arc(hx,hy+dir*11,11,dir*Math.PI+.25,dir*2*Math.PI-.25);
-  ctx.stroke();
-
-  ctx.strokeStyle='#ef5960';
-  ctx.lineWidth=3;
-  ctx.beginPath();
-  ctx.moveTo(hx,hy+dir*24);
-  ctx.lineTo(hx,hy+dir*39);
-  ctx.moveTo(hx,hy+dir*36);
-  ctx.lineTo(hx-6,hy+dir*43);
-  ctx.moveTo(hx,hy+dir*36);
-  ctx.lineTo(hx+6,hy+dir*43);
+  ctx.moveTo(hx,hy+dir*27);ctx.lineTo(hx,hy+dir*41);
+  ctx.moveTo(hx,hy+dir*39);ctx.lineTo(hx-6,hy+dir*46);
+  ctx.moveTo(hx,hy+dir*39);ctx.lineTo(hx+6,hy+dir*46);
   ctx.stroke();
 
   ctx.restore();
 }
+
 function frog(){
   const f=game.f;ctx.save();ctx.translate(f.x,f.y);ctx.rotate(f.rot);
 
-  // shadow
-  ctx.fillStyle='rgba(5,28,31,.28)';ctx.beginPath();ctx.ellipse(0,30,27,8,0,0,Math.PI*2);ctx.fill();
+  // Cast shadow.
+  ctx.fillStyle='rgba(3,24,29,.25)';ctx.beginPath();ctx.ellipse(0,31,29,8,0,0,Math.PI*2);ctx.fill();
 
-  // rear legs
-  ctx.fillStyle='#4b9b37';ctx.strokeStyle='#183c25';ctx.lineWidth=3;
-  ctx.beginPath();ctx.ellipse(-23,14,21,11,-.3,0,Math.PI*2);ctx.ellipse(23,14,21,11,.3,0,Math.PI*2);ctx.fill();ctx.stroke();
+  // Back legs.
+  ctx.fillStyle='#4d9d3b';ctx.strokeStyle='#163d26';ctx.lineWidth=3.5;
+  ctx.beginPath();ctx.ellipse(-24,13,21,12,-.34,0,Math.PI*2);ctx.ellipse(24,13,21,12,.34,0,Math.PI*2);ctx.fill();ctx.stroke();
 
-  // toes
-  ctx.strokeStyle='#2b6330';ctx.lineWidth=3;ctx.lineCap='round';
+  // Long rear toes.
+  ctx.strokeStyle='#2c6c32';ctx.lineWidth=3;ctx.lineCap='round';
   for(const s of [-1,1])for(let i=-1;i<=1;i++){
-    const bx=s*29;ctx.beginPath();ctx.moveTo(bx,17);ctx.lineTo(bx+s*11,24+i*4);ctx.stroke();
+    const bx=s*29;ctx.beginPath();ctx.moveTo(bx,16);ctx.lineTo(bx+s*12,24+i*4);ctx.stroke();
   }
 
-  // body
-  const body=ctx.createLinearGradient(0,-20,0,25);
-  body.addColorStop(0,'#b8f65d');body.addColorStop(.55,'#70cf43');body.addColorStop(1,'#3d9137');
-  ctx.fillStyle=body;ctx.strokeStyle='#183c25';ctx.lineWidth=3.5;
-  ctx.beginPath();ctx.ellipse(0,4,27,23,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+  // Body gradient.
+  const body=ctx.createRadialGradient(-8,-14,4,3,9,35);
+  body.addColorStop(0,'#d2fb76');body.addColorStop(.35,'#83dc4d');body.addColorStop(.75,'#4ca83c');body.addColorStop(1,'#2e7132');
+  ctx.fillStyle=body;ctx.strokeStyle='#143c26';ctx.lineWidth=3.5;
+  ctx.beginPath();ctx.ellipse(0,4,28,24,0,0,Math.PI*2);ctx.fill();ctx.stroke();
 
-  // belly
-  ctx.fillStyle='#dff3a0';ctx.beginPath();ctx.ellipse(0,10,15,11,0,0,Math.PI*2);ctx.fill();
+  // Cream belly.
+  const belly=ctx.createRadialGradient(-4,4,2,0,9,18);
+  belly.addColorStop(0,'#f1f8b1');belly.addColorStop(1,'#b9dc72');
+  ctx.fillStyle=belly;ctx.beginPath();ctx.ellipse(0,10,16,12,0,0,Math.PI*2);ctx.fill();
 
-  // eyes
-  ctx.fillStyle='#79d14c';ctx.beginPath();ctx.arc(-15,-13,12,0,Math.PI*2);ctx.arc(15,-13,12,0,Math.PI*2);ctx.fill();ctx.stroke();
-  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-15,-14,7,0,Math.PI*2);ctx.arc(15,-14,7,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#142117';ctx.beginPath();ctx.arc(-13,-14,3.5,0,Math.PI*2);ctx.arc(17,-14,3.5,0,Math.PI*2);ctx.fill();
+  // Belly contour.
+  ctx.strokeStyle='rgba(45,95,35,.55)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(0,10,14,-.9,1.1);ctx.stroke();
 
-  // smile and cheek spots
-  ctx.strokeStyle='#244a26';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,5,13,0,Math.PI);ctx.stroke();
-  ctx.fillStyle='#4c9e36';ctx.beginPath();ctx.arc(-19,1,3,0,Math.PI*2);ctx.arc(19,1,3,0,Math.PI*2);ctx.fill();
+  // Eyes.
+  for(const s of [-1,1]){
+    ctx.fillStyle='#73cf4c';ctx.beginPath();ctx.arc(s*15,-14,13,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#fafff0';ctx.beginPath();ctx.arc(s*15,-15,7.3,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#102017';ctx.beginPath();ctx.arc(s*17,-15,3.7,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.9)';ctx.beginPath();ctx.arc(s*18,-17,1.3,0,Math.PI*2);ctx.fill();
+  }
+
+  // Smile, cheeks and tiny nostrils.
+  ctx.strokeStyle='#214d2b';ctx.lineWidth=2.8;
+  ctx.beginPath();ctx.arc(0,6,13,.1,Math.PI-.1);ctx.stroke();
+  ctx.fillStyle='#4a9b38';ctx.beginPath();ctx.arc(-20,1,3.2,0,Math.PI*2);ctx.arc(20,1,3.2,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#244a27';ctx.beginPath();ctx.arc(-4,3,1.3,0,Math.PI*2);ctx.arc(4,3,1.3,0,Math.PI*2);ctx.fill();
+
   ctx.restore();
 }
 
 function spawn(){
-  const gap=Math.max(150,190-game.score*1.5);
-  const topMargin=105;
-  const bottomMargin=105;
-  const minCenter=topMargin+gap/2;
-  const maxCenter=H*.69-bottomMargin-gap/2;
-  const center=maxCenter>minCenter
-    ? minCenter+Math.random()*(maxCenter-minCenter)
-    : H*.43;
-  game.pipes.push({x:W+80,w:54,g:center,gap,scored:false});
+  // Difficulty ramps in two ways:
+  // 1) the gap gradually narrows
+  // 2) the gap centre can be higher OR lower on the screen.
+  const gap=Math.max(128,188-game.score*1.45);
+
+  const safeTop=Math.max(112,gap*.5+40);
+  const safeBottom=Math.min(H*.66-gap*.5-28,H-120);
+
+  // Wider vertical range as score rises, but always leave a playable route.
+  const rangeBoost=Math.min(42,game.score*1.5);
+  const minCenter=safeTop-rangeBoost;
+  const maxCenter=safeBottom+rangeBoost;
+
+  let center;
+  if(game.score===0){
+    center=H*.45;
+  }else{
+    const desired=minCenter+Math.random()*(maxCenter-minCenter);
+    // Prevent brutal vertical jumps between consecutive obstacles.
+    center=clamp(desired,game.targetCenter-85-rangeBoost*.25,game.targetCenter+85+rangeBoost*.25);
+  }
+  center=clamp(center,safeTop,safeBottom);
+  game.targetCenter=center;
+
+  game.pipes.push({
+    x:W+95,w:58,g:center,gap,
+    scored:false,phase:Math.random()*Math.PI*2
+  });
 }
 
 function draw(){
   bg();
   if(!game)return;
   for(const p of game.pipes){
-    const length=Math.max(300,H*.62);
-    snake(p.x,p.g-p.gap/2,length,true);
-    snake(p.x,p.g+p.gap/2,length,false);
+    const length=Math.max(330,H*.66);
+    snake(p.x,p.g-p.gap/2,length,true,p.phase);
+    snake(p.x,p.g+p.gap/2,length,false,p.phase+1.2);
   }
   frog();
 }
@@ -338,25 +349,29 @@ function loop(t){
     game.time+=dt;
     game.f.vy+=.42*dt;
     game.f.y+=game.f.vy*dt;
-    game.f.rot=clamp(game.f.rot+.038*dt,-.42,.95);
-    game.speed=Math.min(6.5,3.75+game.score*.04);
+    game.f.rot=clamp(game.f.rot+.038*dt,-.45,.95);
+    game.speed=Math.min(6.6,3.8+game.score*.045);
 
-    if(game.pipes.length===0 || game.pipes.at(-1).x<W-255)spawn();
+    if(game.pipes.length===0 || game.pipes.at(-1).x<W-275)spawn();
 
     for(const p of game.pipes){
       p.x-=game.speed*dt;
-      if(!p.scored && p.x+p.w<game.f.x){p.scored=true;game.score++;scoreEl.textContent=game.score}
 
-      // forgiving, character-sized hitbox
-      const fx=10,fy=11;
+      if(!p.scored && p.x+p.w<game.f.x){
+        p.scored=true;game.score++;scoreEl.textContent=game.score;
+      }
+
+      // Small, forgiving frog hitbox.
+      const fx=9,fy=10;
       const hitX=game.f.x+fx>p.x && game.f.x-fx<p.x+p.w;
       const gapTop=p.g-p.gap/2;
       const gapBottom=p.g+p.gap/2;
       const hitY=game.f.y-fy<gapTop || game.f.y+fy>gapBottom;
       if(hitX&&hitY){over();break}
     }
-    game.pipes=game.pipes.filter(p=>p.x>-120);
-    if(game.f.y<18 || game.f.y>H*.69-4)over();
+
+    game.pipes=game.pipes.filter(p=>p.x>-140);
+    if(game.f.y<18 || game.f.y>H*.68-5)over();
   }
   draw();
   requestAnimationFrame(loop);
