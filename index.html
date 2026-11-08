@@ -310,11 +310,15 @@ function snake(x,edge,length,top,phase=0){
 
   // Main snake body with highlight.
   const grad=ctx.createLinearGradient(x-18,0,x+18,0);
-  grad.addColorStop(0,'#194c2e');grad.addColorStop(.24,'#3c8c3e');grad.addColorStop(.52,'#82c957');grad.addColorStop(.78,'#3f8f3e');grad.addColorStop(1,'#173f2b');
+  grad.addColorStop(0,snakeDark);
+  grad.addColorStop(.24,snakeMain);
+  grad.addColorStop(.52,snakeLight);
+  grad.addColorStop(.78,snakeMain);
+  grad.addColorStop(1,snakeDark);
   ctx.strokeStyle=grad;ctx.lineWidth=w;ctx.lineCap='round';bodyPath();ctx.stroke();
 
   // Bright dorsal highlight.
-  ctx.strokeStyle='rgba(196,241,119,.42)';ctx.lineWidth=4;bodyPath();ctx.stroke();
+  ctx.strokeStyle=snakeLight;ctx.lineWidth=4;bodyPath();ctx.stroke();
 
   // Belly scales / pattern.
   for(let i=0;i<12;i++){
@@ -326,21 +330,21 @@ function snake(x,edge,length,top,phase=0){
 
   // Head at the opening, angled into the gap.
   const hx=x,hy=edge+dir*2;
-  ctx.fillStyle='#5cad45';ctx.strokeStyle='#123c28';ctx.lineWidth=4;
+  ctx.fillStyle=snakeMain;ctx.strokeStyle=snakeDark;ctx.lineWidth=4;
   ctx.beginPath();ctx.ellipse(hx,hy+dir*11,30,24,0,0,Math.PI*2);ctx.fill();ctx.stroke();
 
   // Snout.
-  ctx.fillStyle='#77c950';ctx.beginPath();ctx.ellipse(hx,hy+dir*18,21,13,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle=snakeLight;ctx.beginPath();ctx.ellipse(hx,hy+dir*18,21,13,0,0,Math.PI*2);ctx.fill();ctx.stroke();
 
   // Eye stalks and eyes.
   for(const s of [-1,1]){
-    ctx.fillStyle='#6bc34d';ctx.beginPath();ctx.arc(hx+s*12,hy-dir*6,10,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.fillStyle=snakeMain;ctx.beginPath();ctx.arc(hx+s*12,hy-dir*6,10,0,Math.PI*2);ctx.fill();ctx.stroke();
     ctx.fillStyle='#f8fff2';ctx.beginPath();ctx.arc(hx+s*12,hy-dir*7,6.2,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#15251a';ctx.beginPath();ctx.arc(hx+s*13,hy-dir*7,2.8,0,Math.PI*2);ctx.fill();
   }
 
   // Nostrils.
-  ctx.fillStyle='#173421';
+  ctx.fillStyle=snakeDark;
   ctx.beginPath();ctx.arc(hx-6,hy+dir*17,1.7,0,Math.PI*2);ctx.arc(hx+6,hy+dir*17,1.7,0,Math.PI*2);ctx.fill();
 
   // Mouth.
