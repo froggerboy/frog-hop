@@ -69,14 +69,6 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 .accessory.equipped{border-color:#fff5a0;box-shadow:0 0 0 2px rgba(255,245,160,.18)}
 .scorecost{font-size:13px;margin-top:4px;color:#fff5a0}
 .achgrid{display:grid;grid-template-columns:1fr;gap:9px;margin:10px 0 14px;text-align:left}.achievement{border:1.5px solid rgba(255,255,255,.15);border-radius:14px;padding:11px 12px;background:rgba(0,0,0,.16)}.achievement.done{border-color:#fff5a0;background:rgba(255,245,160,.10)}.achievement .atitle{font-weight:900}.achievement .adesc{font-size:12px;opacity:.72;margin-top:3px}.achievement .astatus{font-size:12px;color:#fff5a0;margin-top:5px;font-weight:800}.combo{position:fixed;left:50%;top:88px;transform:translateX(-50%);z-index:6;color:#fff5a0;font-weight:950;font-size:18px;text-shadow:0 3px 8px rgba(0,0,0,.45);pointer-events:none}.musicbtn{margin-top:8px!important;padding:9px 14px!important;font-size:12px!important}.homeStats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:14px 0}.homeStat{background:rgba(255,255,255,.08);border-radius:13px;padding:8px 5px}.homeStat b{display:block;font-size:19px}.homeStat span{font-size:9px;opacity:.7;text-transform:uppercase;letter-spacing:1px}.powerHud{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:6;color:#fff;font-weight:950;font-size:14px;text-shadow:0 3px 8px rgba(0,0,0,.45);pointer-events:none;background:rgba(7,28,35,.55);padding:6px 11px;border-radius:999px}.weatherTag{position:fixed;right:12px;top:74px;z-index:5;color:#fff;font-size:10px;font-weight:900;letter-spacing:1px;opacity:.72;pointer-events:none}
-
-/* V64 HOME SCREEN */
-.homeHero{width:min(430px,100%);text-align:center}
-.homeBadge{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);font-size:10px;font-weight:900;letter-spacing:1.2px;margin-bottom:10px}
-.homeFrog{font-size:64px;line-height:1;margin:4px 0 8px;filter:drop-shadow(0 8px 10px rgba(0,0,0,.25))}
-.homeTag{font-size:12px;opacity:.75;margin:-2px 0 10px}
-#btn{box-shadow:0 8px 22px rgba(0,0,0,.25);font-size:18px;padding:15px 28px!important}
-.homeActions{display:grid;gap:8px;margin-top:10px}
 </style>
 </head>
 <body>
@@ -113,20 +105,11 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 </div>
 <div id="overlay">
   <div class="card">
-    <div class="homeHero">
-      <div class="homeBadge">🌿 SWAMP ADVENTURE</div>
-      <div class="logo">FROG HOP</div>
-      <div class="homeFrog" id="homeFrog">🐸</div>
-      <div class="homeTag" id="personalityLine">Your frog: Chill 😌</div>
-      <p class="subtitle" id="msg">Leap through the snakes, collect fireflies and become the ultimate frog.</p>
-      <div class="homeStats"><div class="homeStat"><b id="homeBest">0</b><span>Best</span></div><div class="homeStat"><b id="homeBank">0</b><span>Fireflies</span></div><div class="homeStat"><b id="homeSkin">🐸</b><span>Frog</span></div></div>
-      <div class="homeActions">
-        <button id="btn" type="button" aria-label="Play Frog Hop" onclick="if(window.__frogStartClick){window.__frogStartClick(event)}; return false;">▶ PLAY</button>
-        <button id="shopBtn" class="secondary" type="button">🐸 COLLECTION</button>
-        <button id="musicBtn" class="secondary musicbtn" type="button">🎵 MUSIC: ON</button>
-      </div>
-      <div class="small">Your best score and fireflies are saved automatically.</div>
-    </div>
+    <div class="logo">FROG HOP</div>
+    <p class="subtitle" id="msg">Leap through the snakes, collect fireflies and become the ultimate frog.</p>
+    <div class="homeStats"><div class="homeStat"><b id="homeBest">0</b><span>Best</span></div><div class="homeStat"><b id="homeBank">0</b><span>Fireflies</span></div><div class="homeStat"><b id="homeSkin">🐸</b><span>Frog</span></div></div>
+    <button id="btn" type="button" aria-label="Play Frog Hop">▶ PLAY</button><button id="shopBtn" class="secondary">🐸 COLLECTION</button><button id="musicBtn" class="secondary musicbtn">🎵 MUSIC: ON</button>
+    <div class="small" id="personalityLine">Your frog: Chill 😌<br>Tap anywhere to hop · Your best score saves automatically</div>
   </div>
 </div>
 
@@ -134,16 +117,7 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 // EARLY iPHONE PLAY ENTRY: this is defined before the rest of the game script.
 window.__frogStartClick=function(e){
   try{ if(e){e.preventDefault();e.stopPropagation();} }catch(_){}
-  const ov=document.getElementById("overlay");
-  if(ov){ ov.style.display="none"; ov.classList.add("hidden"); }
-  // start() is a function declaration, so it is available when this runs.
-  setTimeout(function(){
-    try{ start(); }catch(err){
-      // If startup fails, show a visible retry state rather than silently doing nothing.
-      try{ if(ov){ov.style.display="flex";ov.classList.remove("hidden");} }catch(_){}
-      console.error("Frog Hop start error",err);
-    }
-  },0);
+  try{ start(true); }catch(err){ console.error("Frog Hop start error",err); }
 };
 
 const SKINS = [
@@ -470,11 +444,15 @@ const overlay=document.getElementById('overlay'),btn=document.getElementById('bt
 function refreshHome(){
  if(homeBest)homeBest.textContent=best();
  if(homeBank)homeBank.textContent=bankedFireflies;
- if(homeSkin)homeSkin.textContent=personality().mood; if(homeFrog)homeFrog.textContent=personality().mood; if(personalityLine)personalityLine.textContent='Your frog: '+personality().name+' '+personality().mood;
+ if(homeSkin)homeSkin.textContent=personality().mood; if(personalityLine)personalityLine.innerHTML='Your frog: '+personality().name+' '+personality().mood+'<br>Tap anywhere to hop · Your best score saves automatically';
 }
 refreshHome();
+// V65: always begin on the home screen. Nothing else may start a run automatically.
+overlay.classList.remove('hidden');
+overlay.style.display='flex';
 
-function start(){
+function start(fromHomeButton){
+  if(fromHomeButton!==true) return;
   // Force the rendering surface to the front and rebuild its backing buffer.
   c.style.display='block'; c.style.visibility='visible'; c.style.opacity='1'; c.style.zIndex='0';
   // Re-measure the screen every time a run starts. This prevents iPhone Safari
@@ -545,8 +523,7 @@ function handlePlay(e){
 }
 window.frogHopStart = handlePlay;
 
-// Home screen input is handled only by the dedicated Play/Collection/Music buttons.
-
+// V65: home screen uses only explicit buttons; no automatic start on page load.
 // Explicit DOM lookup: never rely on Safari exposing element IDs as globals.
 const playButton=document.getElementById('btn');
 if(playButton){
@@ -569,7 +546,7 @@ const achievementsPanel=document.getElementById('achievementsPanel');
 const comboHud=document.getElementById('comboHud');
 const powerHud=document.getElementById('powerHud');
 const weatherTag=document.getElementById('weatherTag');
-const homeBest=document.getElementById('homeBest'),homeBank=document.getElementById('homeBank'),homeSkin=document.getElementById('homeSkin'),homeFrog=document.getElementById('homeFrog'),personalityLine=document.getElementById('personalityLine');
+const homeBest=document.getElementById('homeBest'),homeBank=document.getElementById('homeBank'),homeSkin=document.getElementById('homeSkin'),personalityLine=document.getElementById('personalityLine');
 const envLabel=document.getElementById('envLabel');
 function showCollectionTab(tab){
   skinsPanel.classList.toggle('hidden',tab!=='skins'); accessoriesPanel.classList.toggle('hidden',tab!=='accessories'); achievementsPanel.classList.toggle('hidden',tab!=='achievements');
@@ -610,7 +587,6 @@ function handleGameTap(e){
   if(document.getElementById('shop')?.classList.contains('hidden')===false) return;
   e.preventDefault();
   if(game?.run) jump();
-  else start();
 }
 
 c.addEventListener('pointerdown',handleGameTap,{passive:false});
@@ -625,7 +601,7 @@ addEventListener('keydown',e=>{
   }
   if(e.code==='Space'){
     e.preventDefault();
-    game?.run?jump():start();
+    if(game?.run) jump();
   }
 });
 
