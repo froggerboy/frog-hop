@@ -40,6 +40,9 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 
 .runflies{font-size:9px;letter-spacing:.7px;font-weight:800;opacity:.72;margin-top:1px}
 #shopBtn{margin-top:10px}
+
+#shopBtn{position:relative;z-index:50;pointer-events:auto;touch-action:manipulation}
+#shop{z-index:200}
 </style>
 </head>
 <body>
@@ -128,7 +131,7 @@ function openShop(){
 function closeShop(){
   document.getElementById('shop').classList.add('hidden');
 }
-document.getElementById('shopBtn').onclick=e=>{e.stopPropagation();openShop()};document.getElementById('closeShop').onclick=closeShop;
+const shopButton=document.getElementById('shopBtn');shopButton.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();openShop();});shopButton.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openShop();});document.getElementById('closeShop').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();closeShop();});
 const c=document.getElementById('c'),ctx=c.getContext('2d'),scoreEl=document.getElementById('score'),bestEl=document.getElementById('best'),fireflyEl=document.getElementById('fireflyCount'),bankedHudEl=document.getElementById('bankedHUD');
 let W=0,H=0,dpr=1,game=null,last=0;
 
