@@ -1319,18 +1319,43 @@ function drawFireflies(){
   }
 }
 
-function draw(){
-  bg();
+function drawSimpleFrog(){
   if(!game)return;
-  for(const p of game.pipes){
-    const length=Math.max(330,H*.66);
-    snake(p.x,p.g-p.gap/2,length,true,p.phase,p.type);
-    snake(p.x,p.g+p.gap/2,length,false,p.phase+1.2,p.type);
+  const f=game.f;
+  ctx.save();
+  ctx.translate(f.x,f.y);
+  ctx.fillStyle='#63b85a';ctx.strokeStyle='#2b6935';ctx.lineWidth=3;
+  ctx.beginPath();ctx.ellipse(0,6,30,20,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.ellipse(20,-12,21,17,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#f7fff0';ctx.beginPath();ctx.arc(29,-24,5,0,Math.PI*2);ctx.arc(43,-24,5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#17231b';ctx.beginPath();ctx.arc(30,-24,2.2,0,Math.PI*2);ctx.arc(44,-24,2.2,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#2b6935';ctx.lineWidth=2;ctx.beginPath();ctx.arc(36,-8,10,.15,Math.PI-.15);ctx.stroke();
+  ctx.restore();
+}
+
+function safeLayer(name,fn,fallback){
+  try{fn();return true;}catch(err){
+    console.error('Frog Hop '+name+' render error',err);
+    if(fallback){try{fallback();}catch(_){}}
+    return false;
   }
-  for(const f of game.fireflies){if(f.special)drawSpecialFirefly(f);} drawFireflies();
-  drawPowerup();
-  frog();
-  drawCelebration();
+}
+
+function draw(){
+  if(!game){try{bg();}catch(_){}return;}
+  // Keep each visual layer isolated so one Safari canvas drawing error cannot blank the entire game.
+  safeLayer('background',()=>bg(),()=>{ctx.fillStyle='#12343d';ctx.fillRect(0,0,W,H);});
+  safeLayer('snakes',()=>{
+    for(const p of game.pipes){
+      const length=Math.max(330,H*.66);
+      snake(p.x,p.g-p.gap/2,length,true,p.phase,p.type);
+      snake(p.x,p.g+p.gap/2,length,false,p.phase+1.2,p.type);
+    }
+  });
+  safeLayer('fireflies',()=>{for(const f of game.fireflies){if(f.special)drawSpecialFirefly(f);} drawFireflies();});
+  safeLayer('powerup',()=>drawPowerup());
+  safeLayer('frog',()=>frog(),()=>drawSimpleFrog());
+  safeLayer('celebration',()=>drawCelebration());
 }
 
 function loop(t){
