@@ -59,6 +59,14 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 .skin.locked .skincost{opacity:.85}
 
 #shopBtn{position:relative;z-index:9999;cursor:pointer}
+
+.collectiontabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 12px}
+.collectiontab{margin:0!important;padding:10px 8px!important;font-size:12px!important}
+.collectiontab.active{background:rgba(255,245,160,.2)!important;border-color:#fff5a0!important}
+.accessorypreview{font-size:46px;height:62px;display:flex;align-items:center;justify-content:center}
+.accessory.locked{opacity:.55}
+.accessory.equipped{border-color:#fff5a0;box-shadow:0 0 0 2px rgba(255,245,160,.18)}
+.scorecost{font-size:13px;margin-top:4px;color:#fff5a0}
 </style>
 </head>
 <body>
@@ -72,10 +80,20 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 <div id="shop" class="overlay hidden">
   <div class="card shopcard">
     <div class="eyebrow">FROG HOP COLLECTION</div>
-    <h1>🐸 FROG SKINS</h1>
+    <h1>🐸 COLLECTION</h1>
     <div class="bank">✨ <span id="bankedFireflies">0</span> BANKED FIREFLIES</div>
-    <div class="shophint">Collect fireflies during your runs to unlock new frogs. Keep going for the Rainbow and Legendary Gold rewards!</div>
-    <div id="skinGrid" class="skingrid"></div>
+    <div class="collectiontabs">
+      <button id="skinsTab" class="collectiontab active" type="button">🐸 FROG SKINS</button>
+      <button id="accessoriesTab" class="collectiontab" type="button">🎩 ACCESSORIES</button>
+    </div>
+    <div id="skinsPanel">
+      <div class="shophint">Collect fireflies during your runs to unlock new frogs. Keep going for the Rainbow and Legendary Gold rewards!</div>
+      <div id="skinGrid" class="skingrid"></div>
+    </div>
+    <div id="accessoriesPanel" class="hidden">
+      <div class="shophint">Reach new best scores to unlock accessories. You can wear one accessory at a time with any frog skin.</div>
+      <div id="accessoryGrid" class="skingrid"></div>
+    </div>
     <button id="closeShop" class="secondary" type="button">BACK</button>
   </div>
 </div>
@@ -101,14 +119,24 @@ const SKINS = [
   {id:'royalgold',name:'Legendary Gold',cost:1000,body:'#ffd34d',belly:'#fff7c2',accent:'#9a6500',highlight:'#fff0a0',emoji:'👑🐸',special:'royalgold'}
 ];
 
+const ACCESSORIES = [
+  {id:'cap',name:'Backwards Cap',score:10,emoji:'🧢'},
+  {id:'party',name:'Party Hat',score:25,emoji:'🎉'},
+  {id:'tophat',name:'Top Hat',score:50,emoji:'🎩'},
+  {id:'crown',name:'Gold Crown',score:75,emoji:'👑'},
+  {id:'diamond',name:'Diamond Crown',score:100,emoji:'💎'}
+];
+
 let bankedFireflies = Number(localStorage.getItem('frogHopFireflies') || 0);
 let unlockedSkins = JSON.parse(localStorage.getItem('frogHopSkins') || '["green"]');
 let selectedSkin = localStorage.getItem('frogHopSkin') || 'green';
+let selectedAccessory = localStorage.getItem('frogHopAccessory') || 'none';
 
 function saveCollection(){
   localStorage.setItem('frogHopFireflies', String(bankedFireflies));
   localStorage.setItem('frogHopSkins', JSON.stringify(unlockedSkins));
   localStorage.setItem('frogHopSkin', selectedSkin);
+  localStorage.setItem('frogHopAccessory', selectedAccessory);
 }
 
 function currentSkin(){
@@ -133,49 +161,63 @@ function renderShop(){
           (skin.special==='rainbow'
             ? '<defs><linearGradient id="rb'+skin.id+'" x1="0" x2="1"><stop offset="0" stop-color="#ff4d4d"/><stop offset=".2" stop-color="#ff9f43"/><stop offset=".4" stop-color="#ffe34d"/><stop offset=".6" stop-color="#59d66f"/><stop offset=".8" stop-color="#4da6ff"/><stop offset="1" stop-color="#b85cff"/></linearGradient></defs>'
             : '')+
-          '<ellipse cx="49" cy="46" rx="31" ry="15" fill="'+skin.accent+'"/>'+
-          '<ellipse cx="51" cy="41" rx="30" ry="16" fill="'+(skin.special==='rainbow'?'url(#rbrainbow)':'skin.body')+'"/>'+
-          '<ellipse cx="59" cy="45" rx="19" ry="9" fill="'+skin.belly+'"/>'+
-          '<ellipse cx="62" cy="27" rx="23" ry="17" fill="'+(skin.special==='rainbow'?'url(#rbrainbow)':'skin.body')+'"/>'+
-          '<circle cx="51" cy="16" r="9" fill="'+(skin.special==='rainbow'?'url(#rbrainbow)':skin.accent)+'"/>'+
-          '<circle cx="72" cy="16" r="9" fill="'+(skin.special==='rainbow'?'url(#rbrainbow)':skin.accent)+'"/>'+
-          '<circle cx="52" cy="15" r="5.5" fill="'+skin.highlight+'"/>'+
-          '<circle cx="72" cy="15" r="5.5" fill="'+skin.highlight+'"/>'+
-          '<circle cx="53" cy="15" r="2.5" fill="#17231b"/>'+
-          '<circle cx="73" cy="15" r="2.5" fill="#17231b"/>'+
-          '<path d="M53 31 Q64 38 76 31" fill="none" stroke="'+skin.accent+'" stroke-width="3" stroke-linecap="round"/>'+
-        '</svg>'+
-      '</div>'+
-      '<div class="skinname">'+skin.name+'</div>'+
+          '<ellipse cx="49" cy="46" rx="31" ry="15" fill="'+skin.accent+'"/>'+ 
+          '<ellipse cx="51" cy="41" rx="30" ry="16" fill="'+(skin.special==='rainbow'?'url(#rbrainbow)':'skin.body')+'"/>'+ 
+          '<ellipse cx="59" cy="45" rx="19" ry="9" fill="'+skin.belly+'"/>'+ 
+          '<ellipse cx="62" cy="27" rx="23" ry="17" fill="'+(skin.special==='rainbow'?'url(#rbrainbow)':'skin.body')+'"/>'+ 
+          '<circle cx="51" cy="16" r="9" fill="'+(skin.special==='rainbow'?'url(#rbrainbow)':skin.accent)+'"/>'+ 
+          '<circle cx="72" cy="16" r="9" fill="'+(skin.special==='rainbow'?'url(#rbrainbow)':skin.accent)+'"/>'+ 
+          '<circle cx="52" cy="15" r="5.5" fill="'+skin.highlight+'"/>'+ 
+          '<circle cx="72" cy="15" r="5.5" fill="'+skin.highlight+'"/>'+ 
+          '<circle cx="53" cy="15" r="2.5" fill="#17231b"/>'+ 
+          '<circle cx="73" cy="15" r="2.5" fill="#17231b"/>'+ 
+          '<path d="M53 31 Q64 38 76 31" fill="none" stroke="'+skin.accent+'" stroke-width="3" stroke-linecap="round"/>'+ 
+        '</svg>'+ 
+      '</div>'+ 
+      '<div class="skinname">'+skin.name+'</div>'+ 
       '<div class="skincost">'+
-        (unlocked
-          ? (selected?'✓ EQUIPPED':'TAP TO EQUIP')
-          : '✨ '+skin.cost+' FIREFLIES'+(affordable?' • UNLOCK':'')
-        )+
+        (unlocked ? (selected?'✓ EQUIPPED':'TAP TO EQUIP') : '✨ '+skin.cost+' FIREFLIES'+(affordable?' • UNLOCK':''))+ 
       '</div>';
 
     function chooseSkin(e){
-      e.preventDefault();
-      e.stopPropagation();
-
-      if(unlocked){
-        selectedSkin=skin.id;
-        saveCollection();
-        renderShop();
-      }else if(bankedFireflies>=skin.cost){
-        bankedFireflies-=skin.cost;
-        unlockedSkins.push(skin.id);
-        selectedSkin=skin.id;
-        saveCollection();
-        bankedHudEl.textContent=bankedFireflies;
-        renderShop();
+      e.preventDefault(); e.stopPropagation();
+      if(unlocked){ selectedSkin=skin.id; saveCollection(); renderShop(); }
+      else if(bankedFireflies>=skin.cost){
+        bankedFireflies-=skin.cost; unlockedSkins.push(skin.id); selectedSkin=skin.id;
+        saveCollection(); bankedHudEl.textContent=bankedFireflies; renderShop();
       }
     }
     div.addEventListener('pointerdown',chooseSkin,true);
     div.addEventListener('touchstart',chooseSkin,{capture:true,passive:false});
     div.addEventListener('click',chooseSkin,true);
-
     grid.appendChild(div);
+  }
+
+  const ag=document.getElementById('accessoryGrid');
+  ag.innerHTML='';
+  const currentBest=best();
+  const none=document.createElement('div');
+  none.className='skin accessory'+(selectedAccessory==='none'?' equipped':'');
+  none.innerHTML='<div class="accessorypreview">🐸</div><div class="skinname">No Accessory</div><div class="scorecost">'+(selectedAccessory==='none'?'✓ EQUIPPED':'TAP TO EQUIP')+'</div>';
+  none.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();selectedAccessory='none';saveCollection();renderShop()},true);
+  none.addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();selectedAccessory='none';saveCollection();renderShop()},{capture:true,passive:false});
+  none.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();selectedAccessory='none';saveCollection();renderShop()},true);
+  ag.appendChild(none);
+
+  for(const item of ACCESSORIES){
+    const unlocked=currentBest>=item.score;
+    const equipped=selectedAccessory===item.id;
+    const div=document.createElement('div');
+    div.className='skin accessory'+(equipped?' equipped':'')+(!unlocked?' locked':'');
+    div.innerHTML='<div class="accessorypreview">'+item.emoji+'</div><div class="skinname">'+item.name+'</div><div class="scorecost">'+(unlocked?(equipped?'✓ EQUIPPED':'TAP TO EQUIP'):'🔒 BEST SCORE '+item.score)+'</div>';
+    function chooseAccessory(e){
+      e.preventDefault();e.stopPropagation();
+      if(unlocked){selectedAccessory=item.id;saveCollection();renderShop();}
+    }
+    div.addEventListener('pointerdown',chooseAccessory,true);
+    div.addEventListener('touchstart',chooseAccessory,{capture:true,passive:false});
+    div.addEventListener('click',chooseAccessory,true);
+    ag.appendChild(div);
   }
 }
 
@@ -330,6 +372,20 @@ btn.onclick=e=>{e.preventDefault();e.stopPropagation();start()};
 
 const shopButton=document.getElementById('shopBtn');
 const closeShopButton=document.getElementById('closeShop');
+const skinsTab=document.getElementById('skinsTab');
+const accessoriesTab=document.getElementById('accessoriesTab');
+const skinsPanel=document.getElementById('skinsPanel');
+const accessoriesPanel=document.getElementById('accessoriesPanel');
+function showCollectionTab(tab){
+  const acc=tab==='accessories';
+  skinsPanel.classList.toggle('hidden',acc); accessoriesPanel.classList.toggle('hidden',!acc);
+  skinsTab.classList.toggle('active',!acc); accessoriesTab.classList.toggle('active',acc);
+  renderShop();
+}
+function handleSkinsTab(e){e.preventDefault();e.stopPropagation();showCollectionTab('skins')}
+function handleAccessoriesTab(e){e.preventDefault();e.stopPropagation();showCollectionTab('accessories')}
+skinsTab.addEventListener('pointerdown',handleSkinsTab,true); skinsTab.addEventListener('touchstart',handleSkinsTab,{capture:true,passive:false}); skinsTab.addEventListener('click',handleSkinsTab,true);
+accessoriesTab.addEventListener('pointerdown',handleAccessoriesTab,true); accessoriesTab.addEventListener('touchstart',handleAccessoriesTab,{capture:true,passive:false}); accessoriesTab.addEventListener('click',handleAccessoriesTab,true);
 
 function handleShopOpen(e){
   e.preventDefault();
@@ -741,6 +797,37 @@ function frog(){
     ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(54.2,-26.8,.75,0,Math.PI*2);ctx.fill();
   }else{
     drawSpecialEye(52,-26,eyeType);
+  }
+
+  // Accessory worn by the frog. Only one can be equipped at a time.
+  if(selectedAccessory==='cap'){
+    ctx.save();ctx.translate(39,-31);ctx.rotate(-.10);
+    ctx.fillStyle='#d94a42';ctx.strokeStyle='#7f2420';ctx.lineWidth=2.5;
+    ctx.beginPath();ctx.ellipse(0,0,15,7,0,Math.PI,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.beginPath();ctx.moveTo(-13,0);ctx.quadraticCurveTo(-4,5,10,3);ctx.lineTo(18,5);ctx.quadraticCurveTo(5,-1,-5,-2);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.restore();
+  }else if(selectedAccessory==='party'){
+    ctx.save();ctx.translate(41,-42);ctx.rotate(-.12);
+    ctx.fillStyle='#ff6b8a';ctx.strokeStyle='#8b2445';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(-10,12);ctx.lineTo(7,-18);ctx.lineTo(13,12);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.fillStyle='#fff5a0';ctx.beginPath();ctx.arc(7,-18,3,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#5fd6ff';ctx.beginPath();ctx.arc(-2,3,2,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ffe34d';ctx.beginPath();ctx.arc(6,5,2,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+  }else if(selectedAccessory==='tophat'){
+    ctx.save();ctx.translate(40,-37);
+    ctx.fillStyle='#20242b';ctx.strokeStyle='#0d1014';ctx.lineWidth=2.5;
+    ctx.fillRect(-11,-17,22,20);ctx.beginPath();ctx.ellipse(0,4,16,5,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#b13d3d';ctx.fillRect(-11,-4,22,5);ctx.restore();
+  }else if(selectedAccessory==='crown'){
+    ctx.save();ctx.translate(40,-38);
+    ctx.fillStyle='#f5c542';ctx.strokeStyle='#9a6500';ctx.lineWidth=2.2;
+    ctx.beginPath();ctx.moveTo(-15,8);ctx.lineTo(-13,-11);ctx.lineTo(-4,-3);ctx.lineTo(0,-15);ctx.lineTo(6,-3);ctx.lineTo(15,-11);ctx.lineTo(13,8);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.fillStyle='#fff3a0';ctx.beginPath();ctx.arc(0,-4,2.5,0,Math.PI*2);ctx.fill();ctx.restore();
+  }else if(selectedAccessory==='diamond'){
+    ctx.save();ctx.translate(40,-39);
+    ctx.fillStyle='#dcecff';ctx.strokeStyle='#5b79a8';ctx.lineWidth=2.2;
+    ctx.beginPath();ctx.moveTo(-15,8);ctx.lineTo(-13,-8);ctx.lineTo(-5,-3);ctx.lineTo(0,-15);ctx.lineTo(6,-3);ctx.lineTo(14,-8);ctx.lineTo(13,8);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.fillStyle='#7ee8ff';ctx.beginPath();ctx.moveTo(0,-11);ctx.lineTo(5,-3);ctx.lineTo(0,5);ctx.lineTo(-5,-3);ctx.closePath();ctx.fill();ctx.restore();
   }
 
   // Face.
