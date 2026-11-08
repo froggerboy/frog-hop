@@ -9,8 +9,8 @@
 <title>Frog Hop</title>
 <style>
 *{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0c2630;font-family:-apple-system,BlinkMacSystemFont,"Avenir Next",system-ui,sans-serif;touch-action:none}
-canvas{width:100%;height:100%;display:block}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0c2630;font-family:-apple-system,BlinkMacSystemFont,"Avenir Next",system-ui,sans-serif;touch-action:auto;-webkit-touch-callout:none}
+canvas{position:fixed;inset:0;width:100vw;height:100vh;display:block;z-index:0;touch-action:none;background:#0c2630}
 #hud{position:fixed;top:env(safe-area-inset-top,0);left:0;right:0;padding:12px 14px;display:flex;align-items:flex-start;justify-content:space-between;pointer-events:none;z-index:5}
 .hudbox{min-width:78px;padding:8px 10px;border-radius:16px;background:rgba(7,28,35,.68);border:1.5px solid rgba(255,255,255,.22);box-shadow:0 7px 20px rgba(0,0,0,.18);color:#fff;text-align:center;backdrop-filter:blur(6px)}
 .hudlabel{display:block;font-size:9px;font-weight:900;letter-spacing:1.7px;text-transform:uppercase;opacity:.72}
@@ -19,7 +19,7 @@ canvas{width:100%;height:100%;display:block}
 #centerScore .num{font-size:37px;line-height:40px;font-weight:950}
 #centerScore .label{font-size:9px;letter-spacing:2.2px;font-weight:900;opacity:.78}
 .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(5,18,24,.36)}
-#overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(5,18,24,.36);z-index:10}
+#overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(5,18,24,.36);z-index:100000;touch-action:manipulation;pointer-events:auto}
 .card{width:min(88vw,390px);max-height:78vh;overflow:auto;padding:31px 24px 27px;border:2px solid rgba(255,239,170,.68);border-radius:30px;background:linear-gradient(180deg,rgba(13,50,56,.97),rgba(7,31,39,.98));box-shadow:0 24px 70px rgba(0,0,0,.4);text-align:center;color:#fff}
 .logo{font-size:clamp(39px,11vw,58px);line-height:1;font-weight:950;letter-spacing:1px;color:#c8f86b;text-shadow:0 4px 0 #315b2c;margin:0 0 8px}
 .subtitle{font-size:17px;line-height:1.4;color:#ffe7a3;margin:0 0 22px;font-weight:700}
@@ -44,6 +44,7 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 #shopBtn{margin-top:10px}
 
 #shopBtn{position:relative;z-index:50;pointer-events:auto;touch-action:manipulation}
+#btn{position:relative;z-index:100001;pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer;-webkit-user-select:none;user-select:none;display:block;margin:0 auto;min-width:190px;text-decoration:none;text-align:center}
 #shop{z-index:200}
 
 #shop{z-index:20;pointer-events:auto}
@@ -67,14 +68,14 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 .accessory.locked{opacity:.55}
 .accessory.equipped{border-color:#fff5a0;box-shadow:0 0 0 2px rgba(255,245,160,.18)}
 .scorecost{font-size:13px;margin-top:4px;color:#fff5a0}
-.achgrid{display:grid;grid-template-columns:1fr;gap:9px;margin:10px 0 14px;text-align:left}.achievement{border:1.5px solid rgba(255,255,255,.15);border-radius:14px;padding:11px 12px;background:rgba(0,0,0,.16)}.achievement.done{border-color:#fff5a0;background:rgba(255,245,160,.10)}.achievement .atitle{font-weight:900}.achievement .adesc{font-size:12px;opacity:.72;margin-top:3px}.achievement .astatus{font-size:12px;color:#fff5a0;margin-top:5px;font-weight:800}.combo{position:fixed;left:50%;top:88px;transform:translateX(-50%);z-index:6;color:#fff5a0;font-weight:950;font-size:18px;text-shadow:0 3px 8px rgba(0,0,0,.45);pointer-events:none}.musicbtn{margin-top:8px!important;padding:9px 14px!important;font-size:12px!important}
+.achgrid{display:grid;grid-template-columns:1fr;gap:9px;margin:10px 0 14px;text-align:left}.achievement{border:1.5px solid rgba(255,255,255,.15);border-radius:14px;padding:11px 12px;background:rgba(0,0,0,.16)}.achievement.done{border-color:#fff5a0;background:rgba(255,245,160,.10)}.achievement .atitle{font-weight:900}.achievement .adesc{font-size:12px;opacity:.72;margin-top:3px}.achievement .astatus{font-size:12px;color:#fff5a0;margin-top:5px;font-weight:800}.combo{position:fixed;left:50%;top:88px;transform:translateX(-50%);z-index:6;color:#fff5a0;font-weight:950;font-size:18px;text-shadow:0 3px 8px rgba(0,0,0,.45);pointer-events:none}.musicbtn{margin-top:8px!important;padding:9px 14px!important;font-size:12px!important}.homeStats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:14px 0}.homeStat{background:rgba(255,255,255,.08);border-radius:13px;padding:8px 5px}.homeStat b{display:block;font-size:19px}.homeStat span{font-size:9px;opacity:.7;text-transform:uppercase;letter-spacing:1px}.powerHud{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:6;color:#fff;font-weight:950;font-size:14px;text-shadow:0 3px 8px rgba(0,0,0,.45);pointer-events:none;background:rgba(7,28,35,.55);padding:6px 11px;border-radius:999px}.weatherTag{position:fixed;right:12px;top:74px;z-index:5;color:#fff;font-size:10px;font-weight:900;letter-spacing:1px;opacity:.72;pointer-events:none}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <div id="hud">
   <div class="hudbox"><span class="hudlabel">Best</span><span class="hudnum" id="best">0</span></div>
-  <div id="centerScore"><div class="num" id="score">0</div><div class="label" id="envLabel">SWAMP</div><div class="runflies">✨ <span id="fireflyCount">0</span> this run</div></div><div id="comboHud" class="combo hidden">✨ COMBO x2</div>
+  <div id="centerScore"><div class="num" id="score">0</div><div class="label" id="envLabel">SWAMP</div><div class="runflies">✨ <span id="fireflyCount">0</span> this run</div></div><div id="comboHud" class="combo hidden">✨ COMBO x2</div><div id="powerHud" class="powerHud hidden"></div><div id="weatherTag" class="weatherTag">☀️ CLEAR</div>
   <div class="hudbox"><span class="hudlabel">Banked ✨</span><span class="hudnum" id="bankedHUD">0</span></div>
 </div>
 
@@ -105,13 +106,28 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 <div id="overlay">
   <div class="card">
     <div class="logo">FROG HOP</div>
-    <p class="subtitle" id="msg">Leap through the snakes and survive the swamp!</p>
-    <button id="btn">PLAY</button><button id="shopBtn" class="secondary">🐸 COLLECTION</button><button id="musicBtn" class="secondary musicbtn">🎵 MUSIC: ON</button>
-    <div class="small">Tap anywhere to hop<br>Your best score saves automatically</div>
+    <p class="subtitle" id="msg">Leap through the snakes, collect fireflies and become the ultimate frog.</p>
+    <div class="homeStats"><div class="homeStat"><b id="homeBest">0</b><span>Best</span></div><div class="homeStat"><b id="homeBank">0</b><span>Fireflies</span></div><div class="homeStat"><b id="homeSkin">🐸</b><span>Frog</span></div></div>
+    <button id="btn" type="button" aria-label="Play Frog Hop" onclick="if(window.__frogStartClick){window.__frogStartClick(event)}; return false;">▶ PLAY</button><button id="shopBtn" class="secondary">🐸 COLLECTION</button><button id="musicBtn" class="secondary musicbtn">🎵 MUSIC: ON</button>
+    <div class="small" id="personalityLine">Your frog: Chill 😌<br>Tap anywhere to hop · Your best score saves automatically</div>
   </div>
 </div>
 
 <script>
+// EARLY iPHONE PLAY ENTRY: this is defined before the rest of the game script.
+window.__frogStartClick=function(e){
+  try{ if(e){e.preventDefault();e.stopPropagation();} }catch(_){}
+  const ov=document.getElementById("overlay");
+  if(ov){ ov.style.display="none"; ov.classList.add("hidden"); }
+  // start() is a function declaration, so it is available when this runs.
+  setTimeout(function(){
+    try{ start(); }catch(err){
+      // If startup fails, show a visible retry state rather than silently doing nothing.
+      try{ if(ov){ov.style.display="flex";ov.classList.remove("hidden");} }catch(_){}
+      console.error("Frog Hop start error",err);
+    }
+  },0);
+};
 
 const SKINS = [
   {id:'green',name:'Swampy',cost:0,body:'#63b85a',belly:'#d9f0a0',accent:'#3b8f3c',highlight:'#a8ee60',emoji:'🐸'},
@@ -269,12 +285,32 @@ function initAudio(){
   }catch(e){ soundEnabled=false; }
 }
 function startMusic(){
- if(!audioCtx||!musicEnabled||musicTimer)return;
- musicGain=audioCtx.createGain();musicGain.gain.value=.07;musicGain.connect(audioCtx.destination);
- const notes=[262,330,392,523,392,330,294,349,440,523,440,349];
- musicTimer=setInterval(()=>{if(!musicEnabled||!audioCtx)return;const f=notes[musicStep++%notes.length];const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='triangle';o.frequency.setValueAtTime(f,audioCtx.currentTime);o.frequency.linearRampToValueAtTime(f*1.02,audioCtx.currentTime+.12);g.gain.setValueAtTime(.0001,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.24,audioCtx.currentTime+.025);g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+.34);o.connect(g);g.connect(musicGain);o.start();o.stop(audioCtx.currentTime+.36)},360);
+ if(!musicEnabled)return;
+ initAudio(); if(!audioCtx)return;
+ if(musicTimer)return;
+ if(musicGain){try{musicGain.disconnect()}catch(e){}}
+ musicGain=audioCtx.createGain();musicGain.gain.value=.11;musicGain.connect(audioCtx.destination);
+ const notes=[262,330,392,523,659,523,392,330,294,349,440,587,523,440,349,294];
+ musicTimer=setInterval(()=>{
+   if(!musicEnabled||!audioCtx){if(musicTimer){clearInterval(musicTimer);musicTimer=null}return;}
+   const f=notes[musicStep++%notes.length];
+   const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+   o.type='triangle';o.frequency.setValueAtTime(f,audioCtx.currentTime);
+   o.frequency.linearRampToValueAtTime(f*1.03,audioCtx.currentTime+.10);
+   g.gain.setValueAtTime(.0001,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.34,audioCtx.currentTime+.025);g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+.28);
+   o.connect(g);g.connect(musicGain);o.start();o.stop(audioCtx.currentTime+.30);
+ },300);
 }
-function toggleMusic(){musicEnabled=!musicEnabled;localStorage.setItem('frogHopMusic',musicEnabled?'on':'off');musicBtn.textContent='🎵 MUSIC: '+(musicEnabled?'ON':'OFF');if(musicEnabled){initAudio();if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();if(musicGain){musicGain.gain.setTargetAtTime(.07,audioCtx.currentTime,.08)}else{startMusic()}}else{if(musicTimer){clearInterval(musicTimer);musicTimer=null}if(musicGain&&audioCtx){musicGain.gain.setTargetAtTime(0,audioCtx.currentTime,.08);setTimeout(()=>{try{musicGain.disconnect()}catch(e){} musicGain=null},180)}}}
+function stopMusic(){
+ if(musicTimer){clearInterval(musicTimer);musicTimer=null;}
+ if(musicGain&&audioCtx){musicGain.gain.setTargetAtTime(0,audioCtx.currentTime,.04);const old=musicGain;setTimeout(()=>{try{old.disconnect()}catch(e){}},120);musicGain=null;}
+}
+function toggleMusic(){
+ musicEnabled=!musicEnabled;localStorage.setItem('frogHopMusic',musicEnabled?'on':'off');
+ musicBtn.textContent='🎵 MUSIC: '+(musicEnabled?'ON':'OFF');
+ if(musicEnabled){initAudio();if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();startMusic();}
+ else stopMusic();
+}
 
 function tone(freq,dur,type='sine',vol=.18,when=0,slide=0){
   if(!soundEnabled)return; initAudio(); if(!audioCtx||!masterGain)return;
@@ -414,20 +450,49 @@ addEventListener('resize',size); size();
 
 const overlay=document.getElementById('overlay'),btn=document.getElementById('btn'),msg=document.getElementById('msg');
 
+function refreshHome(){
+ if(homeBest)homeBest.textContent=best();
+ if(homeBank)homeBank.textContent=bankedFireflies;
+ if(homeSkin)homeSkin.textContent=personality().mood; if(personalityLine)personalityLine.innerHTML='Your frog: '+personality().name+' '+personality().mood+'<br>Tap anywhere to hop · Your best score saves automatically';
+}
+refreshHome();
+
 function start(){
+  // Force the rendering surface to the front and rebuild its backing buffer.
+  c.style.display='block'; c.style.visibility='visible'; c.style.opacity='1'; c.style.zIndex='0';
+  // Re-measure the screen every time a run starts. This prevents iPhone Safari
+  // layout timing from leaving W/H at zero or stale values.
+  try{ size(); }catch(_){}
+  if(!W || !H){ W=innerWidth||390; H=innerHeight||844; }
+
+  last=performance.now();
   confetti=[]; celebration=0; celebrationText=''; lastCelebratedScore=0;
   game={
     run:true,score:0,time:0,speed:3.8,next:0,
-    fireflies:[],fireflyCount:0,fireflyTimer:0,lastEyeMilestone:0,lastEyeSoundMilestone:0,eyeType:'normal',lastSpecialFireflyMilestone:0,croakTimer:8,fireflyCombo:0,bestFireflyCombo:0,comboTimer:0,snakesPassed:0,reaction:'normal',reactionTimer:0,
+    fireflies:[],fireflyCount:0,fireflyTimer:0,lastEyeMilestone:0,lastEyeSoundMilestone:0,eyeType:'normal',lastSpecialFireflyMilestone:0,croakTimer:8,fireflyCombo:0,bestFireflyCombo:0,comboTimer:0,snakesPassed:0,reaction:'normal',reactionTimer:0,powerup:null,lastPowerMilestone:0,slowTimer:0,magnetTimer:0,doubleTimer:0,shield:0,
     targetCenter:H*.46,
     f:{x:W*.25,y:H*.46,vy:0,rot:0,blink:0},
     pipes:[]
   };
+
+  // Hide the home screen BEFORE any optional audio/sound code can fail.
+  overlay.classList.add('hidden');
+  document.body.classList.remove('shopOpen');
   scoreEl.textContent='0';
   fireflyEl.textContent='0';
   bankedHudEl.textContent=bankedFireflies;
-  overlay.classList.add('hidden');
-  jump();
+
+  // Audio is optional; a sound failure must never stop the game from starting.
+  try{
+    if(musicEnabled){ initAudio(); startMusic(); }
+    else stopMusic();
+  }catch(_){}
+
+  // Jump is also optional on startup.
+  try{ jump(); }catch(_){}
+  try{ draw(); }catch(err){
+    try{ ctx.fillStyle='#12343d';ctx.fillRect(0,0,W,H);ctx.fillStyle='#c8f86b';ctx.font='900 42px system-ui';ctx.textAlign='center';ctx.fillText('FROG HOP',W/2,H*.28);ctx.fillStyle='#fff';ctx.font='700 18px system-ui';ctx.fillText('GAME STARTED',W/2,H*.36); }catch(_){}
+  }
 }
 function over(){
   if(!game||!game.run)return;
@@ -442,19 +507,69 @@ function over(){
   const newBest=game.score>oldBest;
   msg.innerHTML=`<div style="font-size:28px;font-weight:950;margin-bottom:10px">${newBest?'🏆 NEW RECORD!':'GAME OVER'}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0"><div style="background:rgba(255,255,255,.08);border-radius:14px;padding:10px"><div style="font-size:10px;opacity:.7">SCORE</div><b style="font-size:25px">${game.score}</b></div><div style="background:rgba(255,245,160,.10);border-radius:14px;padding:10px"><div style="font-size:10px;opacity:.7">BEST</div><b style="font-size:25px">${b}</b></div></div><div style="font-size:15px;margin-top:8px;line-height:1.8">✨ Fireflies this run: <b>${game.fireflyCount}</b><br>🐍 Snakes passed: <b>${game.snakesPassed}</b><br>🔥 Best combo: <b>x${game.bestFireflyCombo||1}</b></div>`;
   btn.textContent='PLAY AGAIN';
+  refreshHome();
+  musicBtn.textContent='🎵 MUSIC: '+(musicEnabled?'ON':'OFF');
   document.getElementById('shopBtn').textContent='🐸 FROG SKINS';
   overlay.classList.remove('hidden');
 }
 function jump(){
   if(!game?.run)return;
   initAudio();
-  startMusic();
+  if(musicEnabled)startMusic();
   sfxJump();
   game.f.vy=-7.85;
   game.f.rot=-.45;
 }
 
-btn.onclick=e=>{e.preventDefault();e.stopPropagation();start()};
+function handlePlay(e){
+  if(game && game.run) return false;
+  window.__frogStartClick(e);
+  return false;
+}
+window.frogHopStart = handlePlay;
+
+let playHashBusy=false;
+function handlePlayHash(){
+  if(location.hash!=="#play" || playHashBusy) return;
+  playHashBusy=true;
+  try { handlePlay(); } catch(err) { console.error("Frog Hop hash start error",err); }
+  setTimeout(()=>{ try{ history.replaceState(null,"",location.pathname+location.search); }catch(_){} playHashBusy=false; },80);
+}
+addEventListener("hashchange",handlePlayHash);
+if(location.hash==="#play") setTimeout(handlePlayHash,50);
+
+// Ultimate iPhone fallback: handle taps at the document level while the home screen is visible.
+document.addEventListener('touchstart', function(e){
+  const ov=document.getElementById('overlay');
+  if(!ov || ov.classList.contains('hidden')) return;
+  const t=e.target;
+  if(t && (t.closest?.('#musicBtn') || t.closest?.('#shopBtn') || t.closest?.('#shop'))) return;
+  if(t && t.closest?.('#overlay')){
+    e.preventDefault();
+    e.stopPropagation();
+    start();
+  }
+}, {capture:true, passive:false});
+
+document.addEventListener('click', function(e){
+  const ov=document.getElementById('overlay');
+  if(!ov || ov.classList.contains('hidden')) return;
+  const t=e.target;
+  if(t && (t.closest?.('#musicBtn') || t.closest?.('#shopBtn') || t.closest?.('#shop'))) return;
+  if(t && t.closest?.('#overlay')){
+    e.preventDefault();
+    e.stopPropagation();
+    if(!game?.run) start();
+  }
+}, {capture:true});
+
+// Explicit DOM lookup: never rely on Safari exposing element IDs as globals.
+const playButton=document.getElementById('btn');
+if(playButton){
+  const activatePlay=(e)=>{ window.__frogStartClick(e); };
+  playButton.addEventListener('pointerup',activatePlay,{capture:true,passive:false});
+  playButton.addEventListener('click',activatePlay,{capture:true,passive:false});
+}
 
 const shopButton=document.getElementById('shopBtn');
 const closeShopButton=document.getElementById('closeShop');
@@ -468,6 +583,9 @@ const skinsPanel=document.getElementById('skinsPanel');
 const accessoriesPanel=document.getElementById('accessoriesPanel');
 const achievementsPanel=document.getElementById('achievementsPanel');
 const comboHud=document.getElementById('comboHud');
+const powerHud=document.getElementById('powerHud');
+const weatherTag=document.getElementById('weatherTag');
+const homeBest=document.getElementById('homeBest'),homeBank=document.getElementById('homeBank'),homeSkin=document.getElementById('homeSkin'),personalityLine=document.getElementById('personalityLine');
 const envLabel=document.getElementById('envLabel');
 function showCollectionTab(tab){
   skinsPanel.classList.toggle('hidden',tab!=='skins'); accessoriesPanel.classList.toggle('hidden',tab!=='accessories'); achievementsPanel.classList.toggle('hidden',tab!=='achievements');
@@ -530,129 +648,170 @@ addEventListener('keydown',e=>{
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
 function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill()}
 
+
+const POWERUPS=[
+ {id:'slow',name:'SLOW-MO',icon:'🐌',desc:'Everything slows for 5 seconds'},
+ {id:'shield',name:'LILY SHIELD',icon:'🛡️',desc:'Survive one snake hit'},
+ {id:'magnet',name:'FIREFLY MAGNET',icon:'🧲',desc:'Fireflies drift toward you'},
+ {id:'double',name:'FROG FRENZY',icon:'⚡',desc:'Double score for 6 seconds'}
+];
+function spawnPowerup(){
+ if(!game||!game.run||game.powerup||game.lastPowerMilestone===game.score)return;
+ const p=POWERUPS[Math.floor(Math.random()*POWERUPS.length)];
+ game.powerup={...p,x:W+45,y:H*.18+Math.random()*H*.38,phase:Math.random()*Math.PI*2};
+ game.lastPowerMilestone=game.score;
+}
+function activatePowerup(p){
+ initAudio(); sfxUnlock();
+ if(p.id==='slow') game.slowTimer=5;
+ if(p.id==='shield') game.shield=1;
+ if(p.id==='magnet') game.magnetTimer=7;
+ if(p.id==='double') game.doubleTimer=6;
+ powerHud.textContent=p.icon+' '+p.name+'!';powerHud.classList.remove('hidden');
+ setTimeout(()=>{if(powerHud)powerHud.classList.add('hidden')},1600);
+ game.reaction=p.id==='double'?'excited':'happy';game.reactionTimer=1.5;
+}
+function updatePowerup(dt){
+ if(!game.powerup)return;
+ game.powerup.x-=game.speed*dt*.92;
+ game.powerup.y+=Math.sin(game.time*.045+game.powerup.phase)*.35*dt;
+ if(game.powerup.x<-70){game.powerup=null;return;}
+ const dx=game.f.x-game.powerup.x,dy=game.f.y-game.powerup.y;
+ if(Math.hypot(dx,dy)<42){const p=game.powerup;game.powerup=null;activatePowerup(p);}
+}
+function drawPowerup(){
+ const p=game?.powerup;if(!p)return;
+ ctx.save();ctx.translate(p.x,p.y);
+ const pulse=1+Math.sin(game.time*.12+p.phase)*.08;ctx.scale(pulse,pulse);
+ ctx.shadowColor='rgba(255,245,160,.85)';ctx.shadowBlur=18;
+ ctx.fillStyle='rgba(255,245,160,.18)';ctx.beginPath();ctx.arc(0,0,28,0,Math.PI*2);ctx.fill();
+ ctx.shadowBlur=0;ctx.font='30px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(p.icon,0,1);
+ ctx.restore();
+}
+function currentWeather(){
+ const n=(game?.score||0)%100;
+ if(n>=75)return {id:'storm',label:'⛈️ STORM'};
+ if(n>=50)return {id:'fog',label:'🌫️ FOG'};
+ if(n>=25)return {id:'rain',label:'🌧️ RAIN'};
+ return {id:'clear',label:'☀️ CLEAR'};
+}
+function drawWeather(){
+ const w=currentWeather();if(weatherTag)weatherTag.textContent=w.label;
+ if(w.id==='rain'||w.id==='storm'){
+   ctx.strokeStyle=w.id==='storm'?'rgba(185,220,255,.42)':'rgba(210,240,255,.28)';ctx.lineWidth=1.5;
+   const count=w.id==='storm'?80:48;
+   for(let i=0;i<count;i++){const x=(i*71+game.time*7)%W;const y=(i*43+game.time*13)%(H*.72);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-5,y+16);ctx.stroke();}
+ }
+ if(w.id==='fog'){
+   for(let i=0;i<4;i++){const x=(i*180+game.time*.25)% (W+220)-110;const y=H*.34+i*55;const g=ctx.createRadialGradient(x,y,5,x,y,120);g.addColorStop(0,'rgba(220,245,238,.13)');g.addColorStop(1,'rgba(220,245,238,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,120,0,Math.PI*2);ctx.fill();}
+ }
+ if(w.id==='storm'){ctx.fillStyle='rgba(35,45,70,.12)';ctx.fillRect(0,0,W,H*.72);}
+}
+
 function bg(){
-  const t=game?.time||0;
-  const scoreNow=game?.score||0;
+  // iPhone-safe background renderer. Keep this layer deliberately simple so a
+  // Safari canvas quirk cannot wipe the whole game world.
+  const t=Number(game?.time||0);
+  const scoreNow=Number(game?.score||0);
   const env=scoreNow>=50?'MOONLIT':scoreNow>=25?'JUNGLE':'SWAMP';
-  if(envLabel)envLabel.textContent=env;
-  const cycle=(t/3600)%1; // 60 seconds per full day/night cycle at 60fps
+  if(envLabel) envLabel.textContent=env;
+
+  const cycle=(t/3600)%1;
   const sun=Math.sin(cycle*Math.PI*2);
-  const daylight=Math.max(0,(sun+0.18)/1.18);
+  const daylight=Math.max(0,Math.min(1,(sun+0.18)/1.18));
   const night=1-daylight;
 
-  // Layered sky that smoothly cycles through day, sunset, night and sunrise.
-  const mix=(a,b,k)=>a.map((v,i)=>Math.round(v+(b[i]-v)*k));
-  const dayTop=[75,166,214], dayMid=[151,211,196], dayLow=[239,201,132];
-  const nightTop=[7,20,48], nightMid=[23,55,82], nightLow=[39,67,78];
-  const cTop=mix(nightTop,dayTop,daylight), cMid=mix(nightMid,dayMid,daylight), cLow=mix(nightLow,dayLow,daylight);
-  const rgb=v=>`rgb(${v[0]},${v[1]},${v[2]})`;
+  // Sky gradient.
+  const topR=Math.round(7+(75-7)*daylight), topG=Math.round(20+(166-20)*daylight), topB=Math.round(48+(214-48)*daylight);
+  const midR=Math.round(23+(151-23)*daylight), midG=Math.round(55+(211-55)*daylight), midB=Math.round(82+(196-82)*daylight);
+  const lowR=Math.round(39+(239-39)*daylight), lowG=Math.round(67+(201-67)*daylight), lowB=Math.round(78+(132-78)*daylight);
   const sky=ctx.createLinearGradient(0,0,0,H);
-  sky.addColorStop(0,rgb(cTop));
-  sky.addColorStop(.48,rgb(cMid));
-  sky.addColorStop(1,rgb(cLow));
+  sky.addColorStop(0,`rgb(${topR},${topG},${topB})`);
+  sky.addColorStop(.5,`rgb(${midR},${midG},${midB})`);
+  sky.addColorStop(1,`rgb(${lowR},${lowG},${lowB})`);
   ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
 
-  // Tiny stars.
+  // Stars.
   ctx.fillStyle=`rgba(255,255,225,${0.08+night*.65})`;
-  for(let i=0;i<28;i++){
-    const x=(i*97)%W, y=35+(i*53)%(H*.38);
-    const r=(i%3===0)?1.3:.8;
-    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+  for(let i=0;i<24;i++){
+    const x=(i*97)%Math.max(1,W);
+    const y=35+(i*53)%(Math.max(1,H*.38));
+    ctx.beginPath();ctx.arc(x,y,i%3===0?1.3:.8,0,Math.PI*2);ctx.fill();
   }
 
-  // Sun / moon travel across the sky.
-  const celestialX=W*.18 + cycle*W*.64;
-  const celestialY=H*(.17 + Math.abs(Math.sin(cycle*Math.PI))*-.015);
+  // Sun and moon.
+  const sx=W*(.18+cycle*.64), sy=H*.17;
   if(daylight>.12){
-    const glow=ctx.createRadialGradient(celestialX,celestialY,4,celestialX,celestialY,125);
-    glow.addColorStop(0,`rgba(255,245,180,${.95*daylight})`);
-    glow.addColorStop(.22,`rgba(255,215,105,${.28*daylight})`);
-    glow.addColorStop(1,'rgba(255,210,125,0)');
-    ctx.fillStyle=glow;ctx.beginPath();ctx.arc(celestialX,celestialY,125,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle=`rgba(255,239,166,${.9*daylight})`;
-    ctx.beginPath();ctx.arc(celestialX,celestialY,29,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=`rgba(255,226,130,${.18*daylight})`;ctx.beginPath();ctx.arc(sx,sy,80,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=`rgba(255,239,166,${.9*daylight})`;ctx.beginPath();ctx.arc(sx,sy,25,0,Math.PI*2);ctx.fill();
   }
   if(night>.18){
-    const mx=W*.18 + ((cycle+.5)%1)*W*.64;
-    const my=H*.17;
-    ctx.fillStyle=`rgba(245,246,213,${.82*night})`;
-    ctx.beginPath();ctx.arc(mx,my,25,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle=rgb(cTop);
-    ctx.beginPath();ctx.arc(mx+9,my-6,23,0,Math.PI*2);ctx.fill();
+    const mx=W*(.18+((cycle+.5)%1)*.64), my=H*.17;
+    ctx.fillStyle=`rgba(245,246,213,${.82*night})`;ctx.beginPath();ctx.arc(mx,my,23,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=`rgba(${topR},${topG},${topB},1)`;ctx.beginPath();ctx.arc(mx+8,my-5,21,0,Math.PI*2);ctx.fill();
   }
 
-  // Far hills.
-  ctx.fillStyle='#315863';
-  ctx.beginPath();ctx.moveTo(0,H*.59);
+  // Distant swamp/jungle silhouette.
+  ctx.fillStyle=env==='JUNGLE'?'#245449':'#315863';
+  ctx.beginPath();ctx.moveTo(0,H*.58);
   for(let i=0;i<=12;i++){
     const px=i*W/12;
-    const peak=H*(.48+(i%3)*.025);
-    ctx.quadraticCurveTo(px+W/24,H*.42,px+W/12,peak);
+    const py=H*(.48+(i%3)*.025);
+    ctx.quadraticCurveTo(px+W/24,H*.42,px+W/12,py);
   }
   ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.fill();
 
-  // Layered swamp trees.
+  // Trees.
   for(let layer=0;layer<2;layer++){
-    for(let i=0;i<11;i++){
+    for(let i=0;i<9;i++){
       let px=(i*109+layer*47-t*(.10+layer*.05))%(W+130);if(px<0)px+=W+130;
-      const base=H*(.72+layer*.025);
-      const trunk=55+(i%3)*16;
-      ctx.fillStyle=layer?'#16444b':'#1d5056';
-      ctx.fillRect(px-7,base-trunk,14,trunk);
-      for(let j=0;j<5;j++){
-        ctx.beginPath();
-        ctx.arc(px+(j%2?17:-17),base-trunk-16-j*12,30-j*2.2,0,Math.PI*2);
-        ctx.fill();
+      const base=H*(.70+layer*.025), trunk=55+(i%3)*16;
+      ctx.fillStyle=layer?'#16444b':'#1d5056';ctx.fillRect(px-6,base-trunk,12,trunk);
+      for(let j=0;j<4;j++){
+        ctx.beginPath();ctx.arc(px+(j%2?15:-15),base-trunk-14-j*12,27-j*2,0,Math.PI*2);ctx.fill();
       }
     }
   }
 
-  // Foreground reeds with highlights.
-  for(let i=0;i<28;i++){
-    let px=(i*59-t*.42)%(W+90);if(px<0)px+=W+90;
-    const h=85+(i%5)*20;
-    ctx.strokeStyle=i%2?'#1e6b55':'#2b805e';
-    ctx.lineWidth=5;ctx.lineCap='round';
-    ctx.beginPath();ctx.moveTo(px,H*.75);ctx.quadraticCurveTo(px-7,H*.75-h*.52,px+8,H*.75-h);ctx.stroke();
-    ctx.strokeStyle='rgba(111,190,112,.28)';ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(px+3,H*.75);ctx.quadraticCurveTo(px,H*.75-h*.48,px+10,H*.75-h*.92);ctx.stroke();
-  }
-
   // Water.
   const water=ctx.createLinearGradient(0,H*.68,0,H);
-  water.addColorStop(0,'#21818a');water.addColorStop(.45,'#126574');water.addColorStop(1,'#072f42');
-  ctx.fillStyle=water;ctx.fillRect(0,H*.68,W,H*.32);
+  water.addColorStop(0,env==='MOONLIT'?'#205d75':'#21818a');
+  water.addColorStop(1,'#072f42');ctx.fillStyle=water;ctx.fillRect(0,H*.68,W,H*.32);
 
-  // Water ripples.
-  for(let i=0;i<16;i++){
-    let px=(i*119-t*(1.1+i%2*.35))%(W+130);if(px<0)px+=W+130;
-    const py=H*.73+(i%6)*45;
-    ctx.strokeStyle='rgba(159,231,211,.38)';ctx.lineWidth=2;
+  // Reeds and ripples.
+  for(let i=0;i<22;i++){
+    let px=(i*59-t*.42)%(W+90);if(px<0)px+=W+90;
+    const h=75+(i%5)*17;
+    ctx.strokeStyle=i%2?'#1e6b55':'#2b805e';ctx.lineWidth=4;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(px,H*.75);ctx.quadraticCurveTo(px-7,H*.75-h*.52,px+8,H*.75-h);ctx.stroke();
+  }
+  for(let i=0;i<12;i++){
+    let px=(i*119-t*(1.0+i%2*.3))%(W+130);if(px<0)px+=W+130;
+    const py=H*.73+(i%5)*46;
+    ctx.strokeStyle='rgba(159,231,211,.32)';ctx.lineWidth=2;
     ctx.beginPath();ctx.moveTo(px,py);ctx.quadraticCurveTo(px+28,py-4,px+57,py);ctx.stroke();
   }
 
   // Lily pads.
-  for(let i=0;i<9;i++){
+  for(let i=0;i<7;i++){
     let px=(i*181-t*.65)%(W+90);if(px<0)px+=W+90;
     const py=H*.76+(i%3)*57;
-    ctx.fillStyle='#4fa75a';ctx.strokeStyle='#286b45';ctx.lineWidth=2.5;
-    ctx.beginPath();ctx.ellipse(px,py,31,12,0,0,Math.PI*2);ctx.fill();ctx.stroke();
-    ctx.strokeStyle='#2c6d45';ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px+18,py-9);ctx.stroke();
+    ctx.fillStyle='#4fa75a';ctx.strokeStyle='#286b45';ctx.lineWidth=2;
+    ctx.beginPath();ctx.ellipse(px,py,28,11,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.strokeStyle='#2c6d45';ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px+16,py-8);ctx.stroke();
   }
 
-
+  // Environment tint.
   if(env==='JUNGLE'){
-    ctx.fillStyle='rgba(69,145,70,.16)';ctx.fillRect(0,H*.48,W,H*.22);
-    ctx.fillStyle='rgba(24,70,42,.22)';ctx.fillRect(0,0,W,H*.48);
-    for(let i=0;i<9;i++){const x=(i*137+t*.12)%(W+80)-40;ctx.fillStyle='rgba(15,54,34,.55)';ctx.beginPath();ctx.arc(x,40+(i%3)*25,45+(i%3)*12,0,Math.PI*2);ctx.fill();}
+    ctx.fillStyle='rgba(24,70,42,.20)';ctx.fillRect(0,0,W,H*.52);
   }else if(env==='MOONLIT'){
-    ctx.fillStyle='rgba(32,45,100,.18)';ctx.fillRect(0,H*.52,W,H*.18);
-    ctx.fillStyle='rgba(15,22,58,.30)';ctx.fillRect(0,0,W,H*.7);
-    ctx.fillStyle='rgba(190,220,255,.12)';ctx.fillRect(0,H*.48,W,H*.2);
+    ctx.fillStyle='rgba(15,22,58,.28)';ctx.fillRect(0,0,W,H*.70);
+    ctx.fillStyle='rgba(190,220,255,.10)';ctx.fillRect(0,H*.48,W,H*.20);
   }
-}
 
+  // Weather is intentionally last and isolated.
+  try{drawWeather();}catch(err){console.warn('weather render skipped',err);}
+}
 
 function snake(x,edge,length,top,phase=0,type='normal'){
   const snakeStage=Math.floor((game.score||0)/10)%6;
@@ -804,6 +963,10 @@ function drawSpecialEye(x,y,type){
   ctx.restore();
 }
 
+const PERSONALITIES={
+ green:{name:'Chill',mood:'😌',quip:'Easy does it!'}, blue:{name:'Energetic',mood:'😎',quip:'Let’s go!'}, purple:{name:'Mystic',mood:'🔮',quip:'The swamp knows...'}, gold:{name:'Confident',mood:'😏',quip:'Looking good!'}, red:{name:'Fiery',mood:'😤',quip:'Bring it!'}, midnight:{name:'Spooky',mood:'👻',quip:'Boo!'}, rainbow:{name:'Chaotic',mood:'🤪',quip:'Wheee!'}, royalgold:{name:'Royal',mood:'👑',quip:'Make way!'}
+};
+function personality(){return PERSONALITIES[selectedSkin]||PERSONALITIES.green;}
 function frog(){
   const f=game.f;
   const skin=currentSkin();
@@ -819,6 +982,10 @@ function frog(){
   const rising=f.vy<0;
   const phase=game.time*.34;
   const kick=(Math.sin(phase)+1)/2;
+  const stretch=clamp(1-Math.abs(f.vy)/18*.10,.90,1.03);
+  const squash=clamp(1+Math.abs(f.vy)/18*.07,.96,1.08);
+  const bob=Math.sin(game.time*.18)*.8;
+  ctx.translate(0,bob);ctx.scale(stretch,squash);
 
   ctx.lineCap='round';ctx.lineJoin='round';
 
@@ -981,6 +1148,12 @@ function frog(){
   ctx.moveTo(handX-1,handY+2);ctx.lineTo(handX+6,handY+6);
   ctx.stroke();
 
+  // Personality-driven facial reactions.
+  if(game.reaction==='excited'||game.reaction==='happy'){
+    ctx.strokeStyle=bodyDark;ctx.lineWidth=2.4;ctx.beginPath();ctx.arc(29,2,7,.12,Math.PI-.12);ctx.stroke();
+  }else if(game.reaction==='sad'){
+    ctx.strokeStyle=bodyDark;ctx.lineWidth=2.4;ctx.beginPath();ctx.arc(29,6,7,Math.PI+.12,Math.PI*2-.12);ctx.stroke();
+  }
   ctx.restore();
 }
 function spawn(){
@@ -1126,65 +1299,167 @@ function drawFireflies(){
   }
 }
 
-function draw(){
-  bg();
+function drawSimpleFrog(){
   if(!game)return;
-  for(const p of game.pipes){
-    const length=Math.max(330,H*.66);
-    snake(p.x,p.g-p.gap/2,length,true,p.phase,p.type);
-    snake(p.x,p.g+p.gap/2,length,false,p.phase+1.2,p.type);
+  const f=game.f;
+  ctx.save();
+  ctx.translate(f.x,f.y);
+  ctx.fillStyle='#63b85a';ctx.strokeStyle='#2b6935';ctx.lineWidth=3;
+  ctx.beginPath();ctx.ellipse(0,6,30,20,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.ellipse(20,-12,21,17,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#f7fff0';ctx.beginPath();ctx.arc(29,-24,5,0,Math.PI*2);ctx.arc(43,-24,5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#17231b';ctx.beginPath();ctx.arc(30,-24,2.2,0,Math.PI*2);ctx.arc(44,-24,2.2,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#2b6935';ctx.lineWidth=2;ctx.beginPath();ctx.arc(36,-8,10,.15,Math.PI-.15);ctx.stroke();
+  ctx.restore();
+}
+
+function safeLayer(name,fn,fallback){
+  try{fn();return true;}catch(err){
+    console.error('Frog Hop '+name+' render error',err);
+    if(fallback){try{fallback();}catch(_){}}
+    return false;
   }
-  for(const f of game.fireflies){if(f.special)drawSpecialFirefly(f);} drawFireflies();
-  frog();
-  drawCelebration();
+}
+
+function draw(){
+  if(!game){try{bg();}catch(_){}return;}
+  // Keep each visual layer isolated so one Safari canvas drawing error cannot blank the entire game.
+  safeLayer('background',()=>bg(),()=>{ctx.fillStyle='#12343d';ctx.fillRect(0,0,W,H);});
+  safeLayer('snakes',()=>{
+    for(const p of game.pipes){
+      const length=Math.max(330,H*.66);
+      snake(p.x,p.g-p.gap/2,length,true,p.phase,p.type);
+      snake(p.x,p.g+p.gap/2,length,false,p.phase+1.2,p.type);
+    }
+  });
+  safeLayer('fireflies',()=>{for(const f of game.fireflies){if(f.special)drawSpecialFirefly(f);} drawFireflies();});
+  safeLayer('powerup',()=>drawPowerup());
+  safeLayer('frog',()=>frog(),()=>drawSimpleFrog());
+  safeLayer('celebration',()=>drawCelebration());
 }
 
 function loop(t){
-  const dt=Math.min((t-last)/16.67,2);last=t;
-  if(game?.run){
-    game.time+=dt;
-    game.comboTimer-=dt/60; if(game.comboTimer<=0){game.fireflyCombo=0;comboHud.classList.add('hidden')}
-    game.reactionTimer-=dt/60; if(game.reactionTimer<=0)game.reaction='normal';
-    game.croakTimer-=dt/60;
-    if(game.croakTimer<=0){ if(Math.random()<.45){ initAudio(); sfxCroak(); } game.croakTimer=9+Math.random()*12; }
-    updateCelebration(dt);
-    game.f.vy+=.42*dt;
-    game.f.y+=game.f.vy*dt;
-    game.f.rot=clamp(game.f.rot+.038*dt,-.45,.95);
-    game.speed=Math.min(6.6,3.8+game.score*.045);
+  // The game loop is deliberately self-scheduling FIRST. If any optional feature
+  // throws on iPhone Safari, the next frame still runs instead of freezing.
+  requestAnimationFrame(loop);
+  const now=Number(t)||performance.now();
+  const raw=(now-last)/16.67;
+  const dt=Math.max(0,Math.min(Number.isFinite(raw)?raw:1,2));
+  last=now;
 
-    if(game.pipes.length===0 || game.pipes.at(-1).x<W-275)spawn();
+  try{
+    if(game?.run){
+      game.time+=dt;
 
-    updateFireflies(dt);
+      // Core frog movement must never depend on audio, particles or UI.
+      game.f.vy+=.42*dt;
+      game.f.y+=game.f.vy*dt;
+      game.f.rot=clamp(game.f.rot+.038*dt,-.45,.95);
 
-    for(const p of game.pipes){
-      p.x-=game.speed*dt;
+      const baseSpeed=Math.min(6.6,3.8+game.score*.045);
+      const speedFactor=game.slowTimer>0?.62:1;
+      game.speed=baseSpeed*speedFactor;
+      game.slowTimer=Math.max(0,game.slowTimer-dt/60);
+      game.magnetTimer=Math.max(0,game.magnetTimer-dt/60);
+      game.doubleTimer=Math.max(0,game.doubleTimer-dt/60);
 
-      if(!p.scored && p.x+p.w<game.f.x){
-        p.scored=true; game.snakesPassed++; checkAchievements();
-        initAudio(); sfxPass();
-        game.score++;checkEyeMilestone();checkAchievements();
-        scoreEl.textContent=game.score;
-        if(game.score>=10 && game.score%10===0 && game.score!==lastCelebratedScore){
-          lastCelebratedScore=game.score;
-          celebrate(game.score);
+      // Optional systems are isolated so they can never stop the main game.
+      try{
+        game.comboTimer-=dt/60;
+        if(game.comboTimer<=0){game.fireflyCombo=0;if(comboHud)comboHud.classList.add('hidden');}
+      }catch(_){game.comboTimer=0;}
+      try{
+        game.reactionTimer-=dt/60;
+        if(game.reactionTimer<=0)game.reaction='normal';
+      }catch(_){game.reaction='normal';}
+      try{
+        game.croakTimer-=dt/60;
+        if(game.croakTimer<=0){ if(Math.random()<.45){ try{initAudio();sfxCroak();}catch(_){} } game.croakTimer=9+Math.random()*12; }
+      }catch(_){game.croakTimer=9;}
+      try{updateCelebration(dt);}catch(err){console.warn('celebration update skipped',err);}
+
+      try{if(game.score>0 && game.score%20===0 && game.lastPowerMilestone!==game.score)spawnPowerup();}catch(_){ }
+      try{updatePowerup(dt);}catch(err){console.warn('powerup update skipped',err);}
+
+      // Spawn the first obstacle immediately, then maintain the obstacle stream.
+      try{
+        const lastPipe=game.pipes.length?game.pipes[game.pipes.length-1]:null;
+        if(!lastPipe || lastPipe.x<W-275)spawn();
+      }catch(err){console.warn('snake spawn skipped',err);}
+
+      try{updateFireflies(dt);}catch(err){console.warn('firefly update skipped',err);}
+
+      // Core snake movement and collision.
+      for(const p of game.pipes){
+        p.x-=game.speed*dt;
+
+        if(!p.scored && p.x+p.w<game.f.x){
+          p.scored=true;
+          game.snakesPassed++;
+          try{checkAchievements();}catch(_){ }
+          try{initAudio();sfxPass();}catch(_){ }
+          game.score++;
+          try{checkEyeMilestone();}catch(_){ }
+          try{checkAchievements();}catch(_){ }
+          scoreEl.textContent=game.score;
+          if(game.score>=10 && game.score%10===0 && game.score!==lastCelebratedScore){
+            lastCelebratedScore=game.score;
+            try{initAudio();sfxMilestone();}catch(_){ }
+            try{celebrate(game.score);}catch(_){ }
+          }
+        }
+
+        const fx=9,fy=10;
+        const hitX=game.f.x+fx>p.x && game.f.x-fx<p.x+p.w;
+        const gapTop=p.g-p.gap/2;
+        const gapBottom=p.g+p.gap/2;
+        const hitY=game.f.y-fy<gapTop || game.f.y+fy>gapBottom;
+        if(hitX&&hitY){
+          if(game.shield>0){
+            game.shield=0;game.reaction='happy';game.reactionTimer=1.5;
+            try{initAudio();sfxUnlock();}catch(_){ }
+            if(powerHud){powerHud.textContent='🛡️ SHIELD SAVED YOU!';powerHud.classList.remove('hidden');setTimeout(()=>powerHud.classList.add('hidden'),1400);}
+            p.x-=45;
+          }else{
+            try{over();}catch(err){console.error('game over error',err);game.run=false;}
+            break;
+          }
         }
       }
 
-      // Small, forgiving frog hitbox.
-      const fx=9,fy=10;
-      const hitX=game.f.x+fx>p.x && game.f.x-fx<p.x+p.w;
-      const gapTop=p.g-p.gap/2;
-      const gapBottom=p.g+p.gap/2;
-      const hitY=game.f.y-fy<gapTop || game.f.y+fy>gapBottom;
-      if(hitX&&hitY){over();break}
+      game.pipes=game.pipes.filter(p=>p.x>-140);
+      if(game.f.y<18 || game.f.y>H*.68-5){
+        try{over();}catch(err){console.error('boundary game over error',err);game.run=false;}
+      }
     }
-
-    game.pipes=game.pipes.filter(p=>p.x>-140);
-    if(game.f.y<18 || game.f.y>H*.68-5)over();
+  }catch(err){
+    // Last-resort recovery: keep the frog and snakes moving even if a new
+    // feature has a runtime problem on Safari.
+    console.error('Frog Hop update error',err);
+    if(game?.run){
+      try{
+        game.time+=dt;
+        game.f.vy+=.42*dt;
+        game.f.y+=game.f.vy*dt;
+        game.speed=3.8;
+        for(const p of game.pipes)p.x-=game.speed*dt;
+      }catch(_){ }
+    }
   }
-  draw();
-  requestAnimationFrame(loop);
+
+  try{draw();}catch(err){
+    console.error('Frog Hop render error',err);
+    try{
+      ctx.save();
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      ctx.fillStyle='#12343d';ctx.fillRect(0,0,W,H);
+      ctx.fillStyle='#c8f86b';ctx.font='900 42px system-ui';ctx.textAlign='center';
+      ctx.fillText('FROG HOP',W/2,H*.28);
+      ctx.fillStyle='#ffffff';ctx.font='700 18px system-ui';
+      ctx.fillText('GAME STARTED',W/2,H*.36);
+      ctx.restore();
+    }catch(_){ }
+  }
 }
 requestAnimationFrame(loop);
 </script>
