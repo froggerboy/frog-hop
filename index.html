@@ -33,6 +33,7 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 .skingrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:10px 0 14px}
 .skin{border:2px solid rgba(255,255,255,.15);border-radius:16px;padding:10px;background:rgba(0,0,0,.18);color:#fff;cursor:pointer}
 .skin.selected{border-color:#fff5a0;box-shadow:0 0 0 2px rgba(255,245,160,.18)}
+.skinpreview svg{filter:drop-shadow(0 4px 2px rgba(0,0,0,.2))}
 .skin.locked{opacity:.8}
 .skinpreview{height:70px;display:flex;align-items:center;justify-content:center;font-size:46px}
 .skinname{font-weight:900;font-size:15px}
@@ -90,12 +91,12 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 <script>
 
 const SKINS = [
-  {id:'green',name:'Swampy',cost:0,body:'#63b85a',belly:'#d9f0a0',accent:'#3b8f3c',emoji:'🐸'},
-  {id:'blue',name:'Bluebolt',cost:25,body:'#4f9ee8',belly:'#c9e8ff',accent:'#2866a8',emoji:'🐸'},
-  {id:'purple',name:'Mystic',cost:50,body:'#9b62d8',belly:'#ead8ff',accent:'#65349b',emoji:'🐸'},
-  {id:'gold',name:'Golden',cost:100,body:'#f0b83f',belly:'#fff0a6',accent:'#b97910',emoji:'🐸'},
-  {id:'red',name:'Ember',cost:175,body:'#e85b4f',belly:'#ffd1b8',accent:'#a52f28',emoji:'🐸'},
-  {id:'midnight',name:'Midnight',cost:250,body:'#3c506d',belly:'#b7c7dc',accent:'#202c40',emoji:'🐸'}
+  {id:'green',name:'Swampy',cost:0,body:'#63b85a',belly:'#d9f0a0',accent:'#3b8f3c',highlight:'#a8ee60',emoji:'🐸'},
+  {id:'blue',name:'Bluebolt',cost:25,body:'#4f9ee8',belly:'#c9e8ff',accent:'#2866a8',highlight:'#8fc7ff',emoji:'🐸'},
+  {id:'purple',name:'Mystic',cost:50,body:'#9b62d8',belly:'#ead8ff',accent:'#65349b',highlight:'#c59af0',emoji:'🐸'},
+  {id:'gold',name:'Golden',cost:100,body:'#f0b83f',belly:'#fff0a6',accent:'#b97910',highlight:'#ffd76a',emoji:'🐸'},
+  {id:'red',name:'Ember',cost:175,body:'#e85b4f',belly:'#ffd1b8',accent:'#a52f28',highlight:'#ff8b6d',emoji:'🐸'},
+  {id:'midnight',name:'Midnight',cost:250,body:'#3c506d',belly:'#b7c7dc',accent:'#202c40',highlight:'#647d9e',emoji:'🐸'}
 ];
 
 let bankedFireflies = Number(localStorage.getItem('frogHopFireflies') || 0);
@@ -125,7 +126,21 @@ function renderShop(){
     const div=document.createElement('div');
     div.className='skin'+(selected?' selected':'')+(!unlocked?' locked':'');
     div.innerHTML=
-      '<div class="skinpreview" style="color:'+skin.body+';text-shadow:0 3px 0 '+skin.accent+'">🐸</div>'+
+      '<div class="skinpreview">'+
+        '<svg viewBox="0 0 100 70" width="92" height="64" aria-hidden="true">'+
+          '<ellipse cx="49" cy="46" rx="31" ry="15" fill="'+skin.accent+'"/>'+
+          '<ellipse cx="51" cy="41" rx="30" ry="16" fill="'+skin.body+'"/>'+
+          '<ellipse cx="59" cy="45" rx="19" ry="9" fill="'+skin.belly+'"/>'+
+          '<ellipse cx="62" cy="27" rx="23" ry="17" fill="'+skin.body+'"/>'+
+          '<circle cx="51" cy="16" r="9" fill="'+skin.accent+'"/>'+
+          '<circle cx="72" cy="16" r="9" fill="'+skin.accent+'"/>'+
+          '<circle cx="52" cy="15" r="5.5" fill="'+skin.highlight+'"/>'+
+          '<circle cx="72" cy="15" r="5.5" fill="'+skin.highlight+'"/>'+
+          '<circle cx="53" cy="15" r="2.5" fill="#17231b"/>'+
+          '<circle cx="73" cy="15" r="2.5" fill="#17231b"/>'+
+          '<path d="M53 31 Q64 38 76 31" fill="none" stroke="'+skin.accent+'" stroke-width="3" stroke-linecap="round"/>'+
+        '</svg>'+
+      '</div>'+
       '<div class="skinname">'+skin.name+'</div>'+
       '<div class="skincost">'+
         (unlocked
@@ -538,6 +553,12 @@ function snake(x,edge,length,top,phase=0){
 
 function frog(){
   const f=game.f;
+  const skin=currentSkin();
+  const bodyMain=skin.body;
+  const bodyDark=skin.accent;
+  const bodyLight=skin.highlight || skin.body;
+  const belly=skin.belly;
+
   ctx.save();
   ctx.translate(f.x,f.y);
   ctx.rotate(f.rot*.45);
@@ -552,25 +573,25 @@ function frog(){
   ctx.fillStyle='rgba(3,24,29,.22)';
   ctx.beginPath();ctx.ellipse(0,25,31,6,0,0,Math.PI*2);ctx.fill();
 
-  // BIG folded rear thigh, clearly visible behind the body.
-  ctx.fillStyle='#4b9f3a';ctx.strokeStyle='#153d27';ctx.lineWidth=3.5;
+  // Folded rear thigh.
+  ctx.fillStyle=bodyMain;ctx.strokeStyle=bodyDark;ctx.lineWidth=3.5;
   ctx.beginPath();
   ctx.ellipse(-15,10,19,14,-.35,0,Math.PI*2);
   ctx.fill();ctx.stroke();
 
-  // Lower hind leg: tucked when falling, extends backward during a hop.
+  // Lower hind leg.
   const kneeX=-27-5*kick;
   const kneeY=17+5*kick;
   const ankleX=-39-10*(rising?kick:.2);
   const ankleY=20+11*(rising?kick:.2);
-  ctx.strokeStyle='#347b36';ctx.lineWidth=8;
+  ctx.strokeStyle=bodyDark;ctx.lineWidth=8;
   ctx.beginPath();
   ctx.moveTo(-23,13);
   ctx.quadraticCurveTo(kneeX,kneeY,ankleX,ankleY);
   ctx.stroke();
 
   // Rear webbed foot.
-  ctx.strokeStyle='#2a6d34';ctx.lineWidth=2.8;
+  ctx.strokeStyle=bodyDark;ctx.lineWidth=2.8;
   ctx.beginPath();
   ctx.moveTo(ankleX,ankleY);ctx.lineTo(ankleX-13,ankleY+1);
   ctx.moveTo(ankleX,ankleY);ctx.lineTo(ankleX-11,ankleY+6);
@@ -579,47 +600,51 @@ function frog(){
 
   // Main body.
   const body=ctx.createRadialGradient(-10,-10,2,2,5,38);
-  body.addColorStop(0,'#d9fa79');body.addColorStop(.35,'#91df50');
-  body.addColorStop(.75,'#4ca53a');body.addColorStop(1,'#2c7131');
-  ctx.fillStyle=body;ctx.strokeStyle='#143c26';ctx.lineWidth=3.5;
+  body.addColorStop(0,bodyLight);
+  body.addColorStop(.35,bodyMain);
+  body.addColorStop(.75,bodyMain);
+  body.addColorStop(1,bodyDark);
+  ctx.fillStyle=body;ctx.strokeStyle=bodyDark;ctx.lineWidth=3.5;
   ctx.beginPath();ctx.ellipse(-3,1,32,21,-.05,0,Math.PI*2);ctx.fill();ctx.stroke();
 
-  // Pale belly.
-  ctx.fillStyle='#e1f0a4';
+  // Belly.
+  ctx.fillStyle=belly;
   ctx.beginPath();ctx.ellipse(8,8,20,10,-.12,0,Math.PI*2);ctx.fill();
 
   // Head.
   const head=ctx.createRadialGradient(17,-20,2,24,-10,26);
-  head.addColorStop(0,'#a8ee60');head.addColorStop(.58,'#79d14b');head.addColorStop(1,'#438f36');
+  head.addColorStop(0,bodyLight);
+  head.addColorStop(.58,bodyMain);
+  head.addColorStop(1,bodyDark);
   ctx.fillStyle=head;
   ctx.beginPath();ctx.ellipse(24,-12,22,18,-.08,0,Math.PI*2);ctx.fill();ctx.stroke();
 
   // Eye bump and eye.
-  ctx.fillStyle='#61b044';
+  ctx.fillStyle=bodyMain;
   ctx.beginPath();ctx.ellipse(35,-26,7.5,7,0,0,Math.PI*2);ctx.fill();ctx.stroke();
   ctx.fillStyle='#f7fff0';ctx.beginPath();ctx.arc(37,-27,4.8,0,Math.PI*2);ctx.fill();
   ctx.fillStyle='#17231b';ctx.beginPath();ctx.arc(38.5,-27,2.25,0,Math.PI*2);ctx.fill();
   ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(39.2,-27.8,.75,0,Math.PI*2);ctx.fill();
 
   // Face.
-  ctx.fillStyle='#214a27';ctx.beginPath();ctx.arc(40,-10,1.2,0,Math.PI*2);ctx.fill();
-  ctx.strokeStyle='#214a27';ctx.lineWidth=2.2;
+  ctx.fillStyle=bodyDark;ctx.beginPath();ctx.arc(40,-10,1.2,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle=bodyDark;ctx.lineWidth=2.2;
   ctx.beginPath();ctx.moveTo(35,-5);ctx.quadraticCurveTo(42,-1,48,-6);ctx.stroke();
   ctx.strokeStyle='rgba(38,88,38,.48)';ctx.lineWidth=1.8;
   ctx.beginPath();ctx.arc(24,-2,9,-.6,.85);ctx.stroke();
 
-  // FRONT ARM — deliberately drawn on top so it cannot disappear into the body.
+  // Front arm.
   const armKick=rising ? Math.sin(phase)*3 : 0;
   const elbowX=22, elbowY=10+armKick;
   const handX=30+3*kick, handY=18+armKick;
-  ctx.strokeStyle='#367c36';ctx.lineWidth=6;
+  ctx.strokeStyle=bodyDark;ctx.lineWidth=6;
   ctx.beginPath();
   ctx.moveTo(15,4);
   ctx.quadraticCurveTo(elbowX,elbowY,handX,handY);
   ctx.stroke();
 
-  // Front hand + three tiny toes.
-  ctx.strokeStyle='#286934';ctx.lineWidth=2.3;
+  // Front hand + three toes.
+  ctx.strokeStyle=bodyDark;ctx.lineWidth=2.3;
   ctx.beginPath();
   ctx.moveTo(handX,handY);ctx.lineTo(handX+8,handY-2);
   ctx.moveTo(handX,handY+1);ctx.lineTo(handX+8,handY+2);
@@ -627,7 +652,8 @@ function frog(){
   ctx.stroke();
 
   ctx.restore();
-}function spawn(){
+}
+function spawn(){
   // Difficulty ramps in two ways:
   // 1) the gap gradually narrows
   // 2) the gap centre can be higher OR lower on the screen.
