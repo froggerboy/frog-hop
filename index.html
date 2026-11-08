@@ -493,6 +493,31 @@ function handlePlay(e){
 }
 window.frogHopStart = handlePlay;
 
+// Ultimate iPhone fallback: handle taps at the document level while the home screen is visible.
+document.addEventListener('touchstart', function(e){
+  const ov=document.getElementById('overlay');
+  if(!ov || ov.classList.contains('hidden')) return;
+  const t=e.target;
+  if(t && (t.closest?.('#musicBtn') || t.closest?.('#shopBtn') || t.closest?.('#shop'))) return;
+  if(t && t.closest?.('#overlay')){
+    e.preventDefault();
+    e.stopPropagation();
+    start();
+  }
+}, {capture:true, passive:false});
+
+document.addEventListener('click', function(e){
+  const ov=document.getElementById('overlay');
+  if(!ov || ov.classList.contains('hidden')) return;
+  const t=e.target;
+  if(t && (t.closest?.('#musicBtn') || t.closest?.('#shopBtn') || t.closest?.('#shop'))) return;
+  if(t && t.closest?.('#overlay')){
+    e.preventDefault();
+    e.stopPropagation();
+    if(!game?.run) start();
+  }
+}, {capture:true});
+
 // Explicit DOM lookup: never rely on Safari exposing element IDs as globals.
 const playButton=document.getElementById('btn');
 if(playButton){
