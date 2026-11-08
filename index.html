@@ -281,7 +281,7 @@ function bg(){
 }
 
 function snake(x,edge,length,top,phase=0){
-  const snakeStage=Math.floor(game.score/10)%6;
+  const snakeStage=Math.floor((game.score||0)/10)%6;
   const snakePalettes=[
     [snakeMain,snakeDark,snakeLight],
     ['#4f6fd1','#263c8a','#b9d5ff'],
@@ -291,6 +291,7 @@ function snake(x,edge,length,top,phase=0){
     ['#39a8a0','#17625f','#a7fff1']
   ];
   const [snakeMain,snakeDark,snakeLight]=snakePalettes[snakeStage];
+
 
   ctx.save();
   const dir=top?-1:1;
