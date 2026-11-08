@@ -103,7 +103,7 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
     <button id="closeShop" class="secondary" type="button">BACK</button>
   </div>
 </div>
-<div id="overlay" class="hidden">
+<div id="overlay">
   <div class="card">
     <div class="logo">FROG HOP</div>
     <p class="subtitle" id="msg">Leap through the snakes, collect fireflies and become the ultimate frog.</p>
@@ -528,8 +528,40 @@ function handlePlay(e){
 }
 window.frogHopStart = handlePlay;
 
-// Startup menu disabled for now.
-// Startup menu disabled for now; document-level tap fallback removed.
+let playHashBusy=false;
+function handlePlayHash(){
+  if(location.hash!=="#play" || playHashBusy) return;
+  playHashBusy=true;
+  try { handlePlay(); } catch(err) { console.error("Frog Hop hash start error",err); }
+  setTimeout(()=>{ try{ history.replaceState(null,"",location.pathname+location.search); }catch(_){} playHashBusy=false; },80);
+}
+addEventListener("hashchange",handlePlayHash);
+if(location.hash==="#play") setTimeout(handlePlayHash,50);
+
+// Ultimate iPhone fallback: handle taps at the document level while the home screen is visible.
+document.addEventListener('touchstart', function(e){
+  const ov=document.getElementById('overlay');
+  if(!ov || ov.classList.contains('hidden')) return;
+  const t=e.target;
+  if(t && (t.closest?.('#musicBtn') || t.closest?.('#shopBtn') || t.closest?.('#shop'))) return;
+  if(t && t.closest?.('#overlay')){
+    e.preventDefault();
+    e.stopPropagation();
+    start();
+  }
+}, {capture:true, passive:false});
+
+document.addEventListener('click', function(e){
+  const ov=document.getElementById('overlay');
+  if(!ov || ov.classList.contains('hidden')) return;
+  const t=e.target;
+  if(t && (t.closest?.('#musicBtn') || t.closest?.('#shopBtn') || t.closest?.('#shop'))) return;
+  if(t && t.closest?.('#overlay')){
+    e.preventDefault();
+    e.stopPropagation();
+    if(!game?.run) start();
+  }
+}, {capture:true});
 
 // Explicit DOM lookup: never rely on Safari exposing element IDs as globals.
 const playButton=document.getElementById('btn');
@@ -1430,11 +1462,6 @@ function loop(t){
   }
 }
 requestAnimationFrame(loop);
-
-// V67: bypass the startup menu and launch directly into gameplay.
-setTimeout(function(){
-  try { start(); } catch(err) { console.error("Frog Hop automatic start error", err); }
-}, 60);
 </script>
 </body>
 </html>
