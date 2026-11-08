@@ -62,7 +62,7 @@ function rr(px,py,w,h,r){
   x.closePath();
   x.fill();
 }
-function bg(){
+function bg(){if(!game)return;
  let g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#54438f');g.addColorStop(.55,'#e88979');g.addColorStop(1,'#1a4d5c');x.fillStyle=g;x.fillRect(0,0,W,H);
  x.fillStyle='#ffd477';x.beginPath();x.arc(W*.78,H*.2,42,0,7);x.fill();
  // reeds/trees
