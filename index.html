@@ -108,7 +108,7 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
     <div class="logo">FROG HOP</div>
     <p class="subtitle" id="msg">Leap through the snakes, collect fireflies and become the ultimate frog.</p>
     <div class="homeStats"><div class="homeStat"><b id="homeBest">0</b><span>Best</span></div><div class="homeStat"><b id="homeBank">0</b><span>Fireflies</span></div><div class="homeStat"><b id="homeSkin">🐸</b><span>Frog</span></div></div>
-    <button id="btn">▶ PLAY</button><button id="shopBtn" class="secondary">🐸 COLLECTION</button><button id="musicBtn" class="secondary musicbtn">🎵 MUSIC: ON</button>
+    <button id="btn" type="button" onclick="window.frogHopStart && window.frogHopStart(event)">▶ PLAY</button><button id="shopBtn" class="secondary">🐸 COLLECTION</button><button id="musicBtn" class="secondary musicbtn">🎵 MUSIC: ON</button>
     <div class="small" id="personalityLine">Your frog: Chill 😌<br>Tap anywhere to hop · Your best score saves automatically</div>
   </div>
 </div>
@@ -491,21 +491,15 @@ function handlePlay(e){
   if(e){ e.preventDefault(); e.stopPropagation(); }
   start();
 }
+window.frogHopStart = handlePlay;
 
-// Simple iPhone-safe home-screen input. The whole home overlay accepts a tap
-// on the PLAY button; collection/music keep their own controls.
-btn.onclick=handlePlay;
-btn.ontouchend=handlePlay;
-btn.onpointerup=handlePlay;
-overlay.addEventListener('click',function(e){
-  if(e.target===btn || e.target.closest('#btn')) return;
-  if(e.target.closest('#shopBtn') || e.target.closest('#musicBtn')) return;
-},false);
-overlay.addEventListener('touchend',function(e){
-  const t=e.target;
-  if(t && (t.closest('#shopBtn') || t.closest('#musicBtn'))) return;
-  if(t && t.closest('#btn')) return;
-},false);
+// Explicit DOM lookup: never rely on Safari exposing element IDs as globals.
+const playButton=document.getElementById('btn');
+if(playButton){
+  ['pointerdown','touchstart','touchend','pointerup','click'].forEach(type=>{
+    playButton.addEventListener(type,handlePlay,{capture:true,passive:false});
+  });
+}
 
 const shopButton=document.getElementById('shopBtn');
 const closeShopButton=document.getElementById('closeShop');
