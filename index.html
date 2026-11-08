@@ -44,7 +44,7 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 #shopBtn{margin-top:10px}
 
 #shopBtn{position:relative;z-index:50;pointer-events:auto;touch-action:manipulation}
-#btn{position:relative;z-index:100001;pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer;-webkit-user-select:none;user-select:none;display:block;margin:0 auto;min-width:190px}
+#btn{position:relative;z-index:100001;pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer;-webkit-user-select:none;user-select:none;display:block;margin:0 auto;min-width:190px;text-decoration:none;text-align:center}
 #shop{z-index:200}
 
 #shop{z-index:20;pointer-events:auto}
@@ -108,7 +108,7 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
     <div class="logo">FROG HOP</div>
     <p class="subtitle" id="msg">Leap through the snakes, collect fireflies and become the ultimate frog.</p>
     <div class="homeStats"><div class="homeStat"><b id="homeBest">0</b><span>Best</span></div><div class="homeStat"><b id="homeBank">0</b><span>Fireflies</span></div><div class="homeStat"><b id="homeSkin">🐸</b><span>Frog</span></div></div>
-    <button id="btn" type="button" onclick="window.frogHopStart && window.frogHopStart(event)">▶ PLAY</button><button id="shopBtn" class="secondary">🐸 COLLECTION</button><button id="musicBtn" class="secondary musicbtn">🎵 MUSIC: ON</button>
+    <a id="btn" href="#play" role="button" aria-label="Play Frog Hop">▶ PLAY</a><button id="shopBtn" class="secondary">🐸 COLLECTION</button><button id="musicBtn" class="secondary musicbtn">🎵 MUSIC: ON</button>
     <div class="small" id="personalityLine">Your frog: Chill 😌<br>Tap anywhere to hop · Your best score saves automatically</div>
   </div>
 </div>
@@ -493,6 +493,18 @@ function handlePlay(e){
 }
 window.frogHopStart = handlePlay;
 
+// Native-link fallback for iPhone/Safari: the Play control is a real link.
+// Safari changes the URL hash before any JavaScript click handler is needed.
+let playHashBusy=false;
+function handlePlayHash(){
+  if(location.hash!=="#play" || playHashBusy) return;
+  playHashBusy=true;
+  try { start(); } catch(err) { console.error("Frog Hop start error",err); }
+  setTimeout(()=>{ history.replaceState(null,"",location.pathname+location.search+"#home"); playHashBusy=false; },80);
+}
+addEventListener("hashchange",handlePlayHash);
+if(location.hash==="#play") setTimeout(handlePlayHash,50);
+
 // Ultimate iPhone fallback: handle taps at the document level while the home screen is visible.
 document.addEventListener('touchstart', function(e){
   const ov=document.getElementById('overlay');
@@ -521,9 +533,7 @@ document.addEventListener('click', function(e){
 // Explicit DOM lookup: never rely on Safari exposing element IDs as globals.
 const playButton=document.getElementById('btn');
 if(playButton){
-  ['pointerdown','touchstart','touchend','pointerup','click'].forEach(type=>{
-    playButton.addEventListener(type,handlePlay,{capture:true,passive:false});
-  });
+  playButton.addEventListener('click',()=>setTimeout(handlePlayHash,0),false);
 }
 
 const shopButton=document.getElementById('shopBtn');
