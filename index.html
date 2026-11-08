@@ -103,12 +103,12 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
     <button id="closeShop" class="secondary" type="button">BACK</button>
   </div>
 </div>
-<div id="overlay">
+<div id="overlay" class="hidden">
   <div class="card">
     <div class="logo">FROG HOP</div>
     <p class="subtitle" id="msg">Leap through the snakes, collect fireflies and become the ultimate frog.</p>
     <div class="homeStats"><div class="homeStat"><b id="homeBest">0</b><span>Best</span></div><div class="homeStat"><b id="homeBank">0</b><span>Fireflies</span></div><div class="homeStat"><b id="homeSkin">🐸</b><span>Frog</span></div></div>
-    <button id="btn" type="button" aria-label="Play Frog Hop" onclick="if(window.__frogStartClick){window.__frogStartClick(event)}; return false;" ontouchend="if(window.__frogStartClick){window.__frogStartClick(event)}; return false;">▶ PLAY</button><button id="shopBtn" class="secondary">🐸 COLLECTION</button><button id="musicBtn" class="secondary musicbtn">🎵 MUSIC: ON</button>
+    <button id="btn" type="button" aria-label="Play Frog Hop" onclick="if(window.__frogStartClick){window.__frogStartClick(event)}; return false;">▶ PLAY</button><button id="shopBtn" class="secondary">🐸 COLLECTION</button><button id="musicBtn" class="secondary musicbtn">🎵 MUSIC: ON</button>
     <div class="small" id="personalityLine">Your frog: Chill 😌<br>Tap anywhere to hop · Your best score saves automatically</div>
   </div>
 </div>
@@ -119,8 +119,10 @@ window.__frogStartClick=function(e){
   try{ if(e){e.preventDefault();e.stopPropagation();} }catch(_){}
   const ov=document.getElementById("overlay");
   if(ov){ ov.style.display="none"; ov.classList.add("hidden"); }
+  // start() is a function declaration, so it is available when this runs.
   setTimeout(function(){
     try{ start(); }catch(err){
+      // If startup fails, show a visible retry state rather than silently doing nothing.
       try{ if(ov){ov.style.display="flex";ov.classList.remove("hidden");} }catch(_){}
       console.error("Frog Hop start error",err);
     }
@@ -454,9 +456,6 @@ function refreshHome(){
  if(homeSkin)homeSkin.textContent=personality().mood; if(personalityLine)personalityLine.innerHTML='Your frog: '+personality().name+' '+personality().mood+'<br>Tap anywhere to hop · Your best score saves automatically';
 }
 refreshHome();
-// V65: always begin on the home screen. Nothing else may start a run automatically.
-overlay.classList.remove('hidden');
-overlay.style.display='flex';
 
 function start(){
   // Force the rendering surface to the front and rebuild its backing buffer.
@@ -529,28 +528,16 @@ function handlePlay(e){
 }
 window.frogHopStart = handlePlay;
 
-// V66: iPhone-safe PLAY fallback. It only responds when the user's touch/click
-// lands inside the actual PLAY button rectangle; taps elsewhere do nothing.
+// Startup menu disabled for now.
+// Startup menu disabled for now; document-level tap fallback removed.
+
+// Explicit DOM lookup: never rely on Safari exposing element IDs as globals.
 const playButton=document.getElementById('btn');
-function pointInPlay(e){
-  if(!playButton || overlay.classList.contains('hidden')) return false;
-  const r=playButton.getBoundingClientRect();
-  let x=null,y=null;
-  if(e.touches && e.touches[0]){x=e.touches[0].clientX;y=e.touches[0].clientY;}
-  else if(e.changedTouches && e.changedTouches[0]){x=e.changedTouches[0].clientX;y=e.changedTouches[0].clientY;}
-  else if(typeof e.clientX==='number'){x=e.clientX;y=e.clientY;}
-  if(x===null || y===null) return false;
-  return x>=r.left && x<=r.right && y>=r.top && y<=r.bottom;
+if(playButton){
+  const activatePlay=(e)=>{ window.__frogStartClick(e); };
+  playButton.addEventListener('pointerup',activatePlay,{capture:true,passive:false});
+  playButton.addEventListener('click',activatePlay,{capture:true,passive:false});
 }
-function playFallback(e){
-  if(pointInPlay(e)){
-    try{e.preventDefault();e.stopPropagation();}catch(_){}
-    window.__frogStartClick(e);
-  }
-}
-document.addEventListener('touchend',playFallback,{capture:true,passive:false});
-document.addEventListener('pointerup',playFallback,{capture:true,passive:false});
-document.addEventListener('click',playFallback,{capture:true,passive:false});
 
 const shopButton=document.getElementById('shopBtn');
 const closeShopButton=document.getElementById('closeShop');
@@ -607,6 +594,7 @@ function handleGameTap(e){
   if(document.getElementById('shop')?.classList.contains('hidden')===false) return;
   e.preventDefault();
   if(game?.run) jump();
+  else start();
 }
 
 c.addEventListener('pointerdown',handleGameTap,{passive:false});
@@ -621,7 +609,7 @@ addEventListener('keydown',e=>{
   }
   if(e.code==='Space'){
     e.preventDefault();
-    if(game?.run) jump();
+    game?.run?jump():start();
   }
 });
 
@@ -1442,6 +1430,11 @@ function loop(t){
   }
 }
 requestAnimationFrame(loop);
+
+// V67: bypass the startup menu and launch directly into gameplay.
+setTimeout(function(){
+  try { start(); } catch(err) { console.error("Frog Hop automatic start error", err); }
+}, 60);
 </script>
 </body>
 </html>
