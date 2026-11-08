@@ -46,7 +46,7 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 <script>
 const c=document.getElementById('c'),ctx=c.getContext('2d'),scoreEl=document.getElementById('score'),bestEl=document.getElementById('best');
 let W=0,H=0,dpr=1,game=null,last=0;
-const BEST_KEY='frogHopBestV4';
+const BEST_KEY='frogHopBestV5';
 const best=()=>Number(localStorage.getItem(BEST_KEY)||0);
 bestEl.textContent=best();
 
@@ -63,7 +63,7 @@ const overlay=document.getElementById('overlay'),btn=document.getElementById('bt
 
 function start(){
   game={run:true,score:0,time:0,speed:3.75,next:0,
-    f:{x:W*.25,y:H*.43,vy:0,rot:0,blink:0},
+    f:{x:W*.25,y:H*.46,vy:0,rot:0,blink:0},
     pipes:[]};
   scoreEl.textContent='0';
   overlay.classList.add('hidden');
@@ -81,7 +81,7 @@ function over(){
 }
 function jump(){
   if(!game?.run)return;
-  game.f.vy=-8.45;
+  game.f.vy=-7.85;
   game.f.rot=-.42;
 }
 btn.onclick=e=>{e.stopPropagation();start()};
@@ -157,44 +157,122 @@ function bg(){
   }
 }
 
-function snake(px,py,h,top){
-  ctx.save();ctx.translate(px,py);if(top)ctx.scale(1,-1);
+function snake(x,edge,length,top){
+  ctx.save();
 
-  // shadow
-  ctx.fillStyle='rgba(0,0,0,.18)';rr(-36,8,72,h,30);
+  const dir=top?-1:1;
+  const amp=18;
+  const w=26;
 
-  // body
-  const body=ctx.createLinearGradient(-32,0,32,0);
-  body.addColorStop(0,'#245c32');body.addColorStop(.5,'#72bb4f');body.addColorStop(1,'#285f34');
-  ctx.fillStyle=body;ctx.strokeStyle='#153d27';ctx.lineWidth=4;
-  rr(-31,0,62,h,28);ctx.stroke();
+  // Winding snake body from the gap edge toward the screen edge.
+  const y0=edge;
+  const y1=edge+dir*length;
+  const bend=dir*length*.34;
 
-  // belly
-  const belly=ctx.createLinearGradient(-12,0,12,0);
-  belly.addColorStop(0,'#b99858');belly.addColorStop(.5,'#f0db8d');belly.addColorStop(1,'#b38b4b');
-  ctx.fillStyle=belly;rr(-12,4,24,h-6,12);
-
-  // scale pattern
-  for(let yy=18;yy<h-12;yy+=22){
-    ctx.fillStyle='rgba(255,255,255,.14)';
-    ctx.beginPath();ctx.arc(-20,yy,3,0,Math.PI*2);ctx.arc(20,yy+9,3,0,Math.PI*2);ctx.fill();
+  function pathBody(){
+    ctx.beginPath();
+    ctx.moveTo(x,y0);
+    ctx.bezierCurveTo(
+      x+amp,y0+dir*55,
+      x-amp,y0+dir*115,
+      x,y0+dir*175
+    );
+    ctx.bezierCurveTo(
+      x+amp,y0+dir*235,
+      x-amp,y0+dir*295,
+      x,y1
+    );
   }
 
-  // head
-  ctx.fillStyle='#6fbe4d';ctx.strokeStyle='#153d27';ctx.lineWidth=4;
-  ctx.beginPath();ctx.ellipse(0,h+2,43,31,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+  // Shadow
+  ctx.save();
+  ctx.translate(5,4);
+  ctx.strokeStyle='rgba(0,0,0,.20)';
+  ctx.lineWidth=w+9;
+  ctx.lineCap='round';
+  pathBody();
+  ctx.stroke();
+  ctx.restore();
 
-  // eyes
-  ctx.fillStyle='#f7e47d';ctx.beginPath();ctx.arc(-14,h-5,9,0,Math.PI*2);ctx.arc(14,h-5,9,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#152017';ctx.beginPath();ctx.arc(-12,h-5,4,0,Math.PI*2);ctx.arc(16,h-5,4,0,Math.PI*2);ctx.fill();
+  // Main body
+  const body=ctx.createLinearGradient(x-w/2,0,x+w/2,0);
+  body.addColorStop(0,'#24572e');
+  body.addColorStop(.45,'#72c34d');
+  body.addColorStop(1,'#2a6635');
+  ctx.strokeStyle=body;
+  ctx.lineWidth=w;
+  ctx.lineCap='round';
+  pathBody();
+  ctx.stroke();
 
-  // smile and tongue
-  ctx.strokeStyle='#19301f';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(0,h+5,15,.1,Math.PI-.1);ctx.stroke();
-  ctx.strokeStyle='#ef5c62';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(5,h+26);ctx.lineTo(5,h+47);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(5,h+43);ctx.lineTo(-1,h+49);ctx.moveTo(5,h+43);ctx.lineTo(11,h+49);ctx.stroke();
+  // Belly stripe
+  ctx.strokeStyle='#d8c16d';
+  ctx.lineWidth=8;
+  ctx.globalAlpha=.9;
+  pathBody();
+  ctx.stroke();
+  ctx.globalAlpha=1;
+
+  // Scale marks
+  for(let i=0;i<10;i++){
+    const yy=y0+dir*(22+i*31);
+    const wave=Math.sin(i*.9)*amp*.45;
+    ctx.fillStyle='rgba(255,255,255,.18)';
+    ctx.beginPath();
+    ctx.arc(x+wave,yy,2.7,0,Math.PI*2);
+    ctx.fill();
+  }
+
+  // Head sits right at the gap, making it unmistakably a snake.
+  const hx=x, hy=edge+dir*2;
+  ctx.fillStyle='#72c34d';
+  ctx.strokeStyle='#163b25';
+  ctx.lineWidth=4;
+  ctx.beginPath();
+  ctx.ellipse(hx,hy+dir*10,29,24,0,0,Math.PI*2);
+  ctx.fill(); ctx.stroke();
+
+  // Eye bumps / eyes
+  const eyeY=hy+dir*2;
+  ctx.fillStyle='#8ed75b';
+  ctx.beginPath();
+  ctx.arc(hx-13,eyeY-dir*10,9,0,Math.PI*2);
+  ctx.arc(hx+13,eyeY-dir*10,9,0,Math.PI*2);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle='#fff';
+  ctx.beginPath();
+  ctx.arc(hx-13,eyeY-dir*10,6,0,Math.PI*2);
+  ctx.arc(hx+13,eyeY-dir*10,6,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle='#152018';
+  ctx.beginPath();
+  ctx.arc(hx-12,eyeY-dir*10,2.8,0,Math.PI*2);
+  ctx.arc(hx+14,eyeY-dir*10,2.8,0,Math.PI*2);
+  ctx.fill();
+
+  // Mouth + forked tongue pointing into the gap.
+  ctx.strokeStyle='#19301f';
+  ctx.lineWidth=2.5;
+  ctx.beginPath();
+  ctx.arc(hx,hy+dir*11,11,dir*Math.PI+.25,dir*2*Math.PI-.25);
+  ctx.stroke();
+
+  ctx.strokeStyle='#ef5960';
+  ctx.lineWidth=3;
+  ctx.beginPath();
+  ctx.moveTo(hx,hy+dir*24);
+  ctx.lineTo(hx,hy+dir*39);
+  ctx.moveTo(hx,hy+dir*36);
+  ctx.lineTo(hx-6,hy+dir*43);
+  ctx.moveTo(hx,hy+dir*36);
+  ctx.lineTo(hx+6,hy+dir*43);
+  ctx.stroke();
+
   ctx.restore();
 }
-
 function frog(){
   const f=game.f;ctx.save();ctx.translate(f.x,f.y);ctx.rotate(f.rot);
 
@@ -232,21 +310,24 @@ function frog(){
 }
 
 function spawn(){
-  const gap=Math.max(112,154-game.score*1.25);
-  const marginTop=Math.max(145,H*.20);
-  const marginBottom=Math.min(H*.61,H-180);
-  const minCenter=marginTop+gap/2;
-  const maxCenter=marginBottom-gap/2;
-  const center=maxCenter>minCenter ? minCenter+Math.random()*(maxCenter-minCenter) : H*.45;
-  game.pipes.push({x:W+70,w:68,g:center,gap,scored:false});
+  const gap=Math.max(150,190-game.score*1.5);
+  const topMargin=105;
+  const bottomMargin=105;
+  const minCenter=topMargin+gap/2;
+  const maxCenter=H*.69-bottomMargin-gap/2;
+  const center=maxCenter>minCenter
+    ? minCenter+Math.random()*(maxCenter-minCenter)
+    : H*.43;
+  game.pipes.push({x:W+80,w:54,g:center,gap,scored:false});
 }
 
 function draw(){
   bg();
   if(!game)return;
   for(const p of game.pipes){
-    snake(p.x,p.g-p.gap/2-310,310,true);
-    snake(p.x,p.g+p.gap/2-14,310,false);
+    const length=Math.max(300,H*.62);
+    snake(p.x,p.g-p.gap/2,length,true);
+    snake(p.x,p.g+p.gap/2,length,false);
   }
   frog();
 }
@@ -255,7 +336,7 @@ function loop(t){
   const dt=Math.min((t-last)/16.67,2);last=t;
   if(game?.run){
     game.time+=dt;
-    game.f.vy+=.47*dt;
+    game.f.vy+=.42*dt;
     game.f.y+=game.f.vy*dt;
     game.f.rot=clamp(game.f.rot+.038*dt,-.42,.95);
     game.speed=Math.min(6.5,3.75+game.score*.04);
@@ -267,9 +348,11 @@ function loop(t){
       if(!p.scored && p.x+p.w<game.f.x){p.scored=true;game.score++;scoreEl.textContent=game.score}
 
       // forgiving, character-sized hitbox
-      const fx=12,fy=14;
+      const fx=10,fy=11;
       const hitX=game.f.x+fx>p.x && game.f.x-fx<p.x+p.w;
-      const hitY=game.f.y-fy<p.g-p.gap/2 || game.f.y+fy>p.g+p.gap/2;
+      const gapTop=p.g-p.gap/2;
+      const gapBottom=p.g+p.gap/2;
+      const hitY=game.f.y-fy<gapTop || game.f.y+fy>gapBottom;
       if(hitX&&hitY){over();break}
     }
     game.pipes=game.pipes.filter(p=>p.x>-120);
