@@ -444,6 +444,11 @@ function refreshHome(){
 refreshHome();
 
 function start(){
+  // Re-measure the screen every time a run starts. This prevents iPhone Safari
+  // layout timing from leaving W/H at zero or stale values.
+  try{ size(); }catch(_){}
+  if(!W || !H){ W=innerWidth||390; H=innerHeight||844; }
+
   confetti=[]; celebration=0; celebrationText=''; lastCelebratedScore=0;
   game={
     run:true,score:0,time:0,speed:3.8,next:0,
@@ -452,13 +457,23 @@ function start(){
     f:{x:W*.25,y:H*.46,vy:0,rot:0,blink:0},
     pipes:[]
   };
+
+  // Hide the home screen BEFORE any optional audio/sound code can fail.
+  overlay.classList.add('hidden');
+  document.body.classList.remove('shopOpen');
   scoreEl.textContent='0';
   fireflyEl.textContent='0';
   bankedHudEl.textContent=bankedFireflies;
-  overlay.classList.add('hidden');
-  if(musicEnabled){initAudio();startMusic();}
-  else stopMusic();
-  jump();
+
+  // Audio is optional; a sound failure must never stop the game from starting.
+  try{
+    if(musicEnabled){ initAudio(); startMusic(); }
+    else stopMusic();
+  }catch(_){}
+
+  // Jump is also optional on startup.
+  try{ jump(); }catch(_){}
+  try{ draw(); }catch(_){}
 }
 function over(){
   if(!game||!game.run)return;
@@ -490,10 +505,9 @@ function jump(){
 function handlePlay(e){
   try{ if(e){ e.preventDefault(); e.stopPropagation(); } }catch(_){}
   if(game && game.run) return false;
-  try { start(); } catch(err) {
-    console.error("Frog Hop start error",err);
-    setTimeout(()=>{ try{ start(); }catch(_){} },0);
-  }
+  // iPhone-safe: immediately remove the home overlay, then initialise the run.
+  try{ overlay.classList.add('hidden'); }catch(_){}
+  setTimeout(()=>{ try{ start(); }catch(err){ console.error('Frog Hop start error',err); } },0);
   return false;
 }
 window.frogHopStart = handlePlay;
