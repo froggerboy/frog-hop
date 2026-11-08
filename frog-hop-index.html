@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#21183d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Frog Hop</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#21183d;font-family:system-ui,-apple-system,sans-serif;touch-action:none}
+canvas{width:100%;height:100%;display:block;image-rendering:pixelated}
+#hud{position:fixed;top:env(safe-area-inset-top,0);left:0;right:0;display:flex;justify-content:space-between;padding:14px 18px;color:#fff;font-weight:900;text-shadow:3px 3px #30233e;pointer-events:none}
+.badge{background:#1b2030aa;border:2px solid #ffffff55;border-radius:14px;padding:7px 12px;font-size:17px}
+#overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0c14277a}
+.card{width:min(88vw,380px);padding:28px 24px;border:5px solid #f5d17e;border-radius:26px;background:#172634ee;box-shadow:0 18px 45px #0008;text-align:center;color:white}
+.logo{font-size:48px;font-weight:1000;letter-spacing:2px;color:#b7ed53;text-shadow:5px 5px #31502a;margin-bottom:4px}
+.subtitle{font-size:17px;color:#f6d98d;margin:0 0 22px}
+button{font:inherit;font-weight:950;font-size:22px;border:0;border-radius:16px;padding:14px 34px;background:#8bd63d;color:#17301c;box-shadow:0 6px 0 #477c26}
+button:active{transform:translateY(5px);box-shadow:0 1px 0 #477c26}
+.small{margin-top:18px;color:#dbe6df;font-size:14px}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud">
+  <div class="badge">🏆 <span id="best">0</span></div>
+  <div class="badge">🐸 <span id="score">0</span></div>
+</div>
+<div id="overlay">
+ <div class="card">
+  <div class="logo">FROG HOP</div>
+  <p class="subtitle" id="msg">Hop between the snakes!</p>
+  <button id="btn">PLAY</button>
+  <div class="small">Tap anywhere to jump<br>Best score saves automatically</div>
+ </div>
+</div>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d'),scoreEl=document.getElementById('score'),bestEl=document.getElementById('best');
+let W,H,dpr,game=null,last=0;
+const best=()=>+localStorage.getItem('frogHopBestV2')||0;
+bestEl.textContent=best();
+function size(){dpr=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*dpr;c.height=H*dpr;x.setTransform(dpr,0,0,dpr,0,0)} addEventListener('resize',size);size();
+
+const overlay=document.getElementById('overlay'),btn=document.getElementById('btn'),msg=document.getElementById('msg');
+function start(){game={run:true,score:0,time:0,speed:3.6,next:0,f:{x:W*.25,y:H*.43,vy:0,rot:0},pipes:[]};scoreEl.textContent=0;overlay.classList.add('hidden');jump()}
+function over(){if(!game||!game.run)return;game.run=false;let b=Math.max(best(),game.score);localStorage.setItem('frogHopBestV2',b);bestEl.textContent=b;msg.innerHTML=`You scored <b>${game.score}</b><br>Best: <b>${b}</b>`;btn.textContent='PLAY AGAIN';overlay.classList.remove('hidden')}
+function jump(){if(!game?.run)return;game.f.vy=-8.2;game.f.rot=-.35}
+btn.onclick=e=>{e.stopPropagation();start()};
+addEventListener('pointerdown',e=>{if(e.target===btn)return;if(game?.run)jump();else start()});
+addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();game?.run?jump():start()}});
+
+function rr(px,py,w,h,r){x.beginPath();x.roundRect(px,py,w,h,r);x.fill()}
+function bg(){
+ let g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#54438f');g.addColorStop(.55,'#e88979');g.addColorStop(1,'#1a4d5c');x.fillStyle=g;x.fillRect(0,0,W,H);
+ x.fillStyle='#ffd477';x.beginPath();x.arc(W*.78,H*.2,42,0,7);x.fill();
+ // reeds/trees
+ x.fillStyle='#243f42';for(let i=0;i<12;i++){let px=i*90-(game.time*0.15%90);x.beginPath();x.moveTo(px,H*.68);x.lineTo(px+38,H*.42);x.lineTo(px+76,H*.68);x.fill()}
+ x.fillStyle='#19505d';x.fillRect(0,H*.72,W,H*.28);
+ for(let i=0;i<9;i++){let px=(i*143-game.time*1.1)%W;if(px<0)px+=W,px+=W;x.fillStyle='#75a943';x.beginPath();x.ellipse(px,H*.77+(i%3)*52,32,10,0,0,7);x.fill()}
+}
+function snake(px,py,h,top=false){
+ x.save();x.translate(px,py);if(top)x.scale(1,-1);
+ x.fillStyle='#3f702d';x.strokeStyle='#1a3321';x.lineWidth=5;rr(-30,0,60,h,27);x.stroke();
+ x.fillStyle='#d6b96a';rr(-13,0,26,h,13);
+ x.fillStyle='#4f8134';x.beginPath();x.ellipse(0,h,41,29,0,0,7);x.fill();x.stroke();
+ x.fillStyle='#f5dd6c';x.beginPath();x.arc(-13,h-6,7,0,7);x.fill();x.fillStyle='#111';x.beginPath();x.arc(-12,h-6,3,0,7);x.fill();
+ x.fillStyle='#e34c48';x.fillRect(8,h+18,3,28);x.restore()
+}
+function frog(){
+ let f=game.f;x.save();x.translate(f.x,f.y);x.rotate(f.rot);
+ // shadow
+ x.fillStyle='#122d35aa';x.beginPath();x.ellipse(0,28,25,7,0,0,7);x.fill();
+ // legs
+ x.fillStyle='#5eaa36';x.strokeStyle='#193a22';x.lineWidth=4;
+ x.beginPath();x.ellipse(-22,15,17,8,-.3,0,7);x.ellipse(22,15,17,8,.3,0,7);x.fill();x.stroke();
+ // body
+ x.fillStyle='#82d247';x.beginPath();x.ellipse(0,4,25,19,0,0,7);x.fill();x.stroke();
+ // eyes
+ x.beginPath();x.arc(-14,-11,11,0,7);x.arc(14,-11,11,0,7);x.fill();x.stroke();
+ x.fillStyle='#fff';x.beginPath();x.arc(-14,-12,6,0,7);x.arc(14,-12,6,0,7);x.fill();
+ x.fillStyle='#18231a';x.beginPath();x.arc(-13,-12,3,0,7);x.arc(15,-12,3,0,7);x.fill();
+ x.strokeStyle='#2b5428';x.lineWidth=3;x.beginPath();x.arc(0,5,12,0,Math.PI);x.stroke();
+ x.restore()
+}
+function spawn(){
+ let gap=Math.max(135,180-game.score*1.2), gy=H*.45+(Math.random()-.5)*Math.min(180,H*.22);
+ game.pipes.push({x:W+60,w:66,g:gy,gap,scored:false})
+}
+function draw(){
+ bg();if(!game)return;
+ for(const p of game.pipes){snake(p.x,p.g-p.gap/2-270,270,true);snake(p.x,p.g+p.gap/2,270,false)}
+ frog()
+}
+function loop(t){
+ let dt=Math.min((t-last)/16.67,2);last=t;
+ if(game?.run){
+  game.time+=dt;game.f.vy+=.46*dt;game.f.y+=game.f.vy*dt;game.f.rot=Math.min(.9,game.f.rot+.035*dt);
+  game.speed=Math.min(6.4,3.6+game.score*.035);
+  if(game.pipes.length===0||game.pipes.at(-1).x<W-255)spawn();
+  for(const p of game.pipes){
+   p.x-=game.speed*dt;
+   if(!p.scored&&p.x+p.w<game.f.x){p.scored=true;game.score++;scoreEl.textContent=game.score}
+   let hitX=game.f.x+18>p.x-30&&game.f.x-18<p.x+p.w+30;
+   let hitY=game.f.y-18<p.g-p.gap/2||game.f.y+18>p.g+p.gap/2;
+   if(hitX&&hitY)over()
+  }
+  game.pipes=game.pipes.filter(p=>p.x>-100);
+  if(game.f.y<15||game.f.y>H*.72-5)over()
+ }
+ draw();requestAnimationFrame(loop)
+}
+requestAnimationFrame(loop)
+</script>
+</body></html>
