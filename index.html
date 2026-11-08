@@ -10,7 +10,7 @@
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0c2630;font-family:-apple-system,BlinkMacSystemFont,"Avenir Next",system-ui,sans-serif;touch-action:auto;-webkit-touch-callout:none}
-canvas{width:100%;height:100%;display:block;touch-action:none}
+canvas{position:fixed;inset:0;width:100vw;height:100vh;display:block;z-index:0;touch-action:none;background:#0c2630}
 #hud{position:fixed;top:env(safe-area-inset-top,0);left:0;right:0;padding:12px 14px;display:flex;align-items:flex-start;justify-content:space-between;pointer-events:none;z-index:5}
 .hudbox{min-width:78px;padding:8px 10px;border-radius:16px;background:rgba(7,28,35,.68);border:1.5px solid rgba(255,255,255,.22);box-shadow:0 7px 20px rgba(0,0,0,.18);color:#fff;text-align:center;backdrop-filter:blur(6px)}
 .hudlabel{display:block;font-size:9px;font-weight:900;letter-spacing:1.7px;text-transform:uppercase;opacity:.72}
@@ -458,11 +458,14 @@ function refreshHome(){
 refreshHome();
 
 function start(){
+  // Force the rendering surface to the front and rebuild its backing buffer.
+  c.style.display='block'; c.style.visibility='visible'; c.style.opacity='1'; c.style.zIndex='0';
   // Re-measure the screen every time a run starts. This prevents iPhone Safari
   // layout timing from leaving W/H at zero or stale values.
   try{ size(); }catch(_){}
   if(!W || !H){ W=innerWidth||390; H=innerHeight||844; }
 
+  last=performance.now();
   confetti=[]; celebration=0; celebrationText=''; lastCelebratedScore=0;
   game={
     run:true,score:0,time:0,speed:3.8,next:0,
@@ -487,7 +490,9 @@ function start(){
 
   // Jump is also optional on startup.
   try{ jump(); }catch(_){}
-  try{ draw(); }catch(_){}
+  try{ draw(); }catch(err){
+    try{ ctx.fillStyle='#12343d';ctx.fillRect(0,0,W,H);ctx.fillStyle='#c8f86b';ctx.font='900 42px system-ui';ctx.textAlign='center';ctx.fillText('FROG HOP',W/2,H*.28);ctx.fillStyle='#fff';ctx.font='700 18px system-ui';ctx.fillText('GAME STARTED',W/2,H*.36); }catch(_){}
+  }
 }
 function over(){
   if(!game||!game.run)return;
@@ -1379,7 +1384,22 @@ function loop(t){
     game.pipes=game.pipes.filter(p=>p.x>-140);
     if(game.f.y<18 || game.f.y>H*.68-5)over();
   }
-  draw();
+  try{ draw(); }catch(err){
+    // Keep the game alive even if one cosmetic drawing routine fails.
+    console.error('Frog Hop render error',err);
+    try{
+      ctx.save();
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      ctx.fillStyle='#12343d'; ctx.fillRect(0,0,W,H);
+      ctx.fillStyle='#c8f86b'; ctx.font='900 42px system-ui'; ctx.textAlign='center';
+      ctx.fillText('FROG HOP',W/2,H*.28);
+      ctx.fillStyle='#ffffff'; ctx.font='700 18px system-ui';
+      ctx.fillText('GAME STARTED',W/2,H*.36);
+      ctx.font='600 14px system-ui';
+      ctx.fillText('Score: '+(game?.score||0),W/2,H*.42);
+      ctx.restore();
+    }catch(_){}
+  }
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
