@@ -258,7 +258,7 @@ function noise(dur=.08,vol=.08,when=0){
   const g=audioCtx.createGain(); g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
   n.buffer=b; n.connect(g); g.connect(masterGain); n.start(t); n.stop(t+dur+.01);
 }
-function sfxJump(){ tone(330,.09,'sine',.12,0,170); tone(520,.12,'triangle',.08,.025,-80); }
+function sfxJump(){ tone(170,.10,'sine',.11,0,320); tone(420,.18,'triangle',.12,.015,180); tone(720,.10,'sine',.07,.045,-120); }
 function sfxPass(){ tone(620,.06,'triangle',.08); tone(880,.08,'triangle',.07,.045,80); }
 function sfxHit(){ noise(.16,.11); tone(150,.18,'sawtooth',.10,0,-90); }
 function sfxFirefly(){ tone(880,.08,'sine',.09); tone(1320,.12,'sine',.08,.055,140); }
@@ -983,7 +983,7 @@ function updateFireflies(dt){
     const center=H*.5;
     const range=Math.min(f.verticalRange||Math.max(70,H*.42),center-edge);
     f.y=Math.max(edge,Math.min(H-edge,center+Math.sin(f.life*0.04+f.phase)*range));
-    f.baseX-=game.speed*0.624*dt;
+    f.baseX-=game.speed*0.4992*dt;
     f.x=f.baseX+Math.sin(f.life*0.16+f.phase*1.3)*80;
     if(f.x<-30){game.fireflies.splice(i,1);continue}
     if(Math.hypot(f.x-game.f.x,f.y-game.f.y)<30){
