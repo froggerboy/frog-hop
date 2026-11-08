@@ -487,13 +487,38 @@ function jump(){
   game.f.rot=-.45;
 }
 
-function handlePlay(e){e.preventDefault();e.stopPropagation();if(!game?.run) start(); else start();}
-btn.addEventListener('pointerdown',handlePlay,{capture:true,passive:false});
-btn.addEventListener('touchstart',handlePlay,{capture:true,passive:false});
-btn.addEventListener('touchend',e=>{e.preventDefault();e.stopPropagation();start();},{capture:true,passive:false});
-btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();start();},{capture:true,passive:false});
-btn.onclick=()=>start();
-document.addEventListener('touchend',e=>{const b=e.target&&e.target.closest&&e.target.closest('#btn');if(b){e.preventDefault();e.stopPropagation();start();}},{capture:true,passive:false});
+function handlePlay(e){e.preventDefault();e.stopPropagation();start();}
+btn.addEventListener('pointerup',handlePlay,{capture:true,passive:false});
+btn.addEventListener('touchend',handlePlay,{capture:true,passive:false});
+btn.addEventListener('click',handlePlay,{capture:true,passive:false});
+
+// Final iPhone-safe fallback: detect a tap by screen coordinates even if Safari
+// reports the canvas/body as the event target. This deliberately only fires
+// while the home/game-over overlay is visible and only inside the PLAY button.
+let playTouchHandled=false;
+function playHitAt(x,y){
+  if(!overlay || overlay.classList.contains('hidden')) return false;
+  const r=btn.getBoundingClientRect();
+  return x>=r.left && x<=r.right && y>=r.top && y<=r.bottom;
+}
+function globalPlayPointer(e){
+  if(e.type==='pointerdown') playTouchHandled=false;
+  if(e.type==='pointerup' && playHitAt(e.clientX,e.clientY)){
+    e.preventDefault(); e.stopPropagation(); playTouchHandled=true; start();
+  }
+}
+document.addEventListener('pointerup',globalPlayPointer,{capture:true,passive:false});
+document.addEventListener('touchend',e=>{
+  const t=e.changedTouches && e.changedTouches[0];
+  if(!t || playTouchHandled) return;
+  if(playHitAt(t.clientX,t.clientY)){
+    e.preventDefault(); e.stopPropagation(); playTouchHandled=true; start();
+  }
+},{capture:true,passive:false});
+document.addEventListener('click',e=>{
+  if(playTouchHandled){playTouchHandled=false; return;}
+  if(playHitAt(e.clientX,e.clientY)){e.preventDefault();e.stopPropagation();start();}
+},{capture:true,passive:false});
 
 const shopButton=document.getElementById('shopBtn');
 const closeShopButton=document.getElementById('closeShop');
