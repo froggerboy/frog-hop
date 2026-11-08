@@ -96,35 +96,51 @@ function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill()}
 
 function bg(){
   const t=game?.time||0;
+  const cycle=(t/3600)%1; // 60 seconds per full day/night cycle at 60fps
+  const sun=Math.sin(cycle*Math.PI*2);
+  const daylight=Math.max(0,(sun+0.18)/1.18);
+  const night=1-daylight;
 
-  // Layered twilight sky.
+  // Layered sky that smoothly cycles through day, sunset, night and sunrise.
+  const mix=(a,b,k)=>a.map((v,i)=>Math.round(v+(b[i]-v)*k));
+  const dayTop=[75,166,214], dayMid=[151,211,196], dayLow=[239,201,132];
+  const nightTop=[7,20,48], nightMid=[23,55,82], nightLow=[39,67,78];
+  const cTop=mix(nightTop,dayTop,daylight), cMid=mix(nightMid,dayMid,daylight), cLow=mix(nightLow,dayLow,daylight);
+  const rgb=v=>`rgb(${v[0]},${v[1]},${v[2]})`;
   const sky=ctx.createLinearGradient(0,0,0,H);
-  sky.addColorStop(0,'#102d45');
-  sky.addColorStop(.28,'#2e6172');
-  sky.addColorStop(.55,'#6c9b91');
-  sky.addColorStop(.72,'#b9a474');
-  sky.addColorStop(1,'#0d4a55');
+  sky.addColorStop(0,rgb(cTop));
+  sky.addColorStop(.48,rgb(cMid));
+  sky.addColorStop(1,rgb(cLow));
   ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
 
   // Tiny stars.
-  ctx.fillStyle='rgba(255,255,225,.55)';
+  ctx.fillStyle=`rgba(255,255,225,${0.08+night*.65})`;
   for(let i=0;i<28;i++){
     const x=(i*97)%W, y=35+(i*53)%(H*.38);
     const r=(i%3===0)?1.3:.8;
     ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
   }
 
-  // Moon with layered glow.
-  const gx=W*.79, gy=H*.16;
-  const glow=ctx.createRadialGradient(gx,gy,2,gx,gy,145);
-  glow.addColorStop(0,'rgba(255,239,176,.98)');
-  glow.addColorStop(.18,'rgba(255,226,143,.34)');
-  glow.addColorStop(.52,'rgba(255,210,125,.10)');
-  glow.addColorStop(1,'rgba(255,210,125,0)');
-  ctx.fillStyle=glow;ctx.beginPath();ctx.arc(gx,gy,145,0,Math.PI*2);ctx.fill();
-  const moon=ctx.createRadialGradient(gx-8,gy-10,4,gx,gy,34);
-  moon.addColorStop(0,'#fff4bf');moon.addColorStop(1,'#ffd983');
-  ctx.fillStyle=moon;ctx.beginPath();ctx.arc(gx,gy,34,0,Math.PI*2);ctx.fill();
+  // Sun / moon travel across the sky.
+  const celestialX=W*.18 + cycle*W*.64;
+  const celestialY=H*(.17 + Math.abs(Math.sin(cycle*Math.PI))*-.015);
+  if(daylight>.12){
+    const glow=ctx.createRadialGradient(celestialX,celestialY,4,celestialX,celestialY,125);
+    glow.addColorStop(0,`rgba(255,245,180,${.95*daylight})`);
+    glow.addColorStop(.22,`rgba(255,215,105,${.28*daylight})`);
+    glow.addColorStop(1,'rgba(255,210,125,0)');
+    ctx.fillStyle=glow;ctx.beginPath();ctx.arc(celestialX,celestialY,125,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=`rgba(255,239,166,${.9*daylight})`;
+    ctx.beginPath();ctx.arc(celestialX,celestialY,29,0,Math.PI*2);ctx.fill();
+  }
+  if(night>.18){
+    const mx=W*.18 + ((cycle+.5)%1)*W*.64;
+    const my=H*.17;
+    ctx.fillStyle=`rgba(245,246,213,${.82*night})`;
+    ctx.beginPath();ctx.arc(mx,my,25,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=rgb(cTop);
+    ctx.beginPath();ctx.arc(mx+9,my-6,23,0,Math.PI*2);ctx.fill();
+  }
 
   // Far hills.
   ctx.fillStyle='#315863';
@@ -254,53 +270,89 @@ function snake(x,edge,length,top,phase=0){
 }
 
 function frog(){
-  const f=game.f;ctx.save();ctx.translate(f.x,f.y);ctx.rotate(f.rot);
+  const f=game.f;
+  ctx.save();
+  ctx.translate(f.x,f.y);
+  ctx.rotate(f.rot*.65);
 
-  // Cast shadow.
-  ctx.fillStyle='rgba(3,24,29,.25)';ctx.beginPath();ctx.ellipse(0,31,29,8,0,0,Math.PI*2);ctx.fill();
+  // Animation phase: legs extend strongly during the upward part of a hop.
+  const airborne=Math.abs(f.vy)>1.0;
+  const kick=Math.sin(game.time*.34)*0.5+0.5;
+  const rising=f.vy<0;
+  const legKick=rising ? 0.95 : 0.25;
 
-  // Back legs.
-  ctx.fillStyle='#4d9d3b';ctx.strokeStyle='#163d26';ctx.lineWidth=3.5;
-  ctx.beginPath();ctx.ellipse(-24,13,21,12,-.34,0,Math.PI*2);ctx.ellipse(24,13,21,12,.34,0,Math.PI*2);ctx.fill();ctx.stroke();
+  // Shadow.
+  ctx.fillStyle='rgba(3,24,29,.23)';
+  ctx.beginPath();ctx.ellipse(0,22,30,7,0,0,Math.PI*2);ctx.fill();
 
-  // Long rear toes.
-  ctx.strokeStyle='#2c6c32';ctx.lineWidth=3;ctx.lineCap='round';
-  for(const s of [-1,1])for(let i=-1;i<=1;i++){
-    const bx=s*29;ctx.beginPath();ctx.moveTo(bx,16);ctx.lineTo(bx+s*12,24+i*4);ctx.stroke();
-  }
+  // Back leg, side-on: thigh then long lower leg and webbed foot.
+  ctx.strokeStyle='#245f31';ctx.lineCap='round';ctx.lineJoin='round';
+  ctx.lineWidth=10;
+  ctx.beginPath();
+  ctx.moveTo(-9,10);
+  ctx.quadraticCurveTo(-26,18,-30,8-14*legKick);
+  ctx.quadraticCurveTo(-42,2-20*legKick,-49,-10-23*legKick);
+  ctx.stroke();
 
-  // Body gradient.
-  const body=ctx.createRadialGradient(-8,-14,4,3,9,35);
-  body.addColorStop(0,'#d2fb76');body.addColorStop(.35,'#83dc4d');body.addColorStop(.75,'#4ca83c');body.addColorStop(1,'#2e7132');
+  ctx.lineWidth=4;
+  ctx.beginPath();
+  ctx.moveTo(-48,-10-23*legKick);
+  ctx.lineTo(-61,-17-25*legKick);
+  ctx.moveTo(-48,-10-23*legKick);
+  ctx.lineTo(-58,-5-24*legKick);
+  ctx.moveTo(-48,-10-23*legKick);
+  ctx.lineTo(-55,2-21*legKick);
+  ctx.stroke();
+
+  // Front leg.
+  ctx.lineWidth=8;
+  ctx.beginPath();
+  ctx.moveTo(13,9);
+  ctx.quadraticCurveTo(26,15,31,5-8*legKick);
+  ctx.quadraticCurveTo(38,0,43,-8-12*legKick);
+  ctx.stroke();
+  ctx.lineWidth=3;
+  ctx.beginPath();
+  ctx.moveTo(42,-8-12*legKick);ctx.lineTo(52,-13-14*legKick);
+  ctx.moveTo(42,-8-12*legKick);ctx.lineTo(52,-6-13*legKick);
+  ctx.moveTo(42,-8-12*legKick);ctx.lineTo(50,1-12*legKick);
+  ctx.stroke();
+
+  // Body, side-on.
+  const body=ctx.createRadialGradient(-8,-12,3,0,5,34);
+  body.addColorStop(0,'#d1fb76');
+  body.addColorStop(.35,'#82dc4d');
+  body.addColorStop(.78,'#4aa53a');
+  body.addColorStop(1,'#2d6f31');
   ctx.fillStyle=body;ctx.strokeStyle='#143c26';ctx.lineWidth=3.5;
-  ctx.beginPath();ctx.ellipse(0,4,28,24,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.ellipse(0,0,30,22,-.04,0,Math.PI*2);ctx.fill();ctx.stroke();
 
-  // Cream belly.
-  const belly=ctx.createRadialGradient(-4,4,2,0,9,18);
-  belly.addColorStop(0,'#f1f8b1');belly.addColorStop(1,'#b9dc72');
-  ctx.fillStyle=belly;ctx.beginPath();ctx.ellipse(0,10,16,12,0,0,Math.PI*2);ctx.fill();
+  // Pale belly patch.
+  ctx.fillStyle='#dcefa0';
+  ctx.beginPath();ctx.ellipse(8,7,17,11,-.1,0,Math.PI*2);ctx.fill();
 
-  // Belly contour.
-  ctx.strokeStyle='rgba(45,95,35,.55)';ctx.lineWidth=2;
-  ctx.beginPath();ctx.arc(0,10,14,-.9,1.1);ctx.stroke();
+  // Head facing right.
+  ctx.fillStyle='#8bdf51';
+  ctx.beginPath();ctx.ellipse(25,-13,23,20,-.12,0,Math.PI*2);ctx.fill();ctx.stroke();
 
-  // Eyes.
-  for(const s of [-1,1]){
-    ctx.fillStyle='#73cf4c';ctx.beginPath();ctx.arc(s*15,-14,13,0,Math.PI*2);ctx.fill();ctx.stroke();
-    ctx.fillStyle='#fafff0';ctx.beginPath();ctx.arc(s*15,-15,7.3,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#102017';ctx.beginPath();ctx.arc(s*17,-15,3.7,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='rgba(255,255,255,.9)';ctx.beginPath();ctx.arc(s*18,-17,1.3,0,Math.PI*2);ctx.fill();
-  }
+  // Eye mound and eye.
+  ctx.fillStyle='#73c94a';
+  ctx.beginPath();ctx.arc(36,-29,11,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#fbfff1';ctx.beginPath();ctx.arc(38,-30,7,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#122018';ctx.beginPath();ctx.arc(40,-30,3.6,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(41,-32,1.2,0,Math.PI*2);ctx.fill();
 
-  // Smile, cheeks and tiny nostrils.
-  ctx.strokeStyle='#214d2b';ctx.lineWidth=2.8;
-  ctx.beginPath();ctx.arc(0,6,13,.1,Math.PI-.1);ctx.stroke();
-  ctx.fillStyle='#4a9b38';ctx.beginPath();ctx.arc(-20,1,3.2,0,Math.PI*2);ctx.arc(20,1,3.2,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#244a27';ctx.beginPath();ctx.arc(-4,3,1.3,0,Math.PI*2);ctx.arc(4,3,1.3,0,Math.PI*2);ctx.fill();
+  // Nostril and smile.
+  ctx.fillStyle='#214a27';ctx.beginPath();ctx.arc(42,-10,1.6,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#214a27';ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.arc(37,-8,12,.05,1.15);ctx.stroke();
+
+  // Tiny throat highlight.
+  ctx.strokeStyle='rgba(38,88,38,.5)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(23,-2,10,-.6,1.0);ctx.stroke();
 
   ctx.restore();
 }
-
 function spawn(){
   // Difficulty ramps in two ways:
   // 1) the gap gradually narrows
