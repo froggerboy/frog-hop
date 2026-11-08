@@ -67,14 +67,14 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 .accessory.locked{opacity:.55}
 .accessory.equipped{border-color:#fff5a0;box-shadow:0 0 0 2px rgba(255,245,160,.18)}
 .scorecost{font-size:13px;margin-top:4px;color:#fff5a0}
-.achgrid{display:grid;grid-template-columns:1fr;gap:9px;margin:10px 0 14px;text-align:left}.achievement{border:1.5px solid rgba(255,255,255,.15);border-radius:14px;padding:11px 12px;background:rgba(0,0,0,.16)}.achievement.done{border-color:#fff5a0;background:rgba(255,245,160,.10)}.achievement .atitle{font-weight:900}.achievement .adesc{font-size:12px;opacity:.72;margin-top:3px}.achievement .astatus{font-size:12px;color:#fff5a0;margin-top:5px;font-weight:800}.combo{position:fixed;left:50%;top:88px;transform:translateX(-50%);z-index:6;color:#fff5a0;font-weight:950;font-size:18px;text-shadow:0 3px 8px rgba(0,0,0,.45);pointer-events:none}.musicbtn{margin-top:8px!important;padding:9px 14px!important;font-size:12px!important}
+.achgrid{display:grid;grid-template-columns:1fr;gap:9px;margin:10px 0 14px;text-align:left}.achievement{border:1.5px solid rgba(255,255,255,.15);border-radius:14px;padding:11px 12px;background:rgba(0,0,0,.16)}.achievement.done{border-color:#fff5a0;background:rgba(255,245,160,.10)}.achievement .atitle{font-weight:900}.achievement .adesc{font-size:12px;opacity:.72;margin-top:3px}.achievement .astatus{font-size:12px;color:#fff5a0;margin-top:5px;font-weight:800}.combo{position:fixed;left:50%;top:88px;transform:translateX(-50%);z-index:6;color:#fff5a0;font-weight:950;font-size:18px;text-shadow:0 3px 8px rgba(0,0,0,.45);pointer-events:none}.musicbtn{margin-top:8px!important;padding:9px 14px!important;font-size:12px!important}.powerhud{position:fixed;left:50%;top:118px;transform:translateX(-50%);z-index:7;color:#fff;font-weight:950;font-size:13px;letter-spacing:.5px;text-shadow:0 3px 8px rgba(0,0,0,.5);background:rgba(7,28,35,.62);border:1px solid rgba(255,255,255,.2);padding:7px 12px;border-radius:999px;pointer-events:none}.powerhud.hidden{display:none!important}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <div id="hud">
   <div class="hudbox"><span class="hudlabel">Best</span><span class="hudnum" id="best">0</span></div>
-  <div id="centerScore"><div class="num" id="score">0</div><div class="label" id="envLabel">SWAMP</div><div class="runflies">✨ <span id="fireflyCount">0</span> this run</div></div><div id="comboHud" class="combo hidden">✨ COMBO x2</div>
+  <div id="centerScore"><div class="num" id="score">0</div><div class="label" id="envLabel">SWAMP</div><div class="runflies">✨ <span id="fireflyCount">0</span> this run</div></div><div id="comboHud" class="combo hidden">✨ COMBO x2</div><div id="powerHud" class="powerhud hidden"></div>
   <div class="hudbox"><span class="hudlabel">Banked ✨</span><span class="hudnum" id="bankedHUD">0</span></div>
 </div>
 
@@ -301,6 +301,7 @@ function sfxUnlock(){ tone(392,.09,'triangle',.10); tone(523,.09,'triangle',.10,
 function sfxEquip(){ tone(520,.06,'sine',.08); tone(780,.11,'sine',.07,.05); }
 function sfxCroak(){ tone(180,.16,'square',.045,0,-35); tone(130,.18,'square',.035,.08,-25); }
 function sfxGameOver(){ tone(440,.12,'triangle',.09); tone(330,.14,'triangle',.08,.1,-40); tone(220,.28,'triangle',.07,.22,-70); }
+function sfxPowerup(){ tone(520,.08,'triangle',.10); tone(780,.10,'triangle',.09,.07); tone(1040,.16,'sine',.08,.14,180); }
 
 // Celebration effects for scores 10, 20, 30, ...
 let confetti=[];
@@ -419,10 +420,12 @@ function start(){
   game={
     run:true,score:0,time:0,speed:3.8,next:0,
     fireflies:[],fireflyCount:0,fireflyTimer:0,lastEyeMilestone:0,lastEyeSoundMilestone:0,eyeType:'normal',lastSpecialFireflyMilestone:0,croakTimer:8,fireflyCombo:0,bestFireflyCombo:0,comboTimer:0,snakesPassed:0,reaction:'normal',reactionTimer:0,
+    powerup:null,nextPowerupScore:20,slowTimer:0,magnetTimer:0,doubleTimer:0,shield:0,
     targetCenter:H*.46,
     f:{x:W*.25,y:H*.46,vy:0,rot:0,blink:0},
     pipes:[]
   };
+  if(powerHud)powerHud.classList.add('hidden');
   scoreEl.textContent='0';
   fireflyEl.textContent='0';
   bankedHudEl.textContent=bankedFireflies;
@@ -468,6 +471,7 @@ const skinsPanel=document.getElementById('skinsPanel');
 const accessoriesPanel=document.getElementById('accessoriesPanel');
 const achievementsPanel=document.getElementById('achievementsPanel');
 const comboHud=document.getElementById('comboHud');
+const powerHud=document.getElementById('powerHud');
 const envLabel=document.getElementById('envLabel');
 function showCollectionTab(tab){
   skinsPanel.classList.toggle('hidden',tab!=='skins'); accessoriesPanel.classList.toggle('hidden',tab!=='accessories'); achievementsPanel.classList.toggle('hidden',tab!=='achievements');
@@ -983,6 +987,96 @@ function frog(){
 
   ctx.restore();
 }
+const POWERUPS=[
+  {id:'slow',name:'SLOW-MO',icon:'🐌',duration:7},
+  {id:'shield',name:'LILY SHIELD',icon:'🛡️',duration:0},
+  {id:'magnet',name:'FIREFLY MAGNET',icon:'🧲',duration:8},
+  {id:'double',name:'FROG FRENZY',icon:'⚡',duration:8}
+];
+
+function checkPowerupMilestone(){
+  if(!game || !game.run) return;
+  while(game.score>=game.nextPowerupScore){
+    const targetScore=game.nextPowerupScore;
+    game.nextPowerupScore+=20;
+    if(!game.powerup) spawnPowerup(targetScore);
+  }
+}
+
+function spawnPowerup(milestone){
+  if(!game || !game.run || game.powerup) return;
+  const targets=game.pipes.filter(p=>p.x>game.f.x+110 && p.x<W+260);
+  if(!targets.length){
+    game.powerupPending=milestone;
+    return;
+  }
+  const target=targets[Math.floor(Math.random()*targets.length)];
+  const top=target.g-target.gap/2, bottom=target.g+target.gap/2;
+  const y=top+32+Math.random()*Math.max(20,target.gap-64);
+  const type=POWERUPS[Math.floor(Math.random()*POWERUPS.length)];
+  game.powerup={...type,x:target.x+80+Math.random()*35,y,phase:Math.random()*Math.PI*2,milestone};
+  game.powerupPending=null;
+}
+
+function updatePowerup(dt){
+  if(!game || !game.run) return;
+  if(game.slowTimer>0) game.slowTimer-=dt/60;
+  if(game.magnetTimer>0) game.magnetTimer-=dt/60;
+  if(game.doubleTimer>0) game.doubleTimer-=dt/60;
+  if(game.slowTimer<=0) game.slowTimer=0;
+  if(game.magnetTimer<=0) game.magnetTimer=0;
+  if(game.doubleTimer<=0) game.doubleTimer=0;
+
+  if(game.powerup){
+    const p=game.powerup;
+    const worldSpeed=game.slowTimer>0 ? game.speed*.52 : game.speed;
+    p.x-=worldSpeed*dt;
+    p.y+=Math.sin(game.time*.08+p.phase)*.35*dt;
+    if(Math.hypot(p.x-game.f.x,p.y-game.f.y)<34){
+      if(p.id==='slow') game.slowTimer=p.duration;
+      if(p.id==='shield') game.shield=1;
+      if(p.id==='magnet') game.magnetTimer=p.duration;
+      if(p.id==='double') game.doubleTimer=p.duration;
+      game.powerup=null;
+      initAudio(); sfxPowerup();
+      game.reaction='excited'; game.reactionTimer=1.4;
+    }else if(p.x<-45){
+      game.powerup=null;
+    }
+  }
+
+  if(!game.powerup && game.powerupPending){
+    const targets=game.pipes.filter(p=>p.x>game.f.x+110 && p.x<W+260);
+    if(targets.length) spawnPowerup(game.powerupPending);
+  }
+
+  const active=[];
+  if(game.slowTimer>0) active.push('🐌 SLOW-MO '+Math.ceil(game.slowTimer)+'s');
+  if(game.shield>0) active.push('🛡️ SHIELD');
+  if(game.magnetTimer>0) active.push('🧲 MAGNET '+Math.ceil(game.magnetTimer)+'s');
+  if(game.doubleTimer>0) active.push('⚡ DOUBLE '+Math.ceil(game.doubleTimer)+'s');
+  if(powerHud){
+    if(active.length){ powerHud.textContent=active.join('  •  '); powerHud.classList.remove('hidden'); }
+    else powerHud.classList.add('hidden');
+  }
+}
+
+function drawPowerup(){
+  const p=game?.powerup;
+  if(!p)return;
+  ctx.save();ctx.translate(p.x,p.y);
+  const pulse=1+Math.sin(game.time*.12+p.phase)*.08;ctx.scale(pulse,pulse);
+  const glow=24+Math.sin(game.time*.1+p.phase)*4;
+  const g=ctx.createRadialGradient(0,0,2,0,0,glow);
+  g.addColorStop(0,'rgba(255,255,220,.9)');g.addColorStop(.35,'rgba(200,248,107,.55)');g.addColorStop(1,'rgba(200,248,107,0)');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,glow,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(8,42,48,.94)';ctx.strokeStyle='#fff5a0';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(0,0,18,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.font='21px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(p.icon,0,1);
+  ctx.font='900 9px system-ui';ctx.fillStyle='#fff';ctx.fillText(p.name,0,34);
+  ctx.restore();
+}
+
 function spawn(){
   // Difficulty ramps in two ways:
   // 1) the gap gradually narrows
@@ -1064,6 +1158,10 @@ function updateFireflies(dt){
     f.y=Math.max(edge,Math.min(H-edge,center+Math.sin(f.life*0.04+f.phase)*range));
     f.baseX-=game.speed*0.4992*dt;
     f.x=f.baseX+Math.sin(f.life*0.16+f.phase*1.3)*80;
+    if(game.magnetTimer>0){
+      f.x += (game.f.x-f.x)*Math.min(0.16,dt*0.045);
+      f.y += (game.f.y-f.y)*Math.min(0.16,dt*0.045);
+    }
     if(f.x<-30){game.fireflies.splice(i,1);continue}
     if(Math.hypot(f.x-game.f.x,f.y-game.f.y)<30){
       game.fireflies.splice(i,1);
@@ -1075,8 +1173,8 @@ function updateFireflies(dt){
       game.fireflyTimer=2.0;
       game.comboTimer=4.5;
       const multiplier=game.fireflyCombo>=5?3:game.fireflyCombo>=3?2:1;
-      const awarded=value*multiplier;
-      game.score+=awarded;checkEyeMilestone();checkAchievements();
+      const awarded=value*multiplier*(game.doubleTimer>0?2:1);
+      game.score+=awarded;checkEyeMilestone();checkAchievements();checkPowerupMilestone();
       scoreEl.textContent=game.score;
       const totalFF=Number(localStorage.getItem('frogHopTotalFireflies')||0)+value;
       localStorage.setItem('frogHopTotalFireflies',String(totalFF));
@@ -1135,6 +1233,7 @@ function draw(){
     snake(p.x,p.g+p.gap/2,length,false,p.phase+1.2,p.type);
   }
   for(const f of game.fireflies){if(f.special)drawSpecialFirefly(f);} drawFireflies();
+  drawPowerup();
   frog();
   drawCelebration();
 }
@@ -1152,18 +1251,20 @@ function loop(t){
     game.f.y+=game.f.vy*dt;
     game.f.rot=clamp(game.f.rot+.038*dt,-.45,.95);
     game.speed=Math.min(6.6,3.8+game.score*.045);
+    const movementSpeed=game.slowTimer>0 ? game.speed*.52 : game.speed;
 
     if(game.pipes.length===0 || game.pipes.at(-1).x<W-275)spawn();
 
+    updatePowerup(dt);
     updateFireflies(dt);
 
     for(const p of game.pipes){
-      p.x-=game.speed*dt;
+      p.x-=movementSpeed*dt;
 
       if(!p.scored && p.x+p.w<game.f.x){
         p.scored=true; game.snakesPassed++; checkAchievements();
         initAudio(); sfxPass();
-        game.score++;checkEyeMilestone();checkAchievements();
+        game.score+=(game.doubleTimer>0?2:1);checkEyeMilestone();checkAchievements();checkPowerupMilestone();
         scoreEl.textContent=game.score;
         if(game.score>=10 && game.score%10===0 && game.score!==lastCelebratedScore){
           lastCelebratedScore=game.score;
@@ -1177,7 +1278,16 @@ function loop(t){
       const gapTop=p.g-p.gap/2;
       const gapBottom=p.g+p.gap/2;
       const hitY=game.f.y-fy<gapTop || game.f.y+fy>gapBottom;
-      if(hitX&&hitY){over();break}
+      if(hitX&&hitY){
+        if(game.shield>0){
+          game.shield=0;
+          game.reaction='excited';game.reactionTimer=1.5;
+          initAudio();sfxPowerup();
+          p.x-=35;
+        }else{
+          over();break;
+        }
+      }
     }
 
     game.pipes=game.pipes.filter(p=>p.x>-140);
