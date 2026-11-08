@@ -142,6 +142,7 @@ function start(){
   game={
     run:true,score:0,time:0,speed:3.8,next:0,
     targetCenter:H*.46,
+    fireflies:[],fireflyCount:0,fireflyTimer:0,
     f:{x:W*.25,y:H*.46,vy:0,rot:0,blink:0},
     pipes:[]
   };
@@ -385,7 +386,7 @@ function spawnFirefly(){
 function updateFireflies(dt){
   game.fireflyTimer += dt;
   // Roughly one collectible every 8–12 seconds, with at most one active.
-  if(game.fireflies.length===0 && game.fireflyTimer > 8 + Math.random()*4){
+  if(game.fireflies.length===0 && game.fireflyTimer > 5 + Math.random()*3){
     spawnFirefly();
     game.fireflyTimer=0;
   }
