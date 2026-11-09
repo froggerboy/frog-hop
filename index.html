@@ -133,11 +133,11 @@ const ACCESSORIES = [
 ];
 
 // V53 test reset: start this build with a clean best score and firefly balance.
-if(!localStorage.getItem('frogHopV53TestReset')){
+if(!localStorage.getItem('frogHopV56TestReset')){
   localStorage.setItem('frogHopBestV6','0');
   localStorage.setItem('frogHopFireflies','0');
   localStorage.setItem('frogHopTotalFireflies','0');
-  localStorage.setItem('frogHopV53TestReset','1');
+  localStorage.setItem('frogHopV56TestReset','1');
 }
 
 let bankedFireflies = Number(localStorage.getItem('frogHopFireflies') || 0);
@@ -905,8 +905,22 @@ function frog(){
   ctx.fillStyle=body;ctx.strokeStyle=bodyDark;ctx.lineWidth=3.5;
   ctx.beginPath();ctx.ellipse(-3,1,32,21,-.05,0,Math.PI*2);ctx.fill();ctx.stroke();
 
+  // Soft body highlight and subtle frog markings for a more polished, dimensional look.
+  ctx.save();
+  ctx.globalAlpha=.22;
+  ctx.fillStyle='#ffffff';
+  ctx.beginPath();ctx.ellipse(-13,-7,12,5,-.35,0,Math.PI*2);ctx.fill();
+  ctx.globalAlpha=.14;
+  ctx.fillStyle=bodyDark;
+  ctx.beginPath();ctx.arc(-15,5,3.2,0,Math.PI*2);ctx.arc(-7,9,2.3,0,Math.PI*2);ctx.arc(-22,1,2.2,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+
   // Belly.
-  ctx.fillStyle=belly;
+  const bellyGrad=ctx.createRadialGradient(4,3,1,8,8,22);
+  bellyGrad.addColorStop(0, '#ffffff');
+  bellyGrad.addColorStop(.28, belly);
+  bellyGrad.addColorStop(1, belly);
+  ctx.fillStyle=bellyGrad;
   ctx.beginPath();ctx.ellipse(8,8,20,10,-.12,0,Math.PI*2);ctx.fill();
 
   // Head.
@@ -916,6 +930,16 @@ function frog(){
   head.addColorStop(1,bodyDark);
   ctx.fillStyle=head;
   ctx.beginPath();ctx.ellipse(24,-12,22,18,-.08,0,Math.PI*2);ctx.fill();ctx.stroke();
+
+  // Small face highlight and cheek detail.
+  ctx.save();
+  ctx.globalAlpha=.2;
+  ctx.fillStyle='#ffffff';
+  ctx.beginPath();ctx.ellipse(20,-20,9,4,-.25,0,Math.PI*2);ctx.fill();
+  ctx.globalAlpha=.16;
+  ctx.fillStyle=bodyDark;
+  ctx.beginPath();ctx.arc(25,-5,2.2,0,Math.PI*2);ctx.arc(30,-3,1.5,0,Math.PI*2);ctx.fill();
+  ctx.restore();
 
   // Eye bump and eye.
   ctx.fillStyle=skin.special==='rainbow' ? '#8d4fc4' : bodyMain;
@@ -936,6 +960,10 @@ function frog(){
   }else{
     drawSpecialEye(52,-26,eyeType);
   }
+
+  // Tiny friendly mouth line.
+  ctx.strokeStyle='rgba(28,55,38,.75)';ctx.lineWidth=1.7;
+  ctx.beginPath();ctx.arc(42,-8,6,.15,1.0);ctx.stroke();
 
   // Accessory worn by the frog. Only one can be equipped at a time.
   if(selectedAccessory==='cap'){
@@ -1133,6 +1161,28 @@ function spawn(){
 }
 
 
+function drawRareFirefly(f){
+  const t=game.time+f.phase;
+  const pulse=28+Math.sin(t*.12)*6;
+  ctx.save();ctx.translate(f.x,f.y);
+  let c1,c2,c3;
+  if(f.rareType==='rainbow'){c1='#ff4d6d';c2='#55d6ff';c3='#ffe45c';}
+  else if(f.rareType==='diamond'){c1='#d9fbff';c2='#69d9ff';c3='#9b7cff';}
+  else {c1='#222';c2='#7d63ff';c3='#d8c8ff';}
+  const g=ctx.createRadialGradient(0,0,1,0,0,pulse);
+  g.addColorStop(0,c3);g.addColorStop(.35,c2);g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,pulse,0,Math.PI*2);ctx.fill();
+  const flap=Math.sin(t*.18)*.18;
+  ctx.fillStyle=f.rareType==='black'?'rgba(55,45,75,.95)':'rgba(245,252,255,.9)';
+  ctx.strokeStyle=c2;ctx.lineWidth=1.8;
+  ctx.save();ctx.rotate(-.25+flap);ctx.beginPath();ctx.ellipse(-7,-4,8,4.5,-.35,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
+  ctx.save();ctx.rotate(.25-flap);ctx.beginPath();ctx.ellipse(7,-4,8,4.5,.35,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
+  ctx.fillStyle=f.rareType==='black'?'#101014':c1;ctx.strokeStyle=c3;ctx.beginPath();ctx.ellipse(0,2,4.2,6.2,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-1.2,-3,.85,0,Math.PI*2);ctx.arc(1.2,-3,.85,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#222';ctx.beginPath();ctx.arc(-1.2,-3,.35,0,Math.PI*2);ctx.arc(1.2,-3,.35,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+
 function drawSpecialFirefly(f){
   const glow=32+Math.sin((game.time+f.phase)*.1)*7;
   ctx.save();ctx.translate(f.x,f.y);
@@ -1159,13 +1209,22 @@ function spawnFirefly(){
   const milestone=Math.floor((game.score||0)/30)*30;
   const special=milestone>=30 && game.lastSpecialFireflyMilestone!==milestone;
 
+  // Rare fireflies unlock as the run gets deeper. They are intentionally rare
+  // and only begin appearing once their score threshold has been reached.
+  let rareType=null;
+  const rareRoll=Math.random();
+  if(game.score>=100 && rareRoll<0.035) rareType='black';
+  else if(game.score>=70 && rareRoll<0.06) rareType='diamond';
+  else if(game.score>=50 && rareRoll<0.10) rareType='rainbow';
+
   const fireflyX=target.x+72+Math.random()*48;
+  const value=rareType==='black'?50:rareType==='diamond'?20:rareType==='rainbow'?10:(special?5:1);
   game.fireflies.push({
     baseX:fireflyX,
     x:fireflyX,
     baseY:top+margin+(.18+Math.random()*.64)*usable,
     y:0,phase:Math.random()*Math.PI*2,life:0,
-    value:special?5:1,special:special,
+    value:value,special:special,rareType:rareType,
     verticalRange:Math.max(70,H*.42)
   });
   game.fireflies[0].y=game.fireflies[0].baseY;
@@ -1234,6 +1293,7 @@ function updateFireflies(dt){
 
 function drawFireflies(){
   for(const f of game.fireflies){
+    if(f.rareType || f.special) continue;
     const glow=10+Math.sin((game.time+f.phase)*.08)*3;
     const flap=Math.sin((game.time+f.phase)*.18)*.18;
     ctx.save();ctx.translate(f.x,f.y);
@@ -1267,7 +1327,7 @@ function draw(){
     snake(p.x,p.g-p.gap/2,length,true,p.phase,p.type);
     snake(p.x,p.g+p.gap/2,length,false,p.phase+1.2,p.type);
   }
-  for(const f of game.fireflies){if(f.special)drawSpecialFirefly(f);} drawFireflies();
+  for(const f of game.fireflies){if(f.rareType)drawRareFirefly(f); else if(f.special)drawSpecialFirefly(f);} drawFireflies();
   drawPowerup();
   frog();
   drawCelebration();
