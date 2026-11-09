@@ -1308,7 +1308,7 @@ function frog(){
 const POWERUPS=[
   {id:'slow',name:'SLOW-MO',icon:'🐌',duration:7},
   {id:'shield',name:'LILY SHIELD',icon:'🛡️',duration:0},
-  {id:'magnet',name:'FIREFLY MAGNET',icon:'🧲',duration:8},
+  {id:'magnet',name:'FIREFLY MAGNET',icon:'🧲',duration:10},
   {id:'double',name:'FROG FRENZY',icon:'⚡',duration:5},
   {id:'fireflyfrenzy',name:'FIREFLY FRENZY',icon:'✨',duration:10}
 ];
@@ -1345,16 +1345,6 @@ function updatePowerup(dt){
   if(game.fireflyFrenzyTimer>0) game.fireflyFrenzyTimer-=dt/60;
   if(game.slowTimer<=0) game.slowTimer=0;
   if(game.magnetTimer<=0) game.magnetTimer=0;
-  // If the magnet was collected before any fireflies were on screen,
-  // lock onto the first nearby firefly that appears during the active window.
-  if(game.magnetTimer>0 && !game.magnetTarget && game.fireflies.length){
-    let closest=null, closestDist=Infinity;
-    for(const f of game.fireflies){
-      const d=Math.hypot(f.x-game.f.x,f.y-game.f.y);
-      if(d<closestDist){closest=f;closestDist=d;}
-    }
-    game.magnetTarget=closest;
-  }
   if(game.doubleTimer<=0) game.doubleTimer=0;
   if(game.fireflyFrenzyTimer<=0) game.fireflyFrenzyTimer=0;
   if(game.shieldInvuln>0) game.shieldInvuln-=dt;
@@ -1368,12 +1358,10 @@ function updatePowerup(dt){
       if(p.id==='slow') game.slowTimer=p.duration;
       if(p.id==='shield') game.shield=1; burstEffect(game.f.x,game.f.y,'shield',14);
       if(p.id==='magnet'){
+        // Magnet stays active for 10 seconds and attracts any firefly that
+        // comes within its proximity while the timer is running.
         game.magnetTimer=p.duration;
-        // Magnet locks onto the single firefly closest to the frog when activated.
         game.magnetTarget=null;
-        let closest=null, closestDist=Infinity;
-        for(const f of game.fireflies){ const d=Math.hypot(f.x-game.f.x,f.y-game.f.y); if(d<closestDist){closest=f;closestDist=d;} }
-        game.magnetTarget=closest;
       }
       if(p.id==='double') game.doubleTimer=p.duration;
       if(p.id==='fireflyfrenzy'){
@@ -1610,24 +1598,25 @@ function updateFireflies(dt){
     f.y=Math.max(edge,Math.min(H-edge,center+Math.sin(f.life*0.04+f.phase)*range));
     f.baseX-=game.speed*0.4992*dt;
     f.x=f.baseX+Math.sin(f.life*0.16+f.phase*1.3)*80;
-    if(game.magnetTimer>0 && game.magnetTarget===f){
-      // Magnet pulls ONLY the single firefly that was closest when activated.
+    if(game.magnetTimer>0){
+      // During the 10-second window, only fireflies that come within
+      // proximity of the frog are attracted. Fireflies elsewhere continue normally.
       const dx=game.f.x-f.x;
       const dy=game.f.y-f.y;
       const dist=Math.hypot(dx,dy);
-      if(dist>1){
-        // Strong, smooth pull toward the frog so the effect is clearly visible.
-        const pullDistance=Math.min(dist, 520*dt);
+      const proximity=190;
+      if(dist<=proximity && dist>1){
+        const pullDistance=Math.min(dist, 560*dt);
         f.x+=(dx/dist)*pullDistance;
         f.y+=(dy/dist)*pullDistance;
+        f.baseX=f.x-Math.sin(f.life*0.16+f.phase*1.3)*80;
+        f.baseY=f.y;
       }
-      f.baseX=f.x-Math.sin(f.life*0.16+f.phase*1.3)*80;
-      f.baseY=f.y;
     }
     if(f.x<-30){game.fireflies.splice(i,1);continue}
     if(Math.hypot(f.x-game.f.x,f.y-game.f.y)<30){
       game.fireflies.splice(i,1);
-      if(game.magnetTarget===f){ game.magnetTarget=null; game.magnetTimer=0; }
+      
       const value=f.value||1;
       const abilityMult=(game.fireflyBoost||1)*(game.hotStreak>0?(game.ability.hotStreakMult||1.35):1);
       game.fireflyCombo = game.comboTimer>0 ? Math.min(5,game.fireflyCombo+1) : 1;
