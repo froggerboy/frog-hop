@@ -470,14 +470,15 @@ function biomeHazard(p){
   const b=biomeIndexNow();
   const gapTop=p.g-p.gap/2, gapBottom=p.g+p.gap/2;
   const sway=Math.sin(game.time*.035+p.phase)*10;
-  if(b===0) return {kind:'vine',x:p.x+p.w*.5+sway,y:gapTop+26,len:28};
+  // Deep Swamp: no vine hazard — keeps the snake openings clean.
+  if(b===0) return null;
   if(b===1) return {kind:'croc',x:p.x+p.w*.5+sway,y:gapBottom-18,len:30};
   if(b===2) return {kind:'branch',x:p.x+p.w*.5+sway,y:gapTop+20,len:34};
   if(b===3) return {kind:'ice',x:p.x+p.w*.5+sway,y:gapTop+24,len:38};
   return {kind:'orb',x:p.x+p.w*.5+sway,y:p.g+Math.sin(game.time*.045+p.phase)*Math.min(22,p.gap*.16),len:16};
 }
 function drawBiomeHazard(p){
-  const h=biomeHazard(p); const b=biomeIndexNow();
+  const h=biomeHazard(p); if(!h) return; const b=biomeIndexNow();
   ctx.save();
   if(h.kind==='vine'){
     ctx.strokeStyle='#3f8b45';ctx.lineWidth=5;ctx.lineCap='round';
@@ -509,7 +510,7 @@ function drawBiomeHazard(p){
   ctx.restore();
 }
 function biomeHazardCollision(p){
-  const h=biomeHazard(p), f=game.f;
+  const h=biomeHazard(p); if(!h) return false; const f=game.f;
   if(h.kind==='orb') return Math.hypot(f.x-h.x,f.y-h.y)<19;
   const radius=h.kind==='croc'?22:h.kind==='branch'?18:h.kind==='ice'?16:13;
   return Math.hypot(f.x-h.x,f.y-h.y)<radius;
