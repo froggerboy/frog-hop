@@ -576,7 +576,10 @@ function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill()}
 function bg(){
   const t=game?.time||0;
   const scoreNow=game?.score||0;
-  const env=scoreNow>=50?'MOONLIT':scoreNow>=25?'JUNGLE':'SWAMP';
+  const snakesNow=game?.snakesPassed||0;
+  const biomeIndex=Math.floor(snakesNow/30)%5;
+  const biomeNames=['DEEP SWAMP','TROPICAL WETLANDS','AUTUMN MARSH','FROZEN MARSH','ENCHANTED MARSH'];
+  const env=biomeNames[biomeIndex];
   if(envLabel)envLabel.textContent=env;
   const cycle=(t/3600)%1; // 60 seconds per full day/night cycle at 60fps
   const sun=Math.sin(cycle*Math.PI*2);
@@ -662,6 +665,11 @@ function bg(){
   const water=ctx.createLinearGradient(0,H*.665,0,H);
   water.addColorStop(0,'#2b8790');water.addColorStop(.35,'#176d79');water.addColorStop(.72,'#0d5264');water.addColorStop(1,'#062f43');
   ctx.fillStyle=water;ctx.fillRect(0,H*.665,W,H*.335);
+  if(biomeIndex===1){ctx.fillStyle='rgba(40,185,155,.13)';ctx.fillRect(0,H*.665,W,H*.335);}
+  if(biomeIndex===2){ctx.fillStyle='rgba(174,105,49,.13)';ctx.fillRect(0,H*.665,W,H*.335);}
+  if(biomeIndex===3){ctx.fillStyle='rgba(150,220,245,.18)';ctx.fillRect(0,H*.665,W,H*.335);}
+  if(biomeIndex===4){ctx.fillStyle='rgba(91,54,175,.16)';ctx.fillRect(0,H*.665,W,H*.335);}
+
 
   // Mist sitting close to the water surface.
   const mist=ctx.createLinearGradient(0,H*.58,0,H*.78);
@@ -734,14 +742,43 @@ function bg(){
     ctx.beginPath();ctx.arc(bx,by,br,0,Math.PI*2);ctx.fill();
   }
 
-  if(env==='JUNGLE'){
-    ctx.fillStyle='rgba(69,145,70,.16)';ctx.fillRect(0,H*.48,W,H*.22);
-    ctx.fillStyle='rgba(24,70,42,.22)';ctx.fillRect(0,0,W,H*.48);
-    for(let i=0;i<9;i++){const x=(i*137+t*.12)%(W+80)-40;ctx.fillStyle='rgba(15,54,34,.55)';ctx.beginPath();ctx.arc(x,40+(i%3)*25,45+(i%3)*12,0,Math.PI*2);ctx.fill();}
-  }else if(env==='MOONLIT'){
-    ctx.fillStyle='rgba(32,45,100,.18)';ctx.fillRect(0,H*.52,W,H*.18);
-    ctx.fillStyle='rgba(15,22,58,.30)';ctx.fillRect(0,0,W,H*.7);
-    ctx.fillStyle='rgba(190,220,255,.12)';ctx.fillRect(0,H*.48,W,H*.2);
+  // Biome-specific atmosphere. Biomes advance every 30 snakes and loop after five.
+  if(biomeIndex===1){
+    // Tropical Wetlands
+    ctx.fillStyle='rgba(40,150,86,.14)';ctx.fillRect(0,H*.42,W,H*.34);
+    for(let i=0;i<13;i++){
+      const x=(i*121-t*.055)%(W+90)-45, y=H*.48+(i%4)*18;
+      ctx.strokeStyle='rgba(24,83,46,.72)';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(x,y+55);ctx.quadraticCurveTo(x-18,y+15,x+8,y-10);ctx.stroke();
+      ctx.fillStyle=i%2?'rgba(52,137,70,.76)':'rgba(72,163,78,.7)';ctx.beginPath();ctx.ellipse(x+12,y-2,30,10,-.25,0,Math.PI*2);ctx.fill();
+    }
+    for(let i=0;i<10;i++){const x=(i*157+t*.08)%W;ctx.fillStyle='rgba(255,215,105,.38)';ctx.beginPath();ctx.arc(x,H*.62+(i%3)*12,3,0,Math.PI*2);ctx.fill();}
+  }else if(biomeIndex===2){
+    // Autumn Marsh
+    ctx.fillStyle='rgba(153,87,44,.13)';ctx.fillRect(0,H*.43,W,H*.3);
+    const leaves=['#d97732','#e6a33a','#b94f32','#f0c45a'];
+    for(let i=0;i<28;i++){
+      const x=(i*97+t*(.18+(i%3)*.03))%W, y=(i*41+t*(.35+(i%4)*.04))%(H*.68);
+      ctx.fillStyle=leaves[i%leaves.length];ctx.globalAlpha=.65;
+      ctx.beginPath();ctx.ellipse(x,y,4+(i%3),2.5+(i%2),Math.sin(t*.01+i),0,Math.PI*2);ctx.fill();
+    }
+    ctx.globalAlpha=1;
+  }else if(biomeIndex===3){
+    // Frozen Marsh
+    ctx.fillStyle='rgba(155,215,238,.16)';ctx.fillRect(0,H*.55,W,H*.35);
+    ctx.fillStyle='rgba(205,239,249,.34)';ctx.fillRect(0,H*.65,W,H*.08);
+    for(let i=0;i<34;i++){
+      const x=(i*83-t*.12)%W, y=(i*47+t*(.18+(i%3)*.03))%(H*.72);
+      ctx.fillStyle=`rgba(235,250,255,${.38+(i%4)*.1})`;ctx.beginPath();ctx.arc(x,y,1+(i%3)*.5,0,Math.PI*2);ctx.fill();
+    }
+    for(let i=0;i<7;i++){const x=(i*181-t*.06)%W;ctx.fillStyle='rgba(218,246,255,.25)';ctx.beginPath();ctx.ellipse(x,H*.72+(i%3)*38,42,7,0,0,Math.PI*2);ctx.fill();}
+  }else if(biomeIndex===4){
+    // Enchanted Moonlit Marsh
+    ctx.fillStyle='rgba(91,48,150,.18)';ctx.fillRect(0,H*.35,W,H*.45);
+    for(let i=0;i<18;i++){
+      const x=(i*113+t*(.08+(i%2)*.04))%W, y=H*.34+(i*37+t*.16)%(H*.4);
+      const g=ctx.createRadialGradient(x,y,0,x,y,12+(i%3)*5);g.addColorStop(0,'rgba(150,240,255,.65)');g.addColorStop(1,'rgba(100,100,255,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,14,0,Math.PI*2);ctx.fill();
+    }
+    ctx.fillStyle='rgba(25,18,75,.18)';ctx.fillRect(0,0,W,H*.7);
   }
 
   // Global atmospheric lighting: warm sunrise/sunset, cool moonlight, gentle shadows.
