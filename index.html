@@ -118,11 +118,11 @@ const SKINS = [
   {id:'green',name:'Swampy',cost:0,body:'#63b85a',belly:'#d9f0a0',accent:'#3b8f3c',highlight:'#a8ee60',emoji:'🐸'},
   {id:'blue',name:'Bluebolt',cost:25,body:'#4f9ee8',belly:'#c9e8ff',accent:'#2866a8',highlight:'#8fc7ff',emoji:'🐸'},
   {id:'purple',name:'Mystic',cost:50,body:'#9b62d8',belly:'#ead8ff',accent:'#65349b',highlight:'#c59af0',emoji:'🐸'},
-  {id:'gold',name:'Yellow',cost:100,body:'#f5d84a',belly:'#fff5b0',accent:'#b49a12',highlight:'#fff08a',emoji:'🐸'},
+  {id:'gold',name:'Sunbeam',cost:100,body:'#f5d84a',belly:'#fff5b0',accent:'#b49a12',highlight:'#fff08a',emoji:'☀️🐸',fireflyStyle:'sunbeam'},
   {id:'red',name:'Ember',cost:175,body:'#e85b4f',belly:'#ffd1b8',accent:'#a52f28',highlight:'#ff8b6d',emoji:'🐸'},
   {id:'midnight',name:'Midnight',cost:250,body:'#3c506d',belly:'#b7c7dc',accent:'#202c40',highlight:'#647d9e',emoji:'🐸'},
-  {id:'rainbow',name:'Rainbow',cost:500,body:'#ff5b5b',belly:'#fff2a8',accent:'#7b3fb2',highlight:'#ffdf5b',emoji:'🌈🐸',special:'rainbow'},
-  {id:'royalgold',name:'Legendary Gold',cost:1000,body:'#ffd34d',belly:'#fff7c2',accent:'#9a6500',highlight:'#fff0a0',emoji:'👑🐸',special:'royalgold'}
+  {id:'rainbow',name:'Rainbow',cost:500,body:'#ff5b5b',belly:'#fff2a8',accent:'#7b3fb2',highlight:'#ffdf5b',emoji:'🌈🐸',special:'rainbow',fireflyStyle:'rainbow'},
+  {id:'royalgold',name:'Legendary Gold',cost:1000,body:'#ffd34d',belly:'#fff7c2',accent:'#9a6500',highlight:'#fff0a0',emoji:'👑🐸',special:'royalgold',fireflyStyle:'royalgold'}
 ];
 
 const ACCESSORIES = [
@@ -461,11 +461,11 @@ const FROG_ABILITIES={
   green:{name:'Swampy',desc:'Balanced — no special ability',jump:-7.85,rareBoost:1,fireflyBoost:1},
   blue:{name:'Bluebolt',desc:'Higher Hop — slightly stronger jump',jump:-8.45,rareBoost:1,fireflyBoost:1},
   purple:{name:'Mystic',desc:'Mystic Luck — rare fireflies appear more often',jump:-7.85,rareBoost:1.65,fireflyBoost:1},
-  gold:{name:'Yellow',desc:'Sunlit — fireflies are worth a little more',jump:-7.85,rareBoost:1,fireflyBoost:1.18},
+  gold:{name:'Sunbeam',desc:'Golden Glow — fireflies are worth more and shine brighter',jump:-7.85,rareBoost:1,fireflyBoost:1.5},
   red:{name:'Ember',desc:'Hot Streak — passing snakes briefly boosts firefly rewards',jump:-7.85,rareBoost:1.1,fireflyBoost:1},
   midnight:{name:'Midnight',desc:'Night Guard — begins each run with a Lily Shield',jump:-7.85,rareBoost:1.25,fireflyBoost:1},
-  rainbow:{name:'Rainbow',desc:'Lucky Glow — much better chance of rare fireflies',jump:-7.95,rareBoost:2.15,fireflyBoost:1.05},
-  royalgold:{name:'Legendary Gold',desc:'Royal Fortune — rare fireflies and firefly rewards are boosted',jump:-7.95,rareBoost:1.55,fireflyBoost:1.25}
+  rainbow:{name:'Rainbow',desc:'Rainbow Luck — rare fireflies appear much more often and glow with rainbow light',jump:-7.95,rareBoost:2.15,fireflyBoost:1.5},
+  royalgold:{name:'Legendary Gold',desc:'Royal Fortune — rare fireflies are boosted and fireflies are worth much more',jump:-7.95,rareBoost:1.55,fireflyBoost:1.75}
 };
 function frogAbility(){return FROG_ABILITIES[selectedSkin]||FROG_ABILITIES.green}
 function biomeIndexNow(){return Math.floor((game?.snakesPassed||0)/30)%5}
@@ -1574,19 +1574,35 @@ function updateFireflies(dt){
 function drawFireflies(){
   for(const f of game.fireflies){
     if(f.rareType || f.special) continue;
-    const glow=10+Math.sin((game.time+f.phase)*.08)*3;
+    const style=SKINS.find(s=>s.id===selectedSkin)?.fireflyStyle||null;
+    const glow=style==='royalgold'?15:style==='rainbow'?13:style==='sunbeam'?12:10+Math.sin((game.time+f.phase)*.08)*3;
     const flap=Math.sin((game.time+f.phase)*.18)*.18;
     ctx.save();ctx.translate(f.x,f.y);
 
     const g=ctx.createRadialGradient(0,0,1,0,0,glow);
-    g.addColorStop(0,'rgba(255,248,125,.8)');g.addColorStop(1,'rgba(255,235,80,0)');
+    if(style==='rainbow'){
+      g.addColorStop(0,'rgba(255,255,255,.95)');g.addColorStop(.3,'rgba(255,105,210,.7)');g.addColorStop(.6,'rgba(90,210,255,.45)');g.addColorStop(1,'rgba(190,90,255,0)');
+    }else if(style==='royalgold'){
+      g.addColorStop(0,'rgba(255,255,220,.98)');g.addColorStop(.35,'rgba(255,211,65,.8)');g.addColorStop(1,'rgba(255,170,30,0)');
+    }else if(style==='sunbeam'){
+      g.addColorStop(0,'rgba(255,255,210,.95)');g.addColorStop(.35,'rgba(255,221,60,.78)');g.addColorStop(1,'rgba(255,185,20,0)');
+    }else{
+      g.addColorStop(0,'rgba(255,248,125,.8)');g.addColorStop(1,'rgba(255,235,80,0)');
+    }
     ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,glow,0,Math.PI*2);ctx.fill();
 
-    ctx.fillStyle='rgba(225,250,255,.8)';ctx.strokeStyle='rgba(190,235,245,.75)';ctx.lineWidth=1.2;
+    if(style==='rainbow'){
+      ctx.globalAlpha=.7;ctx.strokeStyle='rgba(255,110,220,.8)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(0,0,glow*.72,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;
+    }
+
+    ctx.fillStyle=style==='rainbow'?'rgba(255,245,255,.9)':style==='royalgold'?'rgba(255,247,205,.95)':style==='sunbeam'?'rgba(255,249,190,.95)':'rgba(225,250,255,.8)';
+    ctx.strokeStyle='rgba(190,235,245,.75)';ctx.lineWidth=1.2;
     ctx.save();ctx.rotate(-.25+flap);ctx.beginPath();ctx.ellipse(-5,-3,6,3.5,-.35,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
     ctx.save();ctx.rotate(.25-flap);ctx.beginPath();ctx.ellipse(5,-3,6,3.5,.35,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
 
-    ctx.fillStyle='#ffd83d';ctx.strokeStyle='#a87518';ctx.lineWidth=1.4;
+    const bodyColor=style==='rainbow'?'#ff8fe8':style==='royalgold'?'#ffd84d':style==='sunbeam'?'#ffe45c':'#ffd83d';
+    const bodyStroke=style==='rainbow'?'#8b4fb3':style==='royalgold'?'#9a6500':style==='sunbeam'?'#b27a12':'#a87518';
+    ctx.fillStyle=bodyColor;ctx.strokeStyle=bodyStroke;ctx.lineWidth=1.4;
     ctx.beginPath();ctx.ellipse(0,2,3.2,5,0,0,Math.PI*2);ctx.fill();ctx.stroke();
     ctx.fillStyle='#3b3024';ctx.beginPath();ctx.arc(0,-2,2.5,0,Math.PI*2);ctx.fill();
 
