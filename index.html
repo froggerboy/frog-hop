@@ -132,13 +132,10 @@ const ACCESSORIES = [
   {id:'diamond',name:'Diamond Crown',score:100,emoji:'💎'}
 ];
 
-// V53 test reset: start this build with a clean best score and firefly balance.
-if(!localStorage.getItem('frogHopV56TestReset')){
-  localStorage.setItem('frogHopBestV6','0');
-  localStorage.setItem('frogHopFireflies','0');
-  localStorage.setItem('frogHopTotalFireflies','0');
-  localStorage.setItem('frogHopV56TestReset','1');
-}
+// V63 testing reset: start this build with a clean best score and firefly balance.
+localStorage.setItem('frogHopBestV6','0');
+localStorage.setItem('frogHopFireflies','0');
+localStorage.setItem('frogHopTotalFireflies','0');
 
 let bankedFireflies = Number(localStorage.getItem('frogHopFireflies') || 0);
 let unlockedSkins = JSON.parse(localStorage.getItem('frogHopSkins') || '["green"]');
@@ -428,7 +425,7 @@ function start(){
   game={
     run:true,score:0,time:0,speed:3.8,next:0,
     fireflies:[],fireflyCount:0,fireflyTimer:0,lastEyeMilestone:0,lastEyeSoundMilestone:0,eyeType:'normal',lastSpecialFireflyMilestone:0,croakTimer:8,fireflyCombo:0,bestFireflyCombo:0,comboTimer:0,snakesPassed:0,reaction:'normal',reactionTimer:0,
-    powerup:null,nextPowerupScore:20,slowTimer:0,magnetTimer:0,doubleTimer:0,shield:0,shieldInvuln:0,
+    powerup:null,nextPowerupScore:20,slowTimer:0,magnetTimer:0,magnetTarget:null,doubleTimer:0,shield:0,shieldInvuln:0,
     targetCenter:H*.46,
     f:{x:W*.25,y:H*.46,vy:0,rot:0,blink:0},
     pipes:[]
@@ -1114,7 +1111,14 @@ function updatePowerup(dt){
     if(Math.hypot(p.x-game.f.x,p.y-game.f.y)<34){
       if(p.id==='slow') game.slowTimer=p.duration;
       if(p.id==='shield') game.shield=1;
-      if(p.id==='magnet') game.magnetTimer=p.duration;
+      if(p.id==='magnet'){
+        game.magnetTimer=p.duration;
+        // Magnet locks onto the single firefly closest to the frog when activated.
+        game.magnetTarget=null;
+        let closest=null, closestDist=Infinity;
+        for(const f of game.fireflies){ const d=Math.hypot(f.x-game.f.x,f.y-game.f.y); if(d<closestDist){closest=f;closestDist=d;} }
+        game.magnetTarget=closest;
+      }
       if(p.id==='double') game.doubleTimer=p.duration;
       game.powerup=null;
       initAudio(); sfxPowerup();
@@ -1268,10 +1272,8 @@ function updateFireflies(dt){
     f.y=Math.max(edge,Math.min(H-edge,center+Math.sin(f.life*0.04+f.phase)*range));
     f.baseX-=game.speed*0.4992*dt;
     f.x=f.baseX+Math.sin(f.life*0.16+f.phase*1.3)*80;
-    if(game.magnetTimer>0){
-      // Magnet overrides the normal firefly path and visibly pulls the firefly
-      // toward the frog. Keep the pulled position as the new base so the
-      // normal movement cannot snap it back on the next frame.
+    if(game.magnetTimer>0 && game.magnetTarget===f){
+      // Magnet pulls ONLY the single firefly that was closest when activated.
       const dx=game.f.x-f.x;
       const dy=game.f.y-f.y;
       const dist=Math.hypot(dx,dy);
@@ -1286,6 +1288,7 @@ function updateFireflies(dt){
     if(f.x<-30){game.fireflies.splice(i,1);continue}
     if(Math.hypot(f.x-game.f.x,f.y-game.f.y)<30){
       game.fireflies.splice(i,1);
+      if(game.magnetTarget===f){ game.magnetTarget=null; game.magnetTimer=0; }
       const value=f.value||1;
       game.fireflyCount+=Math.round(value*(game.doubleTimer>0?1.5:1));
       fireflyEl.textContent=game.fireflyCount;
