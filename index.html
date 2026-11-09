@@ -152,13 +152,27 @@ let selectedSkin = localStorage.getItem('frogHopSkin') || 'green';
 let selectedAccessory = localStorage.getItem('frogHopAccessory') || 'none';
 
 const ACHIEVEMENTS=[
- {id:'firsthop',title:'First Hop',desc:'Score 10 points',need:g=>g.score>=10,reward:10},
+ {id:'firsthop',title:'First Hop',desc:'Score 10 points in one run',need:g=>g.score>=10,reward:10},
+ {id:'frog25',title:'Getting Started',desc:'Score 25 points in one run',need:g=>g.score>=25,reward:15},
+ {id:'frog50',title:'Halfway Hero',desc:'Score 50 points in one run',need:g=>g.score>=50,reward:25},
+ {id:'frog75',title:'Marsh Master',desc:'Score 75 points in one run',need:g=>g.score>=75,reward:35},
+ {id:'best100',title:'Century Frog',desc:'Reach a best score of 100',need:g=>best()>=100,reward:60},
+ {id:'frog150',title:'Frog Legend',desc:'Score 150 points in one run',need:g=>g.score>=150,reward:90},
+ {id:'unstoppable',title:'Unstoppable',desc:'Score 250 points in one run',need:g=>g.score>=250,reward:150},
+ {id:'frog300',title:'Swamp Champion',desc:'Score 300 points in one run',need:g=>g.score>=300,reward:250},
  {id:'firefly10',title:'Firefly Hunter',desc:'Collect 10 fireflies in one run',need:g=>g.fireflyCount>=10,reward:15},
- {id:'snake50',title:'Snake Charmer',desc:'Pass 50 snakes in one run',need:g=>g.snakesPassed>=50,reward:25},
- {id:'best50',title:'Getting Good',desc:'Reach a best score of 50',need:g=>best()>=50,reward:20},
- {id:'firefly100',title:'Firefly Master',desc:'Collect 100 fireflies across your runs',need:g=>Number(localStorage.getItem('frogHopTotalFireflies')||0)>=100,reward:50},
- {id:'diamond',title:'Diamond Frog',desc:'Reach a best score of 100',need:g=>best()>=100,reward:100},
- {id:'unstoppable',title:'Unstoppable',desc:'Score 250 points',need:g=>g.score>=250,reward:150}
+ {id:'firefly25',title:'Firefly Collector',desc:'Collect 25 fireflies in one run',need:g=>g.fireflyCount>=25,reward:30},
+ {id:'firefly50',title:'Firefly Hoarder',desc:'Collect 50 fireflies in one run',need:g=>g.fireflyCount>=50,reward:60},
+ {id:'firefly100run',title:'Firefly Master',desc:'Collect 100 fireflies in one run',need:g=>g.fireflyCount>=100,reward:125},
+ {id:'firefly250total',title:'Light Keeper',desc:'Collect 250 fireflies across your runs',need:g=>Number(localStorage.getItem('frogHopTotalFireflies')||0)>=250,reward:75},
+ {id:'firefly500total',title:'Glow Guardian',desc:'Collect 500 fireflies across your runs',need:g=>Number(localStorage.getItem('frogHopTotalFireflies')||0)>=500,reward:150},
+ {id:'firefly1000total',title:'Firefly Royalty',desc:'Collect 1,000 fireflies across your runs',need:g=>Number(localStorage.getItem('frogHopTotalFireflies')||0)>=1000,reward:300},
+ {id:'snake25',title:'Snake Dodger',desc:'Pass 25 snakes in one run',need:g=>g.snakesPassed>=25,reward:15},
+ {id:'snake50',title:'Snake Charmer',desc:'Pass 50 snakes in one run',need:g=>g.snakesPassed>=50,reward:30},
+ {id:'snake100',title:'Snake Slayer',desc:'Pass 100 snakes in one run',need:g=>g.snakesPassed>=100,reward:75},
+ {id:'snake200',title:'Snake Whisperer',desc:'Pass 200 snakes in one run',need:g=>g.snakesPassed>=200,reward:150},
+ {id:'combo3',title:'Combo Starter',desc:'Reach a firefly combo of x3',need:g=>g.bestFireflyCombo>=3,reward:20},
+ {id:'combo5',title:'Combo King',desc:'Reach a firefly combo of x5',need:g=>g.bestFireflyCombo>=5,reward:50}
 ];
 let completedAchievements=JSON.parse(localStorage.getItem('frogHopAchievements')||'[]');
 function saveAchievements(){localStorage.setItem('frogHopAchievements',JSON.stringify(completedAchievements));}
@@ -634,6 +648,7 @@ function showCollectionTab(tab){
   skinsPanel.classList.toggle('hidden',tab!=='skins'); accessoriesPanel.classList.toggle('hidden',tab!=='accessories'); achievementsPanel.classList.toggle('hidden',tab!=='achievements');
   skinsTab.classList.toggle('active',tab==='skins'); accessoriesTab.classList.toggle('active',tab==='accessories'); achievementsTab.classList.toggle('active',tab==='achievements');
   renderShop();
+  if(tab==='achievements') renderAchievements();
 }
 function handleSkinsTab(e){e.preventDefault();e.stopPropagation();showCollectionTab('skins')}
 function handleAccessoriesTab(e){e.preventDefault();e.stopPropagation();showCollectionTab('accessories')}
