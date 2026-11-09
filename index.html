@@ -590,66 +590,115 @@ function bg(){
     ctx.beginPath();ctx.arc(mx+9,my-6,23,0,Math.PI*2);ctx.fill();
   }
 
-  // Far hills.
-  ctx.fillStyle='#315863';
-  ctx.beginPath();ctx.moveTo(0,H*.59);
-  for(let i=0;i<=12;i++){
-    const px=i*W/12;
-    const peak=H*(.48+(i%3)*.025);
-    ctx.quadraticCurveTo(px+W/24,H*.42,px+W/12,peak);
+  // Deep swamp background: distant silhouettes, midground trees, foreground trees.
+  ctx.fillStyle='#294c57';
+  ctx.beginPath();ctx.moveTo(0,H*.60);
+  for(let i=0;i<=14;i++){
+    const px=i*W/14, peak=H*(.46+(i%4)*.018);
+    ctx.quadraticCurveTo(px+W/28,H*(.39+(i%3)*.018),px+W/14,peak);
   }
   ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.fill();
 
-  // Layered swamp trees.
-  for(let layer=0;layer<2;layer++){
-    for(let i=0;i<11;i++){
-      let px=(i*109+layer*47-t*(.10+layer*.05))%(W+130);if(px<0)px+=W+130;
-      const base=H*(.72+layer*.025);
-      const trunk=55+(i%3)*16;
-      ctx.fillStyle=layer?'#16444b':'#1d5056';
-      ctx.fillRect(px-7,base-trunk,14,trunk);
-      for(let j=0;j<5;j++){
-        ctx.beginPath();
-        ctx.arc(px+(j%2?17:-17),base-trunk-16-j*12,30-j*2.2,0,Math.PI*2);
-        ctx.fill();
-      }
+  // Distant tree layer — smaller, hazier, slower-moving.
+  for(let i=0;i<15;i++){
+    let px=(i*91-t*.035)%(W+100);if(px<0)px+=W+100;
+    const base=H*.70, trunk=58+(i%4)*13, r=25+(i%3)*7;
+    ctx.fillStyle='rgba(27,67,73,.78)';
+    ctx.fillRect(px-5,base-trunk,10,trunk);
+    for(let j=0;j<4;j++){
+      ctx.beginPath();ctx.arc(px+(j%2?15:-15),base-trunk-12-j*12,r-j*2,0,Math.PI*2);ctx.fill();
     }
   }
 
-  // Foreground reeds with highlights.
-  for(let i=0;i<28;i++){
-    let px=(i*59-t*.42)%(W+90);if(px<0)px+=W+90;
-    const h=85+(i%5)*20;
-    ctx.strokeStyle=i%2?'#1e6b55':'#2b805e';
-    ctx.lineWidth=5;ctx.lineCap='round';
-    ctx.beginPath();ctx.moveTo(px,H*.75);ctx.quadraticCurveTo(px-7,H*.75-h*.52,px+8,H*.75-h);ctx.stroke();
-    ctx.strokeStyle='rgba(111,190,112,.28)';ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(px+3,H*.75);ctx.quadraticCurveTo(px,H*.75-h*.48,px+10,H*.75-h*.92);ctx.stroke();
+  // Midground trees — taller and more defined for depth separation.
+  for(let i=0;i<10;i++){
+    let px=(i*133+47-t*.075)%(W+140);if(px<0)px+=W+140;
+    const base=H*.735, trunk=78+(i%3)*22;
+    ctx.fillStyle='rgba(18,57,60,.94)';
+    ctx.fillRect(px-8,base-trunk,16,trunk);
+    ctx.strokeStyle='rgba(12,48,51,.9)';ctx.lineWidth=7;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(px,base-trunk*.55);ctx.lineTo(px-34,base-trunk*.78);ctx.moveTo(px,base-trunk*.7);ctx.lineTo(px+30,base-trunk*.9);ctx.stroke();
+    for(let j=0;j<5;j++){
+      ctx.fillStyle=j%2?'#164d4e':'#1b5653';
+      ctx.beginPath();ctx.arc(px+(j%2?19:-19),base-trunk-18-j*13,30-j*2,0,Math.PI*2);ctx.fill();
+    }
   }
 
-  // Water.
-  const water=ctx.createLinearGradient(0,H*.68,0,H);
-  water.addColorStop(0,'#21818a');water.addColorStop(.45,'#126574');water.addColorStop(1,'#072f42');
-  ctx.fillStyle=water;ctx.fillRect(0,H*.68,W,H*.32);
+  // Water body.
+  const water=ctx.createLinearGradient(0,H*.665,0,H);
+  water.addColorStop(0,'#2b8790');water.addColorStop(.35,'#176d79');water.addColorStop(.72,'#0d5264');water.addColorStop(1,'#062f43');
+  ctx.fillStyle=water;ctx.fillRect(0,H*.665,W,H*.335);
 
-  // Water ripples.
-  for(let i=0;i<16;i++){
-    let px=(i*119-t*(1.1+i%2*.35))%(W+130);if(px<0)px+=W+130;
-    const py=H*.73+(i%6)*45;
-    ctx.strokeStyle='rgba(159,231,211,.38)';ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(px,py);ctx.quadraticCurveTo(px+28,py-4,px+57,py);ctx.stroke();
+  // Mist sitting close to the water surface.
+  const mist=ctx.createLinearGradient(0,H*.58,0,H*.78);
+  mist.addColorStop(0,'rgba(190,232,215,0)');mist.addColorStop(.55,'rgba(190,232,215,.10)');mist.addColorStop(1,'rgba(210,240,225,.18)');
+  ctx.fillStyle=mist;ctx.fillRect(0,H*.56,W,H*.23);
+  for(let i=0;i<5;i++){
+    const mx=((i*220+t*.22)%(W+300))-150;
+    ctx.fillStyle='rgba(205,238,222,.045)';
+    ctx.beginPath();ctx.ellipse(mx,H*.69+(i%3)*18,110+(i%2)*35,20,0,0,Math.PI*2);ctx.fill();
   }
 
-  // Lily pads.
-  for(let i=0;i<9;i++){
-    let px=(i*181-t*.65)%(W+90);if(px<0)px+=W+90;
-    const py=H*.76+(i%3)*57;
-    ctx.fillStyle='#4fa75a';ctx.strokeStyle='#286b45';ctx.lineWidth=2.5;
-    ctx.beginPath();ctx.ellipse(px,py,31,12,0,0,Math.PI*2);ctx.fill();ctx.stroke();
-    ctx.strokeStyle='#2c6d45';ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px+18,py-9);ctx.stroke();
+  // Water reflections of the trees and moonlight.
+  ctx.save();ctx.globalAlpha=.16;
+  for(let i=0;i<12;i++){
+    const rx=(i*137-t*.08)%(W+80); const ry=H*.71+(i%5)*38;
+    ctx.fillStyle=i%2?'#5ca99b':'#8ac7ae';
+    ctx.beginPath();ctx.ellipse(rx,ry,18+(i%4)*7,3+(i%3),0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(rx+12,ry+7,10+(i%3)*5,2,0,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+
+  // Moving water streaks and occasional expanding ripples.
+  for(let i=0;i<20;i++){
+    let px=(i*119-t*(.45+(i%3)*.12))%(W+150);if(px<0)px+=W+150;
+    const py=H*.715+(i%7)*43;
+    ctx.strokeStyle='rgba(159,231,211,.22)';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(px,py);ctx.quadraticCurveTo(px+25,py-3,px+55,py);ctx.stroke();
+  }
+  for(let i=0;i<4;i++){
+    const phase=((t*.035+i*.27)%1), rx=(i*197+91)%W, ry=H*.73+(i%3)*72;
+    const rr=5+phase*34;
+    ctx.strokeStyle=`rgba(176,239,218,${.30*(1-phase)})`;ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.ellipse(rx,ry,rr,rr*.28,0,0,Math.PI*2);ctx.stroke();
   }
 
+  // Detailed lily pads with veins, highlights and water shadows.
+  for(let i=0;i<10;i++){
+    let px=(i*181-t*.18)%(W+110);if(px<0)px+=W+110;
+    const py=H*.755+(i%4)*53, scale=1+(i%3)*.08;
+    ctx.fillStyle='rgba(0,30,35,.28)';ctx.beginPath();ctx.ellipse(px+3,py+5,34*scale,13*scale,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=i%3?'#4fa75a':'#62b963';ctx.strokeStyle='#235f40';ctx.lineWidth=2.2;
+    ctx.beginPath();ctx.ellipse(px,py,31*scale,12*scale,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.fillStyle='rgba(149,218,120,.22)';ctx.beginPath();ctx.ellipse(px-7,py-4,14*scale,4*scale,-.2,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='rgba(38,105,66,.85)';ctx.lineWidth=1.4;
+    for(let v=0;v<4;v++){
+      const a=-.85+v*.43;
+      ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px+Math.cos(a)*24*scale,py+Math.sin(a)*9*scale);ctx.stroke();
+    }
+    ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px+17*scale,py-8*scale);ctx.stroke();
+  }
+
+  // Foreground reeds and grasses — closest layer, with gentle wind sway.
+  for(let i=0;i<34;i++){
+    let px=(i*53-t*.32)%(W+90);if(px<0)px+=W+90;
+    const h=78+(i%7)*17, sway=Math.sin(t*.045+i*.7)*7;
+    ctx.strokeStyle=i%3?'#1d704f':'#2b8a61';ctx.lineWidth=4+(i%3);ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(px,H*.79);ctx.quadraticCurveTo(px+sway*.35,H*.79-h*.5,px+sway,H*.79-h);ctx.stroke();
+    if(i%4===0){
+      ctx.strokeStyle='rgba(116,190,111,.42)';ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(px+2,H*.79);ctx.quadraticCurveTo(px+sway*.45,H*.79-h*.52,px+sway+3,H*.79-h*.94);ctx.stroke();
+    }
+  }
+
+  // Tiny floating bugs / particles close to the player.
+  for(let i=0;i<26;i++){
+    const bx=(i*83+t*(.12+(i%3)*.04))%W;
+    const by=H*.30+((i*47+Math.sin(t*.025+i)*24)%(H*.48));
+    const br=i%5===0?1.7:.8;
+    ctx.fillStyle=`rgba(220,248,184,${.22+(i%4)*.09})`;
+    ctx.beginPath();ctx.arc(bx,by,br,0,Math.PI*2);ctx.fill();
+  }
 
   if(env==='JUNGLE'){
     ctx.fillStyle='rgba(69,145,70,.16)';ctx.fillRect(0,H*.48,W,H*.22);
