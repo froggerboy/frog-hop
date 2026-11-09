@@ -74,14 +74,14 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 .accessory.locked{opacity:.55}
 .accessory.equipped{border-color:#fff5a0;box-shadow:0 0 0 2px rgba(255,245,160,.18)}
 .scorecost{font-size:13px;margin-top:4px;color:#fff5a0}
-.achgrid{display:grid;grid-template-columns:1fr;gap:9px;margin:10px 0 14px;text-align:left}.achievement{border:1.5px solid rgba(255,255,255,.15);border-radius:14px;padding:11px 12px;background:rgba(0,0,0,.16)}.achievement.done{border-color:#fff5a0;background:rgba(255,245,160,.10)}.achievement .atitle{font-weight:900}.achievement .adesc{font-size:12px;opacity:.72;margin-top:3px}.achievement .astatus{font-size:12px;color:#fff5a0;margin-top:5px;font-weight:800}.combo{position:fixed;left:50%;top:88px;transform:translateX(-50%);z-index:6;color:#fff5a0;font-weight:950;font-size:18px;text-shadow:0 3px 8px rgba(0,0,0,.45);pointer-events:none}.musicbtn{margin-top:8px!important;padding:9px 14px!important;font-size:12px!important}.powerhud{position:fixed;right:14px;top:calc(env(safe-area-inset-top,0px) + 62px);left:auto;transform:none;z-index:7;color:#fff;font-weight:950;font-size:13px;letter-spacing:.5px;text-shadow:0 3px 8px rgba(0,0,0,.5);background:rgba(7,28,35,.62);border:1px solid rgba(255,255,255,.2);padding:7px 12px;border-radius:999px;pointer-events:none}.powerhud.hidden{display:none!important}
+.achgrid{display:grid;grid-template-columns:1fr;gap:9px;margin:10px 0 14px;text-align:left}.achievement{border:1.5px solid rgba(255,255,255,.15);border-radius:14px;padding:11px 12px;background:rgba(0,0,0,.16)}.achievement.done{border-color:#fff5a0;background:rgba(255,245,160,.10)}.achievement .atitle{font-weight:900}.achievement .adesc{font-size:12px;opacity:.72;margin-top:3px}.achievement .astatus{font-size:12px;color:#fff5a0;margin-top:5px;font-weight:800}.combo{position:fixed;left:50%;top:88px;transform:translateX(-50%);z-index:6;color:#fff5a0;font-weight:950;font-size:18px;text-shadow:0 3px 8px rgba(0,0,0,.45);pointer-events:none}.musicbtn{margin-top:8px!important;padding:9px 14px!important;font-size:12px!important}.powerhud{position:fixed;right:14px;top:calc(env(safe-area-inset-top,0px) + 62px);left:auto;transform:none;z-index:7;color:#fff;font-weight:950;font-size:13px;letter-spacing:.5px;text-shadow:0 3px 8px rgba(0,0,0,.5);background:rgba(7,28,35,.62);border:1px solid rgba(255,255,255,.2);padding:7px 12px;border-radius:999px;pointer-events:none}.powerhud.hidden{display:none!important}.shieldhud{position:fixed;left:14px;top:calc(env(safe-area-inset-top,0px) + 62px);z-index:7;padding:6px 10px;border-radius:999px;background:rgba(7,28,35,.68);border:1px solid rgba(255,255,255,.2);font-size:18px;letter-spacing:2px;pointer-events:none;text-shadow:0 2px 6px rgba(0,0,0,.45)}.shieldhud.hidden{display:none!important}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <div id="hud">
   <div class="hudbox"><span class="hudlabel">Best</span><span class="hudnum" id="best">0</span></div>
-  <div id="centerScore"><div class="num" id="score">0</div><div class="label" id="envLabel">SWAMP</div></div><div class="runflies">✨ <span id="fireflyCount">0</span><span>FIREFLIES THIS RUN</span></div><div id="comboHud" class="combo hidden">✨ COMBO x2</div><div id="powerHud" class="powerhud hidden"></div>
+  <div id="centerScore"><div class="num" id="score">0</div><div class="label" id="envLabel">SWAMP</div></div><div class="runflies">✨ <span id="fireflyCount">0</span><span>FIREFLIES THIS RUN</span></div><div id="comboHud" class="combo hidden">✨ COMBO x2</div><div id="shieldHud" class="shieldhud hidden"></div><div id="powerHud" class="powerhud hidden"></div>
   <div class="hudbox"><span class="hudlabel">Fireflies ✨</span><span class="hudnum" id="bankedHUD">0</span></div>
 </div>
 
@@ -290,7 +290,7 @@ function closeShop(){
   document.body.classList.remove('shopOpen');
 }
 
-const c=document.getElementById('c'),ctx=c.getContext('2d'),scoreEl=document.getElementById('score'),bestEl=document.getElementById('best'),fireflyEl=document.getElementById('fireflyCount'),bankedHudEl=document.getElementById('bankedHUD');
+const c=document.getElementById('c'),ctx=c.getContext('2d'),scoreEl=document.getElementById('score'),bestEl=document.getElementById('best'),fireflyEl=document.getElementById('fireflyCount'),bankedHudEl=document.getElementById('bankedHUD'),shieldHud=document.getElementById('shieldHud');
 let W=0,H=0,dpr=1,game=null,last=0;
 
 // Lightweight WebAudio sound pack. Audio starts after the first user interaction.
@@ -485,26 +485,34 @@ const overlay=document.getElementById('overlay'),btn=document.getElementById('bt
 
 const FROG_ABILITIES={
   green:{name:'Swampy',desc:'Balanced — the classic Frog Hop experience',jump:-7.85,rareBoost:1,fireflyBoost:1},
-  blue:{name:'Bluebolt',desc:'Skybound — stronger hops and a much better chance to chase fireflies',jump:-8.65,rareBoost:1.05,fireflyBoost:1.12},
-  purple:{name:'Mystic',desc:'Mystic Luck — rare fireflies appear far more often',jump:-7.85,rareBoost:2.1,fireflyBoost:1.08},
-  gold:{name:'Sunbeam',desc:'Golden Harvest — fireflies are worth noticeably more',jump:-7.85,rareBoost:1.2,fireflyBoost:1.8},
-  red:{name:'Ember',desc:'Hot Streak — every 10 snakes ignites a powerful firefly bonus',jump:-7.85,rareBoost:1.2,fireflyBoost:1.12},
-  midnight:{name:'Midnight',desc:'Night Guard — begin each run with multiple Lily Shields',jump:-7.85,rareBoost:1.5,fireflyBoost:1.1},
-  rainbow:{name:'Rainbow',desc:'Rainbow Luck — rare fireflies become dramatically easier to find',jump:-8.05,rareBoost:3.0,fireflyBoost:1.8},
-  royalgold:{name:'Legendary Gold',desc:'Royal Fortune — the strongest firefly hunting and reward bonus',jump:-8.1,rareBoost:2.4,fireflyBoost:2.2}
+  blue:{name:'Bluebolt',desc:'Skybound — every upgrade gives a bigger, stronger bounce',jump:-8.65,rareBoost:1.05,fireflyBoost:1.12},
+  purple:{name:'Mystic',desc:'Firefly Call — every upgrade adds another firefly to the screen',jump:-7.85,rareBoost:2.1,fireflyBoost:1.08},
+  gold:{name:'Sunbeam',desc:'Golden Harvest — every upgrade makes fireflies worth more',jump:-7.85,rareBoost:1.2,fireflyBoost:1.8},
+  red:{name:'Ember',desc:'Giant Glow — every upgrade makes fireflies larger',jump:-7.85,rareBoost:1.2,fireflyBoost:1.12},
+  midnight:{name:'Midnight',desc:'Night Guard — every upgrade adds another starting shield, up to three',jump:-7.85,rareBoost:1.5,fireflyBoost:1.1},
+  rainbow:{name:'Rainbow',desc:'Rainbow Master — shields, bigger fireflies and higher-value fireflies all improve each level',jump:-8.05,rareBoost:3.0,fireflyBoost:1.8},
+  royalgold:{name:'Legendary Gold',desc:'Legendary Fortune — shields, huge valuable fireflies, stronger leaps and the best rare-firefly luck',jump:-8.1,rareBoost:2.4,fireflyBoost:2.2}
 };
 function frogAbility(){
   const a=FROG_ABILITIES[selectedSkin]||FROG_ABILITIES.green;
   const lvl=upgradeLevel(selectedSkin);
-  const out={...a,level:lvl};
-  if(selectedSkin==='blue'){out.jump=a.jump-0.28*lvl;out.fireflyBoost=a.fireflyBoost+0.12*lvl;}
-  if(selectedSkin==='purple'){out.rareBoost=a.rareBoost+0.65*lvl;out.fireflyBoost=a.fireflyBoost+0.10*lvl;}
-  if(selectedSkin==='gold'){out.fireflyBoost=a.fireflyBoost+0.35*lvl;out.rareBoost=a.rareBoost+0.18*lvl;}
-  if(selectedSkin==='red'){out.hotStreakDuration=5+1.5*lvl;out.hotStreakMult=1.55+0.2*lvl;out.fireflyBoost=a.fireflyBoost+0.12*lvl;}
-  if(selectedSkin==='midnight'){out.startShields=1+lvl*2;out.fireflyBoost=a.fireflyBoost+0.10*lvl;}
-  if(selectedSkin==='rainbow'){out.rareBoost=a.rareBoost+0.8*lvl;out.fireflyBoost=a.fireflyBoost+0.18*lvl;}
-  if(selectedSkin==='royalgold'){out.rareBoost=a.rareBoost+0.65*lvl;out.fireflyBoost=a.fireflyBoost+0.35*lvl;}
+  const out={...a,level:lvl,fireflySize:1,extraFireflies:0,startShields:0,fortuneChance:0,fortuneCount:0};
+  if(selectedSkin==='blue'){out.jump=a.jump-0.55*lvl;out.fireflyBoost=a.fireflyBoost+0.08*lvl;}
+  if(selectedSkin==='purple'){out.rareBoost=a.rareBoost+0.25*lvl;out.extraFireflies=lvl;}
+  if(selectedSkin==='gold'){out.fireflyBoost=a.fireflyBoost+0.55*lvl;out.rareBoost=a.rareBoost+0.12*lvl;}
+  if(selectedSkin==='red'){out.fireflySize=1+0.22*lvl;out.fireflyBoost=a.fireflyBoost+0.10*lvl;}
+  if(selectedSkin==='midnight'){out.startShields=Math.min(3,1+lvl);out.fireflyBoost=a.fireflyBoost+0.08*lvl;}
+  if(selectedSkin==='rainbow'){out.startShields=Math.min(3,1+lvl);out.fireflySize=1+0.20*lvl;out.fireflyBoost=a.fireflyBoost+0.55*lvl;out.rareBoost=a.rareBoost+0.45*lvl;}
+  if(selectedSkin==='royalgold'){out.startShields=Math.min(3,1+lvl);out.fireflySize=1+0.28*lvl;out.fireflyBoost=a.fireflyBoost+0.75*lvl;out.rareBoost=a.rareBoost+0.75*lvl;out.jump=a.jump-0.40*lvl;out.fortuneChance=[0,0.18,0.28,0.40][lvl]||0;out.fortuneCount=3;}
   return out;
+}
+function fireflyScale(){ return game?.ability?.fireflySize || 1; }
+function updateShieldHud(){
+  if(!shieldHud || !game?.run) { if(shieldHud) shieldHud.classList.add('hidden'); return; }
+  const max=Math.max(0, Math.min(3, game.ability?.startShields||0));
+  if(max<=0){ shieldHud.classList.add('hidden'); return; }
+  shieldHud.textContent='🛡️'.repeat(game.shield)+'▫️'.repeat(Math.max(0,max-game.shield));
+  shieldHud.classList.remove('hidden');
 }
 function biomeIndexNow(){return Math.floor((game?.snakesPassed||0)/30)%5}
 function biomeHazard(p){
@@ -571,7 +579,7 @@ function start(){
     pipes:[]
   };
   if(powerHud)powerHud.classList.add('hidden');
-  if(selectedSkin==='midnight') game.shield=game.ability.startShields||1;
+  game.shield=game.ability.startShields||0; updateShieldHud();
   scoreEl.textContent='0';
   fireflyEl.textContent='0';
   bankedHudEl.textContent=bankedFireflies;
@@ -1356,7 +1364,7 @@ function updatePowerup(dt){
     p.y+=Math.sin(game.time*.08+p.phase)*.35*dt;
     if(Math.hypot(p.x-game.f.x,p.y-game.f.y)<34){
       if(p.id==='slow') game.slowTimer=p.duration;
-      if(p.id==='shield') game.shield=1; burstEffect(game.f.x,game.f.y,'shield',14);
+      if(p.id==='shield') { game.shield=Math.min(Math.max(1,game.shield+1),Math.max(1,game.ability?.startShields||1)); updateShieldHud(); } burstEffect(game.f.x,game.f.y,'shield',14);
       if(p.id==='magnet'){
         // Magnet stays active for 10 seconds and attracts any firefly that
         // comes within its proximity while the timer is running.
@@ -1472,7 +1480,7 @@ function spawn(){
 
 function drawRareFirefly(f){
   const t=game.time+f.phase;
-  ctx.save();ctx.translate(f.x,f.y);
+  ctx.save();ctx.translate(f.x,f.y);ctx.scale(fireflyScale(),fireflyScale());
   const type=f.rareType;
 
   if(type==='rainbow'){
@@ -1556,7 +1564,9 @@ function drawSpecialFirefly(f){
 }
 
 function spawnFirefly(){
-  if(!game || !game.run || game.fireflies.length>=2) return;
+  if(!game || !game.run) return;
+  const maxFireflies=1+(game.ability?.extraFireflies||0);
+  if(game.fireflies.length>=maxFireflies) return;
   const targets=game.pipes.filter(p=>p.x>game.f.x+100 && p.x<W+230);
   if(!targets.length) return;
   const target=targets[Math.floor(Math.random()*targets.length)];
@@ -1628,6 +1638,18 @@ function updateFireflies(dt){
       const awarded=Math.round(value*multiplier*(game.doubleTimer>0?1.5:1)*abilityMult);
       game.fireflyCount+=awarded;
       fireflyEl.textContent=game.fireflyCount;
+      if(f.rareType && game.ability?.fortuneChance && Math.random()<game.ability.fortuneChance){
+        const fortuneCount=game.ability.fortuneCount||3;
+        for(let k=0;k<fortuneCount;k++){
+          if(game.fireflies.length>=8) break;
+          const ang=(Math.PI*2*k/fortuneCount)+Math.random()*.5;
+          const fx=game.f.x+Math.cos(ang)*(55+Math.random()*35);
+          const fy=game.f.y+Math.sin(ang)*(35+Math.random()*30);
+          game.fireflies.push({baseX:fx,x:fx,baseY:fy,y:fy,phase:Math.random()*Math.PI*2,life:0,value:1,special:false,rareType:null,verticalRange:Math.max(70,H*.3),fortune:true});
+        }
+        burstEffect(game.f.x,game.f.y,'rare',22);
+        game.reaction='excited';game.reactionTimer=2;
+      }
       // Fireflies earned during a run stay in the run balance until the run ends.
       // At game over they are banked into the permanent currency balance.
 
@@ -1645,8 +1667,10 @@ function updateFireflies(dt){
   }
   const milestone=Math.floor((game.score||0)/30)*30;
   const needsSpecial=milestone>=30 && game.lastSpecialFireflyMilestone!==milestone;
-  if(game.fireflies.length===0 && (needsSpecial || game.fireflyTimer>7+Math.random()*4)){
-    spawnFirefly();game.fireflyTimer=0;
+  const desired=1+(game.ability?.extraFireflies||0);
+  if(game.fireflies.length<desired && (needsSpecial || game.fireflyTimer>7+Math.random()*4)){
+    spawnFirefly();
+    game.fireflyTimer=0;
   }
 }
 
@@ -1656,7 +1680,7 @@ function drawFireflies(){
     const style=SKINS.find(s=>s.id===selectedSkin)?.fireflyStyle||null;
     const glow=style==='royalgold'?15:style==='rainbow'?13:style==='sunbeam'?12:10+Math.sin((game.time+f.phase)*.08)*3;
     const flap=Math.sin((game.time+f.phase)*.18)*.18;
-    ctx.save();ctx.translate(f.x,f.y);
+    ctx.save();ctx.translate(f.x,f.y);ctx.scale(fireflyScale(),fireflyScale());
 
     const g=ctx.createRadialGradient(0,0,1,0,0,glow);
     if(style==='rainbow'){
@@ -1715,6 +1739,7 @@ function loop(t){
   const dt=Math.min((t-last)/16.67,2);last=t;
   if(game?.run){
     game.time+=dt;
+    updateShieldHud();
     game.comboTimer-=dt/60; if(game.comboTimer<=0){game.fireflyCombo=0;comboHud.classList.add('hidden')}
     game.reactionTimer-=dt/60; if(game.reactionTimer<=0)game.reaction='normal';
     if(game.hotStreak>0) game.hotStreak-=dt/60;
@@ -1756,7 +1781,8 @@ function loop(t){
       const specialHazardHit=biomeHazardCollision(p);
       if((hitX&&hitY || specialHazardHit) && game.shieldInvuln<=0){
         if(game.shield>0){
-          game.shield=0;
+          game.shield=Math.max(0,game.shield-1);
+          updateShieldHud();
           game.shieldInvuln=1.0;
           game.reaction='excited';game.reactionTimer=1.5;
           initAudio();sfxPowerup();
