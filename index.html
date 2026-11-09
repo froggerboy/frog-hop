@@ -1201,14 +1201,14 @@ function updateFireflies(dt){
     if(Math.hypot(f.x-game.f.x,f.y-game.f.y)<30){
       game.fireflies.splice(i,1);
       const value=f.value||1;
-      game.fireflyCount+=value*(game.doubleTimer>0?2:1);
+      game.fireflyCount+=Math.round(value*(game.doubleTimer>0?1.5:1));
       fireflyEl.textContent=game.fireflyCount;
       game.fireflyCombo = game.comboTimer>0 ? Math.min(5,game.fireflyCombo+1) : 1;
       game.bestFireflyCombo=Math.max(game.bestFireflyCombo,game.fireflyCombo);
       game.fireflyTimer=2.0;
       game.comboTimer=4.5;
       const multiplier=game.fireflyCombo>=5?3:game.fireflyCombo>=3?2:1;
-      const awarded=value*multiplier*(game.doubleTimer>0?2:1);
+      const awarded=value*multiplier;
       game.score+=awarded;checkEyeMilestone();checkAchievements();checkPowerupMilestone();
       scoreEl.textContent=game.score;
       const totalFF=Number(localStorage.getItem('frogHopTotalFireflies')||0)+value;
@@ -1299,7 +1299,7 @@ function loop(t){
       if(!p.scored && p.x+p.w<game.f.x){
         p.scored=true; game.snakesPassed++; checkAchievements();
         initAudio(); sfxPass();
-        game.score+=(game.doubleTimer>0?2:1);checkEyeMilestone();checkAchievements();checkPowerupMilestone();
+        game.score+=1;checkEyeMilestone();checkAchievements();checkPowerupMilestone();
         scoreEl.textContent=game.score;
         if(game.score>=10 && game.score%10===0 && game.score!==lastCelebratedScore){
           lastCelebratedScore=game.score;
