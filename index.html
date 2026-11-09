@@ -828,6 +828,21 @@ function frog(){
   ctx.translate(f.x,f.y);
   ctx.rotate(f.rot*.45);
 
+  // Visible lily-shield glow while the shield is active.
+  if(game.shield>0){
+    const pulse=1+Math.sin(game.time*.18)*.08;
+    const radius=42*pulse;
+    const glow=ctx.createRadialGradient(0,0,18,0,0,radius);
+    glow.addColorStop(0,'rgba(170,255,190,.28)');
+    glow.addColorStop(.55,'rgba(95,230,150,.22)');
+    glow.addColorStop(1,'rgba(95,230,150,0)');
+    ctx.fillStyle=glow;
+    ctx.beginPath();ctx.arc(0,0,radius,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='rgba(170,255,205,.9)';
+    ctx.lineWidth=3;
+    ctx.beginPath();ctx.arc(0,0,34*pulse,0,Math.PI*2);ctx.stroke();
+  }
+
   const rising=f.vy<0;
   const phase=game.time*.34;
   const kick=(Math.sin(phase)+1)/2;
