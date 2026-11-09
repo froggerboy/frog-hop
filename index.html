@@ -420,7 +420,7 @@ function start(){
   game={
     run:true,score:0,time:0,speed:3.8,next:0,
     fireflies:[],fireflyCount:0,fireflyTimer:0,lastEyeMilestone:0,lastEyeSoundMilestone:0,eyeType:'normal',lastSpecialFireflyMilestone:0,croakTimer:8,fireflyCombo:0,bestFireflyCombo:0,comboTimer:0,snakesPassed:0,reaction:'normal',reactionTimer:0,
-    powerup:null,nextPowerupScore:20,slowTimer:0,magnetTimer:0,doubleTimer:0,shield:0,
+    powerup:null,nextPowerupScore:20,slowTimer:0,magnetTimer:0,doubleTimer:0,shield:0,shieldInvuln:0,
     targetCenter:H*.46,
     f:{x:W*.25,y:H*.46,vy:0,rot:0,blink:0},
     pipes:[]
@@ -1026,6 +1026,7 @@ function updatePowerup(dt){
   if(game.slowTimer<=0) game.slowTimer=0;
   if(game.magnetTimer<=0) game.magnetTimer=0;
   if(game.doubleTimer<=0) game.doubleTimer=0;
+  if(game.shieldInvuln>0) game.shieldInvuln-=dt;
 
   if(game.powerup){
     const p=game.powerup;
@@ -1177,7 +1178,7 @@ function updateFireflies(dt){
     if(Math.hypot(f.x-game.f.x,f.y-game.f.y)<30){
       game.fireflies.splice(i,1);
       const value=f.value||1;
-      game.fireflyCount+=value;
+      game.fireflyCount+=value*(game.doubleTimer>0?2:1);
       fireflyEl.textContent=game.fireflyCount;
       game.fireflyCombo = game.comboTimer>0 ? Math.min(5,game.fireflyCombo+1) : 1;
       game.bestFireflyCombo=Math.max(game.bestFireflyCombo,game.fireflyCombo);
@@ -1289,12 +1290,13 @@ function loop(t){
       const gapTop=p.g-p.gap/2;
       const gapBottom=p.g+p.gap/2;
       const hitY=game.f.y-fy<gapTop || game.f.y+fy>gapBottom;
-      if(hitX&&hitY){
+      if(hitX&&hitY && game.shieldInvuln<=0){
         if(game.shield>0){
           game.shield=0;
+          game.shieldInvuln=1.0;
           game.reaction='excited';game.reactionTimer=1.5;
           initAudio();sfxPowerup();
-          p.x-=35;
+          p.x-=Math.max(110, p.w+70);
         }else{
           over();break;
         }
