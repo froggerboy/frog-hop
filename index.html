@@ -1243,26 +1243,73 @@ function spawn(){
 
 function drawRareFirefly(f){
   const t=game.time+f.phase;
-  const pulse=28+Math.sin(t*.12)*6;
   ctx.save();ctx.translate(f.x,f.y);
-  let c1,c2,c3;
-  if(f.rareType==='rainbow'){c1='#ff4d6d';c2='#55d6ff';c3='#ffe45c';}
-  else if(f.rareType==='diamond'){c1='#d9fbff';c2='#69d9ff';c3='#9b7cff';}
-  else {c1='#222';c2='#7d63ff';c3='#d8c8ff';}
-  const g=ctx.createRadialGradient(0,0,1,0,0,pulse);
-  g.addColorStop(0,c3);g.addColorStop(.35,c2);g.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,pulse,0,Math.PI*2);ctx.fill();
-  const flap=Math.sin(t*.18)*.18;
-  ctx.fillStyle=f.rareType==='black'?'rgba(55,45,75,.95)':'rgba(245,252,255,.9)';
-  ctx.strokeStyle=c2;ctx.lineWidth=1.8;
-  ctx.save();ctx.rotate(-.25+flap);ctx.beginPath();ctx.ellipse(-7,-4,8,4.5,-.35,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
-  ctx.save();ctx.rotate(.25-flap);ctx.beginPath();ctx.ellipse(7,-4,8,4.5,.35,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
-  ctx.fillStyle=f.rareType==='black'?'#101014':c1;ctx.strokeStyle=c3;ctx.beginPath();ctx.ellipse(0,2,4.2,6.2,0,0,Math.PI*2);ctx.fill();ctx.stroke();
-  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-1.2,-3,.85,0,Math.PI*2);ctx.arc(1.2,-3,.85,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#222';ctx.beginPath();ctx.arc(-1.2,-3,.35,0,Math.PI*2);ctx.arc(1.2,-3,.35,0,Math.PI*2);ctx.fill();
+  const type=f.rareType;
+
+  if(type==='rainbow'){
+    // Animated rainbow aura + tiny trailing sparks.
+    const hue=t*34;
+    const glow=30+Math.sin(t*.18)*7;
+    const g=ctx.createRadialGradient(0,0,1,0,0,glow);
+    g.addColorStop(0,'rgba(255,255,255,.95)');
+    g.addColorStop(.22,`hsla(${hue%360},100%,72%,.8)`);
+    g.addColorStop(.52,`hsla(${(hue+100)%360},100%,65%,.42)`);
+    g.addColorStop(1,'rgba(255,80,220,0)');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,glow,0,Math.PI*2);ctx.fill();
+    for(let i=0;i<7;i++){
+      const a=t*.7+i*0.9, d=10+i*3;
+      const x=-Math.cos(a)*d, y=Math.sin(a)*d*.65;
+      ctx.fillStyle=`hsla(${(hue+i*48)%360},100%,75%,${.75-i*.07})`;
+      ctx.beginPath();ctx.arc(x,y,1.3+(i%2),0,Math.PI*2);ctx.fill();
+    }
+    ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=1.4;
+    ctx.fillStyle='rgba(255,255,255,.62)';
+    const flap=Math.sin(t*.2)*.2;
+    ctx.save();ctx.rotate(-.25+flap);ctx.beginPath();ctx.ellipse(-7,-4,8,4.5,-.35,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
+    ctx.save();ctx.rotate(.25-flap);ctx.beginPath();ctx.ellipse(7,-4,8,4.5,.35,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
+    const body=ctx.createLinearGradient(-4,0,4,5);body.addColorStop(0,'#ff5d8f');body.addColorStop(.5,'#ffe45c');body.addColorStop(1,'#55d6ff');
+    ctx.fillStyle=body;ctx.beginPath();ctx.ellipse(0,2,4.3,6.2,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-1.3,-3,.8,0,Math.PI*2);ctx.arc(1.3,-3,.8,0,Math.PI*2);ctx.fill();
+  }else if(type==='diamond'){
+    // Crystalline body, rotating facets, bright flashes and sparkles.
+    const pulse=30+Math.sin(t*.28)*6;
+    const g=ctx.createRadialGradient(0,0,1,0,0,pulse);
+    g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.25,'rgba(126,229,255,.72)');g.addColorStop(1,'rgba(95,120,255,0)');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,pulse,0,Math.PI*2);ctx.fill();
+    for(let i=0;i<6;i++){
+      const a=t*.9+i*Math.PI/3, d=11+(i%2)*6;
+      ctx.save();ctx.translate(Math.cos(a)*d,Math.sin(a)*d);ctx.rotate(a);
+      ctx.fillStyle='rgba(255,255,255,.85)';ctx.beginPath();ctx.moveTo(0,-3);ctx.lineTo(1,0);ctx.lineTo(0,3);ctx.lineTo(-1,0);ctx.closePath();ctx.fill();ctx.restore();
+    }
+    const flap=Math.sin(t*.2)*.18;
+    ctx.fillStyle='rgba(220,250,255,.8)';ctx.strokeStyle='#a5ecff';ctx.lineWidth=1.5;
+    ctx.save();ctx.rotate(-.25+flap);ctx.beginPath();ctx.ellipse(-7,-4,8,4.5,-.35,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
+    ctx.save();ctx.rotate(.25-flap);ctx.beginPath();ctx.ellipse(7,-4,8,4.5,.35,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
+    const body=ctx.createLinearGradient(-4,-4,4,7);body.addColorStop(0,'#ffffff');body.addColorStop(.35,'#bff8ff');body.addColorStop(.7,'#63d9ff');body.addColorStop(1,'#8178ff');
+    ctx.fillStyle=body;ctx.strokeStyle='#eaffff';ctx.beginPath();ctx.moveTo(0,-5);ctx.lineTo(5,1);ctx.lineTo(2,8);ctx.lineTo(-3,6);ctx.lineTo(-5,0);ctx.closePath();ctx.fill();ctx.stroke();
+    if(Math.sin(t*1.8)>0.72){ctx.strokeStyle='rgba(255,255,255,.95)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-10,-10);ctx.lineTo(10,10);ctx.moveTo(10,-10);ctx.lineTo(-10,10);ctx.stroke();}
+  }else{
+    // Black firefly: dark body with a deep purple/blue aura and orbiting motes.
+    const pulse=46+Math.sin(t*.12)*10;
+    const g=ctx.createRadialGradient(0,0,1,0,0,pulse);
+    g.addColorStop(0,'rgba(220,190,255,1)');g.addColorStop(.18,'rgba(100,80,255,.85)');g.addColorStop(.48,'rgba(45,90,255,.38)');g.addColorStop(1,'rgba(70,20,140,0)');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,pulse,0,Math.PI*2);ctx.fill();
+    for(let i=0;i<12;i++){
+      const a=t*.35+i*0.52, d=13+((i*7)%13);
+      const x=Math.cos(a)*d,y=Math.sin(a)*d*.72;
+      ctx.fillStyle=`rgba(${120+i*6},${100+i*3},255,${.35+.35*Math.sin(t+i)})`;
+      ctx.beginPath();ctx.arc(x,y,1+(i%3)*.45,0,Math.PI*2);ctx.fill();
+    }
+    const flap=Math.sin(t*.18)*.18;
+    ctx.fillStyle='rgba(70,55,120,.82)';ctx.strokeStyle='rgba(180,155,255,.9)';ctx.lineWidth=1.7;
+    ctx.save();ctx.rotate(-.25+flap);ctx.beginPath();ctx.ellipse(-8,-4,8,4.5,-.35,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
+    ctx.save();ctx.rotate(.25-flap);ctx.beginPath();ctx.ellipse(8,-4,8,4.5,.35,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
+    const body=ctx.createRadialGradient(-1,-3,1,2,4,7);body.addColorStop(0,'#34304c');body.addColorStop(.55,'#11101d');body.addColorStop(1,'#05050b');
+    ctx.fillStyle=body;ctx.strokeStyle='#9b7cff';ctx.beginPath();ctx.ellipse(0,2,4.5,6.5,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#e8dcff';ctx.beginPath();ctx.arc(-1.2,-3,.8,0,Math.PI*2);ctx.arc(1.2,-3,.8,0,Math.PI*2);ctx.fill();
+  }
   ctx.restore();
 }
-
 function drawSpecialFirefly(f){
   const glow=32+Math.sin((game.time+f.phase)*.1)*7;
   ctx.save();ctx.translate(f.x,f.y);
