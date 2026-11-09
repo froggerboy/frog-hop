@@ -454,6 +454,67 @@ addEventListener('resize',size); size();
 
 const overlay=document.getElementById('overlay'),btn=document.getElementById('btn'),msg=document.getElementById('msg');
 
+const FROG_ABILITIES={
+  green:{name:'Swampy',desc:'Balanced — no special ability',jump:-7.85,rareBoost:1,fireflyBoost:1},
+  blue:{name:'Bluebolt',desc:'Higher Hop — slightly stronger jump',jump:-8.45,rareBoost:1,fireflyBoost:1},
+  purple:{name:'Mystic',desc:'Mystic Luck — rare fireflies appear more often',jump:-7.85,rareBoost:1.65,fireflyBoost:1},
+  gold:{name:'Yellow',desc:'Sunlit — fireflies are worth a little more',jump:-7.85,rareBoost:1,fireflyBoost:1.18},
+  red:{name:'Ember',desc:'Hot Streak — passing snakes briefly boosts firefly rewards',jump:-7.85,rareBoost:1.1,fireflyBoost:1},
+  midnight:{name:'Midnight',desc:'Night Guard — begins each run with a Lily Shield',jump:-7.85,rareBoost:1.25,fireflyBoost:1},
+  rainbow:{name:'Rainbow',desc:'Lucky Glow — much better chance of rare fireflies',jump:-7.95,rareBoost:2.15,fireflyBoost:1.05},
+  royalgold:{name:'Legendary Gold',desc:'Royal Fortune — rare fireflies and firefly rewards are boosted',jump:-7.95,rareBoost:1.55,fireflyBoost:1.25}
+};
+function frogAbility(){return FROG_ABILITIES[selectedSkin]||FROG_ABILITIES.green}
+function biomeIndexNow(){return Math.floor((game?.snakesPassed||0)/30)%5}
+function biomeHazard(p){
+  const b=biomeIndexNow();
+  const gapTop=p.g-p.gap/2, gapBottom=p.g+p.gap/2;
+  const sway=Math.sin(game.time*.035+p.phase)*10;
+  if(b===0) return {kind:'vine',x:p.x+p.w*.5+sway,y:gapTop+26,len:28};
+  if(b===1) return {kind:'croc',x:p.x+p.w*.5+sway,y:gapBottom-18,len:30};
+  if(b===2) return {kind:'branch',x:p.x+p.w*.5+sway,y:gapTop+20,len:34};
+  if(b===3) return {kind:'ice',x:p.x+p.w*.5+sway,y:gapTop+24,len:38};
+  return {kind:'orb',x:p.x+p.w*.5+sway,y:p.g+Math.sin(game.time*.045+p.phase)*Math.min(22,p.gap*.16),len:16};
+}
+function drawBiomeHazard(p){
+  const h=biomeHazard(p); const b=biomeIndexNow();
+  ctx.save();
+  if(h.kind==='vine'){
+    ctx.strokeStyle='#3f8b45';ctx.lineWidth=5;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(h.x-10,h.y-28);ctx.quadraticCurveTo(h.x+12,h.y-4,h.x,h.y+24);ctx.stroke();
+    ctx.fillStyle='#65ad55';ctx.beginPath();ctx.ellipse(h.x+8,h.y+10,9,4,.5,0,Math.PI*2);ctx.fill();
+  }else if(h.kind==='croc'){
+    ctx.fillStyle='#477e55';ctx.strokeStyle='#214d3a';ctx.lineWidth=2;
+    ctx.beginPath();ctx.ellipse(h.x,h.y,25,13,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#b8d98a';ctx.beginPath();ctx.ellipse(h.x,h.y-2,18,7,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(h.x-8,h.y-8,3,0,Math.PI*2);ctx.arc(h.x+8,h.y-8,3,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#222';ctx.beginPath();ctx.arc(h.x-8,h.y-8,1.3,0,Math.PI*2);ctx.arc(h.x+8,h.y-8,1.3,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#244c37';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(h.x-13,h.y+3);ctx.lineTo(h.x+13,h.y+3);ctx.stroke();
+  }else if(h.kind==='branch'){
+    ctx.strokeStyle='#754a2d';ctx.lineWidth=9;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(h.x-24,h.y-24);ctx.lineTo(h.x+18,h.y+12);ctx.stroke();
+    ctx.strokeStyle='#9a6136';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(h.x-4,h.y-5);ctx.lineTo(h.x+8,h.y-22);ctx.moveTo(h.x+8,h.y+3);ctx.lineTo(h.x+24,h.y-6);ctx.stroke();
+    ctx.fillStyle='#d97b32';ctx.beginPath();ctx.ellipse(h.x+22,h.y-9,5,3,-.4,0,Math.PI*2);ctx.fill();
+  }else if(h.kind==='ice'){
+    const g=ctx.createLinearGradient(h.x,h.y-34,h.x,h.y+8);g.addColorStop(0,'#eaffff');g.addColorStop(.55,'#9be6ff');g.addColorStop(1,'#4ca5d5');
+    ctx.fillStyle=g;ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(h.x-16,h.y-32);ctx.lineTo(h.x+14,h.y-25);ctx.lineTo(h.x+6,h.y+8);ctx.lineTo(h.x,h.y+17);ctx.lineTo(h.x-7,h.y+5);ctx.closePath();ctx.fill();ctx.stroke();
+  }else{
+    const pulse=1+Math.sin(game.time*.12+p.phase)*.12;
+    const g=ctx.createRadialGradient(h.x,h.y,2,h.x,h.y,30*pulse);g.addColorStop(0,'rgba(255,255,255,.95)');g.addColorStop(.35,'rgba(190,120,255,.75)');g.addColorStop(1,'rgba(80,180,255,0)');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(h.x,h.y,30*pulse,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#e8c7ff';ctx.beginPath();ctx.arc(h.x,h.y,9,0,Math.PI*2);ctx.fill();
+    for(let i=0;i<4;i++){const a=game.time*.04+i*Math.PI/2;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(h.x+Math.cos(a)*15,h.y+Math.sin(a)*15,1.5,0,Math.PI*2);ctx.fill();}
+  }
+  ctx.restore();
+}
+function biomeHazardCollision(p){
+  const h=biomeHazard(p), f=game.f;
+  if(h.kind==='orb') return Math.hypot(f.x-h.x,f.y-h.y)<19;
+  const radius=h.kind==='croc'?22:h.kind==='branch'?18:h.kind==='ice'?16:13;
+  return Math.hypot(f.x-h.x,f.y-h.y)<radius;
+}
+
 function start(){
   confetti=[]; celebration=0; celebrationText=''; lastCelebratedScore=0;
   game={
@@ -461,10 +522,14 @@ function start(){
     fireflies:[],fireflyCount:0,fireflyTimer:0,lastEyeMilestone:0,lastEyeSoundMilestone:0,eyeType:'normal',lastSpecialFireflyMilestone:0,croakTimer:8,fireflyCombo:0,bestFireflyCombo:0,comboTimer:0,snakesPassed:0,reaction:'normal',reactionTimer:0,effects:[],
     powerup:null,nextPowerupScore:20,slowTimer:0,magnetTimer:0,magnetTarget:null,doubleTimer:0,shield:0,shieldInvuln:0,
     targetCenter:H*.46,
+    ability: frogAbility(),
+    fireflyBoost: frogAbility().fireflyBoost,
+    hotStreak:0,
     f:{x:W*.25,y:H*.46,vy:0,rot:0,blink:0},
     pipes:[]
   };
   if(powerHud)powerHud.classList.add('hidden');
+  if(selectedSkin==='midnight') game.shield=1;
   scoreEl.textContent='0';
   fireflyEl.textContent='0';
   bankedHudEl.textContent=bankedFireflies;
@@ -492,7 +557,7 @@ function jump(){
   initAudio();
   startMusic();
   sfxJump();
-  game.f.vy=-7.85;
+  game.f.vy=(game.ability?.jump||-7.85);
   game.f.rot=-.45;
 }
 
@@ -1423,9 +1488,10 @@ function spawnFirefly(){
   // and only begin appearing once their score threshold has been reached.
   let rareType=null;
   const rareRoll=Math.random();
-  if(game.score>=100 && rareRoll<0.035) rareType='black';
-  else if(game.score>=70 && rareRoll<0.06) rareType='diamond';
-  else if(game.score>=50 && rareRoll<0.10) rareType='rainbow';
+  const rareBoost=game.ability?.rareBoost||1;
+  if(game.score>=100 && rareRoll<0.035*rareBoost) rareType='black';
+  else if(game.score>=70 && rareRoll<0.06*rareBoost) rareType='diamond';
+  else if(game.score>=50 && rareRoll<0.10*rareBoost) rareType='rainbow';
 
   const fireflyX=target.x+72+Math.random()*48;
   const value=rareType==='black'?50:rareType==='diamond'?20:rareType==='rainbow'?10:(special?5:1);
@@ -1469,7 +1535,8 @@ function updateFireflies(dt){
       game.fireflies.splice(i,1);
       if(game.magnetTarget===f){ game.magnetTarget=null; game.magnetTimer=0; }
       const value=f.value||1;
-      game.fireflyCount+=Math.round(value*(game.doubleTimer>0?1.5:1));
+      const abilityMult=(game.fireflyBoost||1)*(game.hotStreak>0?1.35:1);
+      game.fireflyCount+=Math.round(value*(game.doubleTimer>0?1.5:1)*abilityMult);
       fireflyEl.textContent=game.fireflyCount;
       game.fireflyCombo = game.comboTimer>0 ? Math.min(5,game.fireflyCombo+1) : 1;
       game.bestFireflyCombo=Math.max(game.bestFireflyCombo,game.fireflyCombo);
@@ -1477,7 +1544,7 @@ function updateFireflies(dt){
       game.comboTimer=4.5;
       const multiplier=game.fireflyCombo>=5?3:game.fireflyCombo>=3?2:1;
       // Firefly combos affect firefly rewards only. They never change the main score.
-      const awarded=Math.round(value*multiplier*(game.doubleTimer>0?1.5:1));
+      const awarded=Math.round(value*multiplier*(game.doubleTimer>0?1.5:1)*abilityMult);
       const totalFF=Number(localStorage.getItem('frogHopTotalFireflies')||0)+awarded;
       localStorage.setItem('frogHopTotalFireflies',String(totalFF));
       bankedFireflies+=awarded;saveCollection();bankedHudEl.textContent=bankedFireflies;
@@ -1531,11 +1598,13 @@ function drawFireflies(){
 function draw(){
   bg();
   if(!game)return;
+  if(game.time<150){ctx.save();ctx.font='800 10px system-ui';ctx.textAlign='left';ctx.fillStyle='rgba(255,255,255,.62)';ctx.fillText('🐸 '+(game.ability?.name||'Swampy')+' • '+(game.ability?.desc||''),12,H-12);ctx.restore();}
   for(const p of game.pipes){
     const length=Math.max(330,H*.66);
     snake(p.x,p.g-p.gap/2,length,true,p.phase,p.type);
     snake(p.x,p.g+p.gap/2,length,false,p.phase+1.2,p.type);
   }
+  for(const p of game.pipes){ drawBiomeHazard(p); }
   for(const f of game.fireflies){if(f.rareType)drawRareFirefly(f); else if(f.special)drawSpecialFirefly(f);} drawFireflies();
   drawPowerup();
   frog();
@@ -1549,6 +1618,7 @@ function loop(t){
     game.time+=dt;
     game.comboTimer-=dt/60; if(game.comboTimer<=0){game.fireflyCombo=0;comboHud.classList.add('hidden')}
     game.reactionTimer-=dt/60; if(game.reactionTimer<=0)game.reaction='normal';
+    if(game.hotStreak>0) game.hotStreak-=dt/60;
     game.croakTimer-=dt/60;
     if(game.croakTimer<=0){ if(Math.random()<.45){ initAudio(); sfxCroak(); } game.croakTimer=9+Math.random()*12; }
     updateCelebration(dt);
@@ -1568,7 +1638,7 @@ function loop(t){
       p.x-=movementSpeed*dt;
 
       if(!p.scored && p.x+p.w<game.f.x){
-        p.scored=true; game.snakesPassed++; checkAchievements();
+        p.scored=true; game.snakesPassed++; if(selectedSkin==='red' && game.snakesPassed%10===0) game.hotStreak=3.5; checkAchievements();
         initAudio(); sfxPass(); burstEffect(p.x+p.w*.5,game.f.y+18,'pass',6);
         game.score+=1;checkEyeMilestone();checkAchievements();checkPowerupMilestone();
         scoreEl.textContent=game.score;
@@ -1584,7 +1654,8 @@ function loop(t){
       const gapTop=p.g-p.gap/2;
       const gapBottom=p.g+p.gap/2;
       const hitY=game.f.y-fy<gapTop || game.f.y+fy>gapBottom;
-      if(hitX&&hitY && game.shieldInvuln<=0){
+      const specialHazardHit=biomeHazardCollision(p);
+      if((hitX&&hitY || specialHazardHit) && game.shieldInvuln<=0){
         if(game.shield>0){
           game.shield=0;
           game.shieldInvuln=1.0;
