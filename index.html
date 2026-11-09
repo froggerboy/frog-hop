@@ -60,7 +60,8 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 .skin.locked .skincost{opacity:.85}
 .upgradeRow{margin-top:7px;width:100%;display:flex;flex-direction:column;gap:4px}
 .upgradeLevel{font-size:10px;font-weight:900;color:#bfe8dc;letter-spacing:.4px}
-.upgradeBtn{width:100%;padding:7px 6px!important;font-size:11px!important;border-radius:10px!important;box-shadow:0 3px 0 #4f8b27!important}
+.upgradeBtn{width:100%;padding:7px 6px!important;font-size:11px!important;border-radius:10px!important;box-shadow:none!important;opacity:.45;filter:saturate(.65)}
+.upgradeBtn.affordable{box-shadow:0 3px 0 #4f8b27!important;opacity:1;filter:none;transform:translateY(0)}
 .upgradeBtn:disabled{opacity:.45;box-shadow:none!important;transform:none!important}
 .upgradeMax{font-size:11px;color:#fff5a0;font-weight:900}
 
@@ -221,7 +222,7 @@ function renderShop(){
       '</div>' +
       (unlocked && skin.id!=='green' ? (function(){
         const lvl=upgradeLevel(skin.id), next=UPGRADE_COSTS[lvl], can=bankedFireflies>=next;
-        return '<div class="upgradeRow"><div class="upgradeLevel">UPGRADES: '+('★'.repeat(lvl)+'☆'.repeat(3-lvl))+'</div>'+(lvl<3 ? '<button class="upgradeBtn" type="button" data-upgrade="'+skin.id+'">⬆ UPGRADE TO '+UPGRADE_NAMES[lvl].toUpperCase()+' • ✨ '+next+'</button>' : '<div class="upgradeMax">MAX LEVEL</div>')+'</div>';
+        return '<div class="upgradeRow"><div class="upgradeLevel">UPGRADES: '+('★'.repeat(lvl)+'☆'.repeat(3-lvl))+'</div>'+(lvl<3 ? '<button class="upgradeBtn'+(can?' affordable':'')+'" type="button" data-upgrade="'+skin.id+'">⬆ UPGRADE TO '+UPGRADE_NAMES[lvl].toUpperCase()+' • ✨ '+next+'</button>' : '<div class="upgradeMax">MAX LEVEL</div>')+'</div>';
       })() : (unlocked && skin.id==='green' ? '<div class="upgradeRow"><div class="upgradeLevel">BASELINE FROG • NO UPGRADES</div></div>' : ''));
 
     function chooseSkin(e){
@@ -561,7 +562,7 @@ function start(){
   game={
     run:true,score:0,time:0,speed:3.8,next:0,
     fireflies:[],fireflyCount:0,fireflyTimer:0,lastEyeMilestone:0,lastEyeSoundMilestone:0,eyeType:'normal',lastSpecialFireflyMilestone:0,croakTimer:8,fireflyCombo:0,bestFireflyCombo:0,comboTimer:0,snakesPassed:0,reaction:'normal',reactionTimer:0,effects:[],
-    powerup:null,nextPowerupScore:20,slowTimer:0,magnetTimer:0,magnetTarget:null,doubleTimer:0,fireflyFrenzyTimer:0,shield:0,shieldInvuln:0,
+    powerup:null,nextPowerupScore:15,slowTimer:0,magnetTimer:0,magnetTarget:null,doubleTimer:0,fireflyFrenzyTimer:0,shield:0,shieldInvuln:0,
     targetCenter:H*.46,
     ability: frogAbility(),
     fireflyBoost: frogAbility().fireflyBoost,
@@ -1316,7 +1317,7 @@ function checkPowerupMilestone(){
   if(!game || !game.run) return;
   if(game.score < game.nextPowerupScore) return;
   const targetScore=game.nextPowerupScore;
-  game.nextPowerupScore = (Math.floor(game.score/20)+1)*20;
+  game.nextPowerupScore = (Math.floor(game.score/15)+1)*15;
   if(!game.powerup && !game.powerupPending) spawnPowerup(targetScore);
   else if(!game.powerupPending) game.powerupPending=targetScore;
 }
