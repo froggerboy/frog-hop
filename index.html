@@ -41,7 +41,7 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 .skincost{font-size:13px;margin-top:4px;color:#fff5a0}
 .secondary{margin-top:8px;background:rgba(255,255,255,.12)!important}
 
-.runflies{position:fixed;left:50%;bottom:22vh;transform:translateX(-50%);z-index:6;display:inline-flex;align-items:center;justify-content:center;gap:5px;margin:0;padding:8px 15px;border-radius:999px;background:rgba(10,42,39,.84);border:2px solid rgba(255,245,160,.78);box-shadow:0 0 0 2px rgba(255,255,255,.08),0 5px 16px rgba(0,0,0,.3);font-size:14px;letter-spacing:.4px;font-weight:950;opacity:1;color:#fff8bd;white-space:nowrap;pointer-events:none}.runflies #fireflyCount{font-size:20px;color:#fff;font-weight:1000;text-shadow:0 0 10px rgba(255,236,92,.75)}
+.runflies{position:fixed;left:50%;bottom:12vh;transform:translateX(-50%);z-index:6;display:inline-flex;align-items:center;justify-content:center;gap:5px;margin:0;padding:8px 15px;border-radius:999px;background:rgba(10,42,39,.84);border:2px solid rgba(255,245,160,.78);box-shadow:0 0 0 2px rgba(255,255,255,.08),0 5px 16px rgba(0,0,0,.3);font-size:14px;letter-spacing:.4px;font-weight:950;opacity:1;color:#fff8bd;white-space:nowrap;pointer-events:none}.runflies #fireflyCount{font-size:20px;color:#fff;font-weight:1000;text-shadow:0 0 10px rgba(255,236,92,.75)}
 #shopBtn{margin-top:10px}
 
 #shopBtn{position:relative;z-index:50;pointer-events:auto;touch-action:manipulation}
@@ -561,7 +561,7 @@ function start(){
   game={
     run:true,score:0,time:0,speed:3.8,next:0,
     fireflies:[],fireflyCount:0,fireflyTimer:0,lastEyeMilestone:0,lastEyeSoundMilestone:0,eyeType:'normal',lastSpecialFireflyMilestone:0,croakTimer:8,fireflyCombo:0,bestFireflyCombo:0,comboTimer:0,snakesPassed:0,reaction:'normal',reactionTimer:0,effects:[],
-    powerup:null,nextPowerupScore:20,slowTimer:0,magnetTimer:0,magnetTarget:null,doubleTimer:0,shield:0,shieldInvuln:0,
+    powerup:null,nextPowerupScore:20,slowTimer:0,magnetTimer:0,magnetTarget:null,doubleTimer:0,fireflyFrenzyTimer:0,shield:0,shieldInvuln:0,
     targetCenter:H*.46,
     ability: frogAbility(),
     fireflyBoost: frogAbility().fireflyBoost,
@@ -1308,7 +1308,8 @@ const POWERUPS=[
   {id:'slow',name:'SLOW-MO',icon:'🐌',duration:7},
   {id:'shield',name:'LILY SHIELD',icon:'🛡️',duration:0},
   {id:'magnet',name:'FIREFLY MAGNET',icon:'🧲',duration:8},
-  {id:'double',name:'FROG FRENZY',icon:'⚡',duration:5}
+  {id:'double',name:'FROG FRENZY',icon:'⚡',duration:5},
+  {id:'fireflyfrenzy',name:'FIREFLY FRENZY',icon:'✨',duration:10}
 ];
 
 function checkPowerupMilestone(){
@@ -1340,9 +1341,11 @@ function updatePowerup(dt){
   if(game.slowTimer>0) game.slowTimer-=dt/60;
   if(game.magnetTimer>0) game.magnetTimer-=dt/60;
   if(game.doubleTimer>0) game.doubleTimer-=dt/60;
+  if(game.fireflyFrenzyTimer>0) game.fireflyFrenzyTimer-=dt/60;
   if(game.slowTimer<=0) game.slowTimer=0;
   if(game.magnetTimer<=0) game.magnetTimer=0;
   if(game.doubleTimer<=0) game.doubleTimer=0;
+  if(game.fireflyFrenzyTimer<=0) game.fireflyFrenzyTimer=0;
   if(game.shieldInvuln>0) game.shieldInvuln-=dt;
 
   if(game.powerup){
@@ -1362,6 +1365,17 @@ function updatePowerup(dt){
         game.magnetTarget=closest;
       }
       if(p.id==='double') game.doubleTimer=p.duration;
+      if(p.id==='fireflyfrenzy'){
+        game.fireflyFrenzyTimer=p.duration;
+        // Immediately seed the next few snakes already on screen. New snakes
+        // are seeded as they spawn while the frenzy timer is active.
+        for(const pipe of game.pipes){
+          if(!pipe.scored && pipe.x>game.f.x+80 && !pipe.fireflyFrenzySpawned){
+            spawnFrenzyFirefliesForPipe(pipe);
+            pipe.fireflyFrenzySpawned=true;
+          }
+        }
+      }
       game.powerup=null;
       initAudio(); sfxPowerup();
       game.reaction='excited'; game.reactionTimer=1.4;
@@ -1380,6 +1394,7 @@ function updatePowerup(dt){
   if(game.shield>0) active.push('🛡️ SHIELD');
   if(game.magnetTimer>0) active.push('🧲 MAGNET '+Math.ceil(game.magnetTimer)+'s');
   if(game.doubleTimer>0) active.push('⚡ DOUBLE '+Math.ceil(game.doubleTimer)+'s');
+  if(game.fireflyFrenzyTimer>0) active.push('✨ FIREFLY FRENZY '+Math.ceil(game.fireflyFrenzyTimer)+'s');
   if(powerHud){
     if(active.length){ powerHud.textContent=active.join('  •  '); powerHud.classList.remove('hidden'); }
     else powerHud.classList.add('hidden');
@@ -1400,6 +1415,22 @@ function drawPowerup(){
   ctx.font='21px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(p.icon,0,1);
   ctx.font='900 9px system-ui';ctx.fillStyle='#fff';ctx.fillText(p.name,0,34);
   ctx.restore();
+}
+
+function spawnFrenzyFirefliesForPipe(target){
+  if(!game || !game.run || !target || game.fireflies.length>=8) return;
+  const top=target.g-target.gap/2, bottom=target.g+target.gap/2;
+  const margin=38, usable=Math.max(20,bottom-top-margin*2);
+  for(let i=0;i<3 && game.fireflies.length<8;i++){
+    const fireflyX=target.x+72+i*34+Math.random()*22;
+    const y=top+margin+(.18+Math.random()*.64)*usable;
+    game.fireflies.push({
+      baseX:fireflyX,x:fireflyX,
+      baseY:y,y:y,phase:Math.random()*Math.PI*2,life:0,
+      value:1,special:false,rareType:null,
+      verticalRange:Math.max(70,H*.42),frenzySpawn:true
+    });
+  }
 }
 
 function spawn(){
@@ -1427,10 +1458,16 @@ function spawn(){
   center=clamp(center,safeTop,safeBottom);
   game.targetCenter=center;
 
-  game.pipes.push({
+  const pipe={
     x:W+95,w:58,g:center,gap,
-    scored:false,phase:Math.random()*Math.PI*2,type:(game.score>=100?'fire':game.score>=75?'ghost':game.score>=50?'slither':game.score>=25?'blue':'normal')
-  });
+    scored:false,phase:Math.random()*Math.PI*2,type:(game.score>=100?'fire':game.score>=75?'ghost':game.score>=50?'slither':game.score>=25?'blue':'normal'),
+    fireflyFrenzySpawned:false
+  };
+  game.pipes.push(pipe);
+  if(game.fireflyFrenzyTimer>0){
+    spawnFrenzyFirefliesForPipe(pipe);
+    pipe.fireflyFrenzySpawned=true;
+  }
 }
 
 
