@@ -491,7 +491,7 @@ const FROG_ABILITIES={
   red:{name:'Ember',desc:'Giant Glow — every upgrade makes fireflies larger',jump:-7.85,rareBoost:1.2,fireflyBoost:1.12},
   midnight:{name:'Midnight',desc:'Night Guard — every upgrade adds another starting shield, up to three',jump:-7.85,rareBoost:1.5,fireflyBoost:1.1},
   rainbow:{name:'Rainbow',desc:'Rainbow Master — shields, bigger fireflies and higher-value fireflies all improve each level',jump:-8.05,rareBoost:3.0,fireflyBoost:1.8},
-  royalgold:{name:'Legendary Gold',desc:'Legendary Fortune — shields, huge valuable fireflies, stronger leaps and the best rare-firefly luck',jump:-8.1,rareBoost:2.4,fireflyBoost:2.2}
+  royalgold:{name:'Legendary Gold',desc:'Legendary Fortune — shields, extra fireflies, huge valuable fireflies, stronger leaps and the best rare-firefly luck',jump:-8.1,rareBoost:2.4,fireflyBoost:2.2}
 };
 function frogAbility(){
   const a=FROG_ABILITIES[selectedSkin]||FROG_ABILITIES.green;
@@ -503,7 +503,7 @@ function frogAbility(){
   if(selectedSkin==='red'){out.fireflySize=1+0.22*lvl;out.fireflyBoost=a.fireflyBoost+0.10*lvl;}
   if(selectedSkin==='midnight'){out.startShields=Math.min(3,1+lvl);out.fireflyBoost=a.fireflyBoost+0.08*lvl;}
   if(selectedSkin==='rainbow'){out.startShields=Math.min(3,1+lvl);out.fireflySize=1+0.20*lvl;out.fireflyBoost=a.fireflyBoost+0.55*lvl;out.rareBoost=a.rareBoost+0.45*lvl;}
-  if(selectedSkin==='royalgold'){out.startShields=Math.min(3,1+lvl);out.fireflySize=1+0.28*lvl;out.fireflyBoost=a.fireflyBoost+0.75*lvl;out.rareBoost=a.rareBoost+0.75*lvl;out.jump=a.jump-0.40*lvl;out.fortuneChance=[0,0.18,0.28,0.40][lvl]||0;out.fortuneCount=3;}
+  if(selectedSkin==='royalgold'){out.startShields=Math.min(3,1+lvl);out.extraFireflies=lvl;out.fireflySize=1+0.28*lvl;out.fireflyBoost=a.fireflyBoost+0.75*lvl;out.rareBoost=a.rareBoost+0.75*lvl;out.jump=a.jump-0.40*lvl;out.fortuneChance=[0,0.18,0.28,0.40][lvl]||0;out.fortuneCount=3;}
   return out;
 }
 function fireflyScale(){ return game?.ability?.fireflySize || 1; }
