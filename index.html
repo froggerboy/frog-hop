@@ -41,7 +41,7 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 .skincost{font-size:13px;margin-top:4px;color:#fff5a0}
 .secondary{margin-top:8px;background:rgba(255,255,255,.12)!important}
 
-.runflies{font-size:9px;letter-spacing:.7px;font-weight:800;opacity:.72;margin-top:1px}
+.runflies{display:inline-flex;align-items:center;justify-content:center;gap:5px;margin-top:5px;padding:7px 13px;border-radius:999px;background:rgba(10,42,39,.78);border:2px solid rgba(255,245,160,.72);box-shadow:0 0 0 2px rgba(255,255,255,.08),0 5px 16px rgba(0,0,0,.28);font-size:14px;letter-spacing:.4px;font-weight:950;opacity:1;color:#fff8bd;white-space:nowrap}.runflies #fireflyCount{font-size:19px;color:#fff;font-weight:1000;text-shadow:0 0 10px rgba(255,236,92,.75)}
 #shopBtn{margin-top:10px}
 
 #shopBtn{position:relative;z-index:50;pointer-events:auto;touch-action:manipulation}
@@ -80,7 +80,7 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 <canvas id="c"></canvas>
 <div id="hud">
   <div class="hudbox"><span class="hudlabel">Best</span><span class="hudnum" id="best">0</span></div>
-  <div id="centerScore"><div class="num" id="score">0</div><div class="label" id="envLabel">SWAMP</div><div class="runflies">✨ <span id="fireflyCount">0</span> this run</div></div><div id="comboHud" class="combo hidden">✨ COMBO x2</div><div id="powerHud" class="powerhud hidden"></div>
+  <div id="centerScore"><div class="num" id="score">0</div><div class="label" id="envLabel">SWAMP</div><div class="runflies">✨ <span id="fireflyCount">0</span><span>FIREFLIES THIS RUN</span></div></div><div id="comboHud" class="combo hidden">✨ COMBO x2</div><div id="powerHud" class="powerhud hidden"></div>
   <div class="hudbox"><span class="hudlabel">Fireflies ✨</span><span class="hudnum" id="bankedHUD">0</span></div>
 </div>
 
@@ -483,29 +483,28 @@ addEventListener('resize',size); size();
 const overlay=document.getElementById('overlay'),btn=document.getElementById('btn'),msg=document.getElementById('msg');
 
 const FROG_ABILITIES={
-  green:{name:'Swampy',desc:'Balanced — no special ability',jump:-7.85,rareBoost:1,fireflyBoost:1},
-  blue:{name:'Bluebolt',desc:'Skybound — each upgrade gives Bluebolt a stronger, springier leap',jump:-8.45,rareBoost:1,fireflyBoost:1},
-  purple:{name:'Mystic',desc:'Mystic Luck — each upgrade makes rare fireflies appear more often',jump:-7.85,rareBoost:1.65,fireflyBoost:1},
-  gold:{name:'Sunbeam',desc:'Golden Harvest — each upgrade makes every firefly reward a little brighter',jump:-7.85,rareBoost:1,fireflyBoost:1.5},
-  red:{name:'Ember',desc:'Hot Streak — each upgrade extends Ember’s bonus and makes it burn brighter',jump:-7.85,rareBoost:1.1,fireflyBoost:1},
-  midnight:{name:'Midnight',desc:'Night Guard — each upgrade grants another Lily Shield at the start of a run',jump:-7.85,rareBoost:1.25,fireflyBoost:1},
-  rainbow:{name:'Rainbow',desc:'Rainbow Luck — each upgrade dramatically improves the chance of rare fireflies',jump:-7.95,rareBoost:2.15,fireflyBoost:1.5},
-  royalgold:{name:'Legendary Gold',desc:'Royal Fortune — each upgrade boosts rare fireflies and the rewards they bring',jump:-7.95,rareBoost:1.55,fireflyBoost:1.75}
+  green:{name:'Swampy',desc:'Balanced — the classic Frog Hop experience',jump:-7.85,rareBoost:1,fireflyBoost:1},
+  blue:{name:'Bluebolt',desc:'Skybound — stronger hops and a much better chance to chase fireflies',jump:-8.65,rareBoost:1.05,fireflyBoost:1.12},
+  purple:{name:'Mystic',desc:'Mystic Luck — rare fireflies appear far more often',jump:-7.85,rareBoost:2.1,fireflyBoost:1.08},
+  gold:{name:'Sunbeam',desc:'Golden Harvest — fireflies are worth noticeably more',jump:-7.85,rareBoost:1.2,fireflyBoost:1.8},
+  red:{name:'Ember',desc:'Hot Streak — every 10 snakes ignites a powerful firefly bonus',jump:-7.85,rareBoost:1.2,fireflyBoost:1.12},
+  midnight:{name:'Midnight',desc:'Night Guard — begin each run with multiple Lily Shields',jump:-7.85,rareBoost:1.5,fireflyBoost:1.1},
+  rainbow:{name:'Rainbow',desc:'Rainbow Luck — rare fireflies become dramatically easier to find',jump:-8.05,rareBoost:3.0,fireflyBoost:1.8},
+  royalgold:{name:'Legendary Gold',desc:'Royal Fortune — the strongest firefly hunting and reward bonus',jump:-8.1,rareBoost:2.4,fireflyBoost:2.2}
 };
 function frogAbility(){
   const a=FROG_ABILITIES[selectedSkin]||FROG_ABILITIES.green;
   const lvl=upgradeLevel(selectedSkin);
   const out={...a,level:lvl};
-  if(selectedSkin==='blue') out.jump=a.jump-0.15*lvl;
-  if(selectedSkin==='purple') out.rareBoost=a.rareBoost+0.28*lvl;
-  if(selectedSkin==='gold') out.fireflyBoost=a.fireflyBoost+0.22*lvl;
-  if(selectedSkin==='red'){out.hotStreakDuration=3.5+1.1*lvl;out.hotStreakMult=1.35+0.12*lvl;}
-  if(selectedSkin==='midnight') out.startShields=1+lvl;
-  if(selectedSkin==='rainbow') out.rareBoost=a.rareBoost+0.42*lvl;
-  if(selectedSkin==='royalgold'){out.rareBoost=a.rareBoost+0.3*lvl;out.fireflyBoost=a.fireflyBoost+0.25*lvl;}
+  if(selectedSkin==='blue'){out.jump=a.jump-0.28*lvl;out.fireflyBoost=a.fireflyBoost+0.12*lvl;}
+  if(selectedSkin==='purple'){out.rareBoost=a.rareBoost+0.65*lvl;out.fireflyBoost=a.fireflyBoost+0.10*lvl;}
+  if(selectedSkin==='gold'){out.fireflyBoost=a.fireflyBoost+0.35*lvl;out.rareBoost=a.rareBoost+0.18*lvl;}
+  if(selectedSkin==='red'){out.hotStreakDuration=5+1.5*lvl;out.hotStreakMult=1.55+0.2*lvl;out.fireflyBoost=a.fireflyBoost+0.12*lvl;}
+  if(selectedSkin==='midnight'){out.startShields=1+lvl*2;out.fireflyBoost=a.fireflyBoost+0.10*lvl;}
+  if(selectedSkin==='rainbow'){out.rareBoost=a.rareBoost+0.8*lvl;out.fireflyBoost=a.fireflyBoost+0.18*lvl;}
+  if(selectedSkin==='royalgold'){out.rareBoost=a.rareBoost+0.65*lvl;out.fireflyBoost=a.fireflyBoost+0.35*lvl;}
   return out;
 }
-function frogAbility(){return FROG_ABILITIES[selectedSkin]||FROG_ABILITIES.green}
 function biomeIndexNow(){return Math.floor((game?.snakesPassed||0)/30)%5}
 function biomeHazard(p){
   const b=biomeIndexNow();
@@ -1582,8 +1581,6 @@ function updateFireflies(dt){
       if(game.magnetTarget===f){ game.magnetTarget=null; game.magnetTimer=0; }
       const value=f.value||1;
       const abilityMult=(game.fireflyBoost||1)*(game.hotStreak>0?(game.ability.hotStreakMult||1.35):1);
-      game.fireflyCount+=Math.round(value*(game.doubleTimer>0?1.5:1)*abilityMult);
-      fireflyEl.textContent=game.fireflyCount;
       game.fireflyCombo = game.comboTimer>0 ? Math.min(5,game.fireflyCombo+1) : 1;
       game.bestFireflyCombo=Math.max(game.bestFireflyCombo,game.fireflyCombo);
       game.fireflyTimer=2.0;
@@ -1591,6 +1588,8 @@ function updateFireflies(dt){
       const multiplier=game.fireflyCombo>=5?3:game.fireflyCombo>=3?2:1;
       // Firefly combos affect firefly rewards only. They never change the main score.
       const awarded=Math.round(value*multiplier*(game.doubleTimer>0?1.5:1)*abilityMult);
+      game.fireflyCount+=awarded;
+      fireflyEl.textContent=game.fireflyCount;
       // Fireflies earned during a run stay in the run balance until the run ends.
       // At game over they are banked into the permanent currency balance.
 
