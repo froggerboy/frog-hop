@@ -681,6 +681,7 @@ function snake(x,edge,length,top,phase=0,type='normal'){
   if(type==='ghost'){snakeMain='#b7f5e9';snakeDark='#5b9e9a';snakeLight='#f0ffff'}
   if(type==='fire'){snakeMain='#ff7545';snakeDark='#8e281b';snakeLight='#ffe08a'}
   if(type==='slither') x+=Math.sin((game.time*.045)+phase)*26;
+  else if(type==='normal') x+=Math.sin((game.time*.035)+phase)*3;
   if(type==='blue') x+=Math.sin((game.time*.022)+phase)*7;
   if(type==='fire') x+=Math.sin((game.time*.06)+phase)*10;
 
@@ -722,6 +723,14 @@ function snake(x,edge,length,top,phase=0,type='normal'){
     ctx.beginPath();ctx.ellipse(xx,yy,5,7,dir*.12,0,Math.PI*2);ctx.fill();
   }
 
+  // Extra scale texture along the sides.
+  ctx.strokeStyle='rgba(255,255,255,.18)';ctx.lineWidth=1.4;
+  for(let i=0;i<16;i++){
+    const yy=edge+dir*(10+i*22);
+    const xx=x+Math.sin(i*.9+phase)*amp*.48;
+    ctx.beginPath();ctx.arc(xx,yy,5.5,0.15*Math.PI,0.85*Math.PI);ctx.stroke();
+  }
+
   // Head at the opening, angled into the gap.
   const hx=x,hy=edge+dir*2;
   ctx.fillStyle=snakeMain;ctx.strokeStyle=snakeDark;ctx.lineWidth=4;
@@ -745,13 +754,34 @@ function snake(x,edge,length,top,phase=0,type='normal'){
   ctx.strokeStyle='#173421';ctx.lineWidth=2.4;
   ctx.beginPath();ctx.moveTo(hx-11,hy+dir*22);ctx.quadraticCurveTo(hx,hy+dir*28,hx+11,hy+dir*22);ctx.stroke();
 
-  // Forked tongue pointing into the gap.
+  // Animated forked tongue: quick little flicks while the snake is on screen.
+  const tonguePhase=(game.time*0.18+phase)%3.2;
+  const tongueOut=tonguePhase<0.55 ? Math.sin(tonguePhase/0.55*Math.PI) : 0;
+  const tongueLen=14+tongueOut*18;
   ctx.strokeStyle='#ef5b62';ctx.lineWidth=2.8;ctx.lineCap='round';
   ctx.beginPath();
-  ctx.moveTo(hx,hy+dir*27);ctx.lineTo(hx,hy+dir*41);
-  ctx.moveTo(hx,hy+dir*39);ctx.lineTo(hx-6,hy+dir*46);
-  ctx.moveTo(hx,hy+dir*39);ctx.lineTo(hx+6,hy+dir*46);
+  ctx.moveTo(hx,hy+dir*27);ctx.lineTo(hx,hy+dir*(27+tongueLen));
+  ctx.moveTo(hx,hy+dir*(25+tongueLen));ctx.lineTo(hx-6,hy+dir*(31+tongueLen));
+  ctx.moveTo(hx,hy+dir*(25+tongueLen));ctx.lineTo(hx+6,hy+dir*(31+tongueLen));
   ctx.stroke();
+
+  // Tiny cheek/jaw contour for a more defined head.
+  ctx.strokeStyle='rgba(20,45,28,.42)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(hx,hy+dir*13,19,0.15*Math.PI,0.85*Math.PI);ctx.stroke();
+
+  // Expressive brows and blinking eyes.
+  const blinkCycle=(game.time*0.75+phase)%5.5;
+  const blinking=blinkCycle>5.05;
+  ctx.strokeStyle=snakeDark;ctx.lineWidth=3;ctx.lineCap='round';
+  const browTilt=type==='fire'?-0.28:(type==='ghost'?0.12:0);
+  ctx.beginPath();
+  ctx.moveTo(hx-18,hy-dir*14);ctx.lineTo(hx-7,hy-dir*(18+browTilt*10));
+  ctx.moveTo(hx+7,hy-dir*(18+browTilt*10));ctx.lineTo(hx+18,hy-dir*14);ctx.stroke();
+  if(blinking){
+    ctx.strokeStyle=snakeDark;ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(hx-18,hy-dir*7);ctx.quadraticCurveTo(hx-12,hy-dir*3,hx-6,hy-dir*7);
+    ctx.moveTo(hx+6,hy-dir*7);ctx.quadraticCurveTo(hx+12,hy-dir*3,hx+18,hy-dir*7);ctx.stroke();
+  }
 
   ctx.restore();
 }
