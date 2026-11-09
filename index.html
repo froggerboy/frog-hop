@@ -739,11 +739,16 @@ function snake(x,edge,length,top,phase=0,type='normal'){
   // Snout.
   ctx.fillStyle=snakeLight;ctx.beginPath();ctx.ellipse(hx,hy+dir*18,21,13,0,0,Math.PI*2);ctx.fill();ctx.stroke();
 
-  // Eye stalks and eyes.
+  // Eye stalks and eyes. Keep the eye drawing stable; the blink is handled below.
+  const blinkCycle=(game.time*0.75+phase)%5.5;
+  const blinking=blinkCycle>5.05;
   for(const s of [-1,1]){
     ctx.fillStyle=snakeMain;ctx.beginPath();ctx.arc(hx+s*12,hy-dir*6,10,0,Math.PI*2);ctx.fill();ctx.stroke();
-    ctx.fillStyle='#f8fff2';ctx.beginPath();ctx.arc(hx+s*12,hy-dir*7,6.2,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#15251a';ctx.beginPath();ctx.arc(hx+s*13,hy-dir*7,2.8,0,Math.PI*2);ctx.fill();
+    if(!blinking){
+      ctx.fillStyle='#f8fff2';ctx.beginPath();ctx.arc(hx+s*12,hy-dir*7,6.2,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#15251a';ctx.beginPath();ctx.arc(hx+s*13,hy-dir*7,2.8,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(hx+s*13.8,hy-dir*8,0.9,0,Math.PI*2);ctx.fill();
+    }
   }
 
   // Nostrils.
@@ -770,8 +775,6 @@ function snake(x,edge,length,top,phase=0,type='normal'){
   ctx.beginPath();ctx.arc(hx,hy+dir*13,19,0.15*Math.PI,0.85*Math.PI);ctx.stroke();
 
   // Expressive brows and blinking eyes.
-  const blinkCycle=(game.time*0.75+phase)%5.5;
-  const blinking=blinkCycle>5.05;
   ctx.strokeStyle=snakeDark;ctx.lineWidth=3;ctx.lineCap='round';
   const browTilt=type==='fire'?-0.28:(type==='ghost'?0.12:0);
   ctx.beginPath();
