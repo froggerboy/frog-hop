@@ -739,16 +739,14 @@ function snake(x,edge,length,top,phase=0,type='normal'){
   // Snout.
   ctx.fillStyle=snakeLight;ctx.beginPath();ctx.ellipse(hx,hy+dir*18,21,13,0,0,Math.PI*2);ctx.fill();ctx.stroke();
 
-  // Eye stalks and eyes. Keep the eye drawing stable; the blink is handled below.
-  const blinkCycle=(game.time*0.75+phase)%5.5;
-  const blinking=blinkCycle>5.05;
+  // Stable eyes: no per-frame blinking animation. This keeps the snake eyes
+  // visually locked in place and prevents the flicker/stutter seen on mobile.
+  const blinking=false;
   for(const s of [-1,1]){
     ctx.fillStyle=snakeMain;ctx.beginPath();ctx.arc(hx+s*12,hy-dir*6,10,0,Math.PI*2);ctx.fill();ctx.stroke();
-    if(!blinking){
-      ctx.fillStyle='#f8fff2';ctx.beginPath();ctx.arc(hx+s*12,hy-dir*7,6.2,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='#15251a';ctx.beginPath();ctx.arc(hx+s*13,hy-dir*7,2.8,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(hx+s*13.8,hy-dir*8,0.9,0,Math.PI*2);ctx.fill();
-    }
+    ctx.fillStyle='#f8fff2';ctx.beginPath();ctx.arc(hx+s*12,hy-dir*7,6.2,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#15251a';ctx.beginPath();ctx.arc(hx+s*13,hy-dir*7,2.8,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(hx+s*13.8,hy-dir*8,0.9,0,Math.PI*2);ctx.fill();
   }
 
   // Nostrils.
@@ -780,11 +778,7 @@ function snake(x,edge,length,top,phase=0,type='normal'){
   ctx.beginPath();
   ctx.moveTo(hx-18,hy-dir*14);ctx.lineTo(hx-7,hy-dir*(18+browTilt*10));
   ctx.moveTo(hx+7,hy-dir*(18+browTilt*10));ctx.lineTo(hx+18,hy-dir*14);ctx.stroke();
-  if(blinking){
-    ctx.strokeStyle=snakeDark;ctx.lineWidth=3;
-    ctx.beginPath();ctx.moveTo(hx-18,hy-dir*7);ctx.quadraticCurveTo(hx-12,hy-dir*3,hx-6,hy-dir*7);
-    ctx.moveTo(hx+6,hy-dir*7);ctx.quadraticCurveTo(hx+12,hy-dir*3,hx+18,hy-dir*7);ctx.stroke();
-  }
+
 
   ctx.restore();
 }
@@ -1080,11 +1074,11 @@ const POWERUPS=[
 
 function checkPowerupMilestone(){
   if(!game || !game.run) return;
-  while(game.score>=game.nextPowerupScore){
-    const targetScore=game.nextPowerupScore;
-    game.nextPowerupScore+=20;
-    if(!game.powerup) spawnPowerup(targetScore);
-  }
+  if(game.score < game.nextPowerupScore) return;
+  const targetScore=game.nextPowerupScore;
+  game.nextPowerupScore = (Math.floor(game.score/20)+1)*20;
+  if(!game.powerup && !game.powerupPending) spawnPowerup(targetScore);
+  else if(!game.powerupPending) game.powerupPending=targetScore;
 }
 
 function spawnPowerup(milestone){
@@ -1300,15 +1294,14 @@ function updateFireflies(dt){
       game.fireflyTimer=2.0;
       game.comboTimer=4.5;
       const multiplier=game.fireflyCombo>=5?3:game.fireflyCombo>=3?2:1;
-      const awarded=value*multiplier;
-      game.score+=awarded;checkEyeMilestone();checkAchievements();checkPowerupMilestone();
-      scoreEl.textContent=game.score;
-      const totalFF=Number(localStorage.getItem('frogHopTotalFireflies')||0)+value;
+      // Firefly combos affect firefly rewards only. They never change the main score.
+      const awarded=Math.round(value*multiplier*(game.doubleTimer>0?1.5:1));
+      const totalFF=Number(localStorage.getItem('frogHopTotalFireflies')||0)+awarded;
       localStorage.setItem('frogHopTotalFireflies',String(totalFF));
       bankedFireflies+=awarded;saveCollection();bankedHudEl.textContent=bankedFireflies;
       game.reaction=f.special?'excited':'happy';game.reactionTimer=1.4;
       initAudio(); if(f.special) sfxSpecialFirefly(); else sfxFirefly();
-      if(game.fireflyCombo>=2){comboHud.textContent='✨ COMBO x'+game.fireflyCombo+(multiplier>1?' • DOUBLE!':'');comboHud.classList.remove('hidden');}
+      if(game.fireflyCombo>=2){comboHud.textContent='✨ FIREFLY COMBO x'+game.fireflyCombo+(multiplier>1?' • BONUS!':'');comboHud.classList.remove('hidden');}
       if((game.score===25||game.score===50)){ game.reaction='happy'; game.reactionTimer=2.8; celebration=85; celebrationText=game.score===25?'🌴 JUNGLE!':'🌙 MOONLIT!'; initAudio(); sfxUnlock(); }
         if(game.score>=10 && game.score%10===0 && game.score!==lastCelebratedScore){
         lastCelebratedScore=game.score;
