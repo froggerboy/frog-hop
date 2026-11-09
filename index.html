@@ -123,9 +123,9 @@ button:active{transform:translateY(5px);box-shadow:0 1px 0 #4f8b27}
 const SKINS = [
   {id:'green',name:'Swampy',cost:0,body:'#63b85a',belly:'#d9f0a0',accent:'#3b8f3c',highlight:'#a8ee60',emoji:'🐸'},
   {id:'blue',name:'Bluebolt',cost:25,body:'#4f9ee8',belly:'#c9e8ff',accent:'#2866a8',highlight:'#8fc7ff',emoji:'🐸'},
-  {id:'purple',name:'Mystic',cost:50,body:'#9b62d8',belly:'#ead8ff',accent:'#65349b',highlight:'#c59af0',emoji:'🐸'},
   {id:'gold',name:'Sunbeam',cost:100,body:'#f5d84a',belly:'#fff5b0',accent:'#b49a12',highlight:'#fff08a',emoji:'☀️🐸',fireflyStyle:'sunbeam'},
   {id:'red',name:'Ember',cost:175,body:'#e85b4f',belly:'#ffd1b8',accent:'#a52f28',highlight:'#ff8b6d',emoji:'🐸'},
+  {id:'purple',name:'Mystic',cost:50,body:'#9b62d8',belly:'#ead8ff',accent:'#65349b',highlight:'#c59af0',emoji:'🐸'},
   {id:'midnight',name:'Midnight',cost:250,body:'#3c506d',belly:'#b7c7dc',accent:'#202c40',highlight:'#647d9e',emoji:'🐸'},
   {id:'rainbow',name:'Rainbow',cost:500,body:'#ff5b5b',belly:'#fff2a8',accent:'#7b3fb2',highlight:'#ffdf5b',emoji:'🌈🐸',special:'rainbow',fireflyStyle:'rainbow'},
   {id:'royalgold',name:'Legendary Gold',cost:1000,body:'#f6bf32',belly:'#fff3b0',accent:'#704200',highlight:'#fff6cf',emoji:'👑🐸',special:'royalgold',fireflyStyle:'royalgold'}
@@ -152,28 +152,44 @@ let selectedSkin = localStorage.getItem('frogHopSkin') || 'green';
 let selectedAccessory = localStorage.getItem('frogHopAccessory') || 'none';
 
 const ACHIEVEMENTS=[
- {id:'firsthop',title:'First Hop',desc:'Score 10 points in one run',need:g=>g.score>=10,reward:10},
- {id:'frog25',title:'Getting Started',desc:'Score 25 points in one run',need:g=>g.score>=25,reward:15},
- {id:'frog50',title:'Halfway Hero',desc:'Score 50 points in one run',need:g=>g.score>=50,reward:25},
- {id:'frog75',title:'Marsh Master',desc:'Score 75 points in one run',need:g=>g.score>=75,reward:35},
- {id:'best100',title:'Century Frog',desc:'Reach a best score of 100',need:g=>best()>=100,reward:60},
- {id:'frog150',title:'Frog Legend',desc:'Score 150 points in one run',need:g=>g.score>=150,reward:90},
- {id:'unstoppable',title:'Unstoppable',desc:'Score 250 points in one run',need:g=>g.score>=250,reward:150},
- {id:'frog300',title:'Swamp Champion',desc:'Score 300 points in one run',need:g=>g.score>=300,reward:250},
- {id:'firefly10',title:'Firefly Hunter',desc:'Collect 10 fireflies in one run',need:g=>g.fireflyCount>=10,reward:15},
- {id:'firefly25',title:'Firefly Collector',desc:'Collect 25 fireflies in one run',need:g=>g.fireflyCount>=25,reward:30},
- {id:'firefly50',title:'Firefly Hoarder',desc:'Collect 50 fireflies in one run',need:g=>g.fireflyCount>=50,reward:60},
- {id:'firefly100run',title:'Firefly Master',desc:'Collect 100 fireflies in one run',need:g=>g.fireflyCount>=100,reward:125},
- {id:'firefly250total',title:'Light Keeper',desc:'Collect 250 fireflies across your runs',need:g=>Number(localStorage.getItem('frogHopTotalFireflies')||0)>=250,reward:75},
- {id:'firefly500total',title:'Glow Guardian',desc:'Collect 500 fireflies across your runs',need:g=>Number(localStorage.getItem('frogHopTotalFireflies')||0)>=500,reward:150},
- {id:'firefly1000total',title:'Firefly Royalty',desc:'Collect 1,000 fireflies across your runs',need:g=>Number(localStorage.getItem('frogHopTotalFireflies')||0)>=1000,reward:300},
- {id:'snake25',title:'Snake Dodger',desc:'Pass 25 snakes in one run',need:g=>g.snakesPassed>=25,reward:15},
- {id:'snake50',title:'Snake Charmer',desc:'Pass 50 snakes in one run',need:g=>g.snakesPassed>=50,reward:30},
- {id:'snake100',title:'Snake Slayer',desc:'Pass 100 snakes in one run',need:g=>g.snakesPassed>=100,reward:75},
- {id:'snake200',title:'Snake Whisperer',desc:'Pass 200 snakes in one run',need:g=>g.snakesPassed>=200,reward:150},
- {id:'combo3',title:'Combo Starter',desc:'Reach a firefly combo of x3',need:g=>g.bestFireflyCombo>=3,reward:20},
- {id:'combo5',title:'Combo King',desc:'Reach a firefly combo of x5',need:g=>g.bestFireflyCombo>=5,reward:50}
+ {id:'firsthop',title:'First Hop',desc:'Reach a best score of 10',need:g=>best()>=10,reward:5},
+ {id:'started25',title:'Getting Started',desc:'Reach a best score of 25',need:g=>best()>=25,reward:10},
+ {id:'hero50',title:'Halfway Hero',desc:'Reach a best score of 50',need:g=>best()>=50,reward:12},
+ {id:'master75',title:'Marsh Master',desc:'Reach a best score of 75',need:g=>best()>=75,reward:15},
+ {id:'century100',title:'Century Frog',desc:'Reach a best score of 100',need:g=>best()>=100,reward:25},
+ {id:'legend150',title:'Frog Legend',desc:'Reach a best score of 150',need:g=>best()>=150,reward:40},
+ {id:'unstoppable250',title:'Unstoppable',desc:'Reach a best score of 250',need:g=>best()>=250,reward:60},
+ {id:'champion300',title:'Swamp Champion',desc:'Reach a best score of 300',need:g=>best()>=300,reward:75},
+
+ {id:'firefly10',title:'Firefly Hunter',desc:'Collect 10 fireflies in one run',need:g=>g.fireflyCount>=10,reward:8},
+ {id:'firefly25',title:'Firefly Collector',desc:'Collect 25 fireflies in one run',need:g=>g.fireflyCount>=25,reward:10},
+ {id:'firefly50',title:'Firefly Hoarder',desc:'Collect 50 fireflies in one run',need:g=>g.fireflyCount>=50,reward:15},
+ {id:'firefly100run',title:'Firefly Master',desc:'Collect 100 fireflies in one run',need:g=>g.fireflyCount>=100,reward:25},
+ {id:'light250',title:'Light Keeper',desc:'Collect 250 fireflies across all runs',need:g=>Number(localStorage.getItem('frogHopTotalFireflies')||0)>=250,reward:40},
+ {id:'glow500',title:'Glow Guardian',desc:'Collect 500 fireflies across all runs',need:g=>Number(localStorage.getItem('frogHopTotalFireflies')||0)>=500,reward:50},
+ {id:'royalty1000',title:'Firefly Royalty',desc:'Collect 1,000 fireflies across all runs',need:g=>Number(localStorage.getItem('frogHopTotalFireflies')||0)>=1000,reward:75},
+
+ {id:'snake25',title:'Snake Dodger',desc:'Pass 25 snakes in one run',need:g=>g.snakesPassed>=25,reward:8},
+ {id:'snake50',title:'Snake Charmer',desc:'Pass 50 snakes in one run',need:g=>g.snakesPassed>=50,reward:12},
+ {id:'snake100',title:'Snake Slayer',desc:'Pass 100 snakes in one run',need:g=>g.snakesPassed>=100,reward:20},
+ {id:'snake200',title:'Snake Whisperer',desc:'Pass 200 snakes in one run',need:g=>g.snakesPassed>=200,reward:30},
+
+ {id:'combo3',title:'Combo Starter',desc:'Reach a firefly combo of x3',need:g=>g.bestFireflyCombo>=3,reward:8},
+ {id:'combo5',title:'Combo King',desc:'Reach a firefly combo of x5',need:g=>g.bestFireflyCombo>=5,reward:15}
 ];
+// Fresh-game reset: run once on first launch of this build, then leave progress persistent.
+if(localStorage.getItem('frogHopFreshResetV85')!=='done'){
+  localStorage.removeItem('frogHopBestV6');
+  localStorage.removeItem('frogHopFireflies');
+  localStorage.removeItem('frogHopTotalFireflies');
+  localStorage.removeItem('frogHopUpgrades');
+  localStorage.removeItem('frogHopSkins');
+  localStorage.removeItem('frogHopSkin');
+  localStorage.removeItem('frogHopAccessory');
+  localStorage.removeItem('frogHopAchievements');
+  localStorage.setItem('frogHopFreshResetV85','done');
+}
+
 let completedAchievements=JSON.parse(localStorage.getItem('frogHopAchievements')||'[]');
 function saveAchievements(){localStorage.setItem('frogHopAchievements',JSON.stringify(completedAchievements));}
 function renderAchievements(){
