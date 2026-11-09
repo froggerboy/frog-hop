@@ -141,11 +141,6 @@ const ACCESSORIES = [
 
 const UPGRADE_COSTS=[20,50,75];
 const UPGRADE_NAMES=['Level 1','Level 2','Level 3'];
-// V82 TEST RESET: start this test build as a completely fresh player.
-if(localStorage.getItem('frogHopFreshTestResetV82')!=='done'){
-  ['frogHopBestV6','frogHopFireflies','frogHopTotalFireflies','frogHopUpgrades','frogHopSkins','frogHopSkin','frogHopAccessory','frogHopAchievements'].forEach(k=>localStorage.removeItem(k));
-  localStorage.setItem('frogHopFreshTestResetV82','done');
-}
 let frogUpgrades=JSON.parse(localStorage.getItem('frogHopUpgrades')||'{}');
 function upgradeLevel(id){return Math.max(0,Math.min(3,Number(frogUpgrades[id]||0)));}
 function saveUpgrades(){localStorage.setItem('frogHopUpgrades',JSON.stringify(frogUpgrades));}
@@ -625,7 +620,7 @@ const shopButton=document.getElementById('shopBtn');
 const closeShopButton=document.getElementById('closeShop');
 const musicBtn=document.getElementById('musicBtn');
 musicBtn.textContent='🎵 MUSIC: '+(musicEnabled?'ON':'OFF');
-musicBtn.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();toggleMusic()},true);musicBtn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();toggleMusic()},true);
+musicBtn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();toggleMusic()},true);
 const skinsTab=document.getElementById('skinsTab');
 const accessoriesTab=document.getElementById('accessoriesTab');
 const achievementsTab=document.getElementById('achievementsTab');
