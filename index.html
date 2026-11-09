@@ -371,6 +371,40 @@ function updateCelebration(dt){
   confetti=confetti.filter(c=>c.life>0 && c.y<H+30);
 }
 
+
+function burstEffect(x,y,type,count=8){
+  if(!game) return;
+  const colors={firefly:['#fff7a0','#ffe45c','#bfffff'],rare:['#ffffff','#a9e8ff','#c78cff'],splash:['#9eeadf','#6fc8c0','#d8fff4'],jump:['#b8e8a2','#74b77d','#d9f3bf'],shield:['#baffd0','#7affb0','#e9fff2'],frenzy:['#fff28a','#ff9b57','#ff5bd6'],pass:['#b6e8b0','#8fd0a0','#e8f6cf']};
+  const pal=colors[type]||colors.firefly;
+  for(let i=0;i<count;i++){
+    const a=Math.random()*Math.PI*2, sp=type==='rare'? (1.5+Math.random()*3.8) : (1+Math.random()*2.8);
+    game.effects.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-(type==='splash'?Math.random()*1.2:0),life:0,max:.35+Math.random()*.45,size:1.5+Math.random()*3,color:pal[i%pal.length],kind:type});
+  }
+}
+function updateEffects(dt){
+  if(!game?.effects)return;
+  for(let i=game.effects.length-1;i>=0;i--){
+    const e=game.effects[i]; e.life+=dt/60; e.x+=e.vx*dt; e.y+=e.vy*dt; e.vy+=.035*dt;
+    if(e.life>=e.max) game.effects.splice(i,1);
+  }
+}
+function drawEffects(){
+  if(!game?.effects)return;
+  ctx.save();
+  for(const e of game.effects){
+    const a=Math.max(0,1-e.life/e.max), s=e.size*(.7+a*.6);
+    ctx.globalAlpha=a;
+    if(e.kind==='rare'){
+      ctx.fillStyle=e.color; ctx.shadowBlur=10; ctx.shadowColor=e.color;
+      ctx.beginPath();ctx.moveTo(e.x,e.y-s*1.8);ctx.lineTo(e.x+s*.6,e.y);ctx.lineTo(e.x,e.y+s*1.8);ctx.lineTo(e.x-s*.6,e.y);ctx.closePath();ctx.fill();
+    }else{
+      ctx.fillStyle=e.color;ctx.shadowBlur=e.kind==='firefly'?6:0;ctx.shadowColor=e.color;
+      ctx.beginPath();ctx.arc(e.x,e.y,s,0,Math.PI*2);ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
 function drawCelebration(){
   if(!confetti.length && celebration<=0)return;
   ctx.save();
@@ -424,7 +458,7 @@ function start(){
   confetti=[]; celebration=0; celebrationText=''; lastCelebratedScore=0;
   game={
     run:true,score:0,time:0,speed:3.8,next:0,
-    fireflies:[],fireflyCount:0,fireflyTimer:0,lastEyeMilestone:0,lastEyeSoundMilestone:0,eyeType:'normal',lastSpecialFireflyMilestone:0,croakTimer:8,fireflyCombo:0,bestFireflyCombo:0,comboTimer:0,snakesPassed:0,reaction:'normal',reactionTimer:0,
+    fireflies:[],fireflyCount:0,fireflyTimer:0,lastEyeMilestone:0,lastEyeSoundMilestone:0,eyeType:'normal',lastSpecialFireflyMilestone:0,croakTimer:8,fireflyCombo:0,bestFireflyCombo:0,comboTimer:0,snakesPassed:0,reaction:'normal',reactionTimer:0,effects:[],
     powerup:null,nextPowerupScore:20,slowTimer:0,magnetTimer:0,magnetTarget:null,doubleTimer:0,shield:0,shieldInvuln:0,
     targetCenter:H*.46,
     f:{x:W*.25,y:H*.46,vy:0,rot:0,blink:0},
@@ -709,6 +743,11 @@ function bg(){
     ctx.fillStyle='rgba(15,22,58,.30)';ctx.fillRect(0,0,W,H*.7);
     ctx.fillStyle='rgba(190,220,255,.12)';ctx.fillRect(0,H*.48,W,H*.2);
   }
+
+  // Global atmospheric lighting: warm sunrise/sunset, cool moonlight, gentle shadows.
+  const warm=Math.max(0,1-Math.abs(daylight-.52)*3.4);
+  if(warm>.02){ctx.fillStyle=`rgba(255,150,70,${warm*.10})`;ctx.fillRect(0,0,W,H*.72);}
+  if(night>.05){ctx.fillStyle=`rgba(25,45,110,${night*.14})`;ctx.fillRect(0,0,W,H);}
 }
 
 
@@ -900,6 +939,13 @@ function frog(){
   ctx.save();
   ctx.translate(f.x,f.y);
   ctx.rotate(f.rot*.45);
+
+  // Frog Frenzy energy aura.
+  if(game.doubleTimer>0){
+    const pulse=1+Math.sin(game.time*.22)*.12;
+    ctx.strokeStyle='rgba(255,190,80,.65)';ctx.lineWidth=2.5;ctx.shadowBlur=14;ctx.shadowColor='rgba(255,120,220,.75)';
+    ctx.beginPath();ctx.arc(0,0,39*pulse,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;
+  }
 
   // Visible lily-shield glow while the shield is active.
   if(game.shield>0){
@@ -1159,7 +1205,7 @@ function updatePowerup(dt){
     p.y+=Math.sin(game.time*.08+p.phase)*.35*dt;
     if(Math.hypot(p.x-game.f.x,p.y-game.f.y)<34){
       if(p.id==='slow') game.slowTimer=p.duration;
-      if(p.id==='shield') game.shield=1;
+      if(p.id==='shield') game.shield=1; burstEffect(game.f.x,game.f.y,'shield',14);
       if(p.id==='magnet'){
         game.magnetTimer=p.duration;
         // Magnet locks onto the single firefly closest to the frog when activated.
@@ -1399,6 +1445,7 @@ function updateFireflies(dt){
       localStorage.setItem('frogHopTotalFireflies',String(totalFF));
       bankedFireflies+=awarded;saveCollection();bankedHudEl.textContent=bankedFireflies;
       game.reaction=f.special?'excited':'happy';game.reactionTimer=1.4;
+      burstEffect(f.x,f.y,(f.rareType||f.special)?'rare':'firefly',(f.rareType==='black'||f.rareType==='diamond')?18:(f.special?13:8));
       initAudio(); if(f.special) sfxSpecialFirefly(); else sfxFirefly();
       if(game.fireflyCombo>=2){comboHud.textContent='✨ FIREFLY COMBO x'+game.fireflyCombo+(multiplier>1?' • BONUS!':'');comboHud.classList.remove('hidden');}
       if((game.score===25||game.score===50)){ game.reaction='happy'; game.reactionTimer=2.8; celebration=85; celebrationText=game.score===25?'🌴 JUNGLE!':'🌙 MOONLIT!'; initAudio(); sfxUnlock(); }
@@ -1455,6 +1502,7 @@ function draw(){
   for(const f of game.fireflies){if(f.rareType)drawRareFirefly(f); else if(f.special)drawSpecialFirefly(f);} drawFireflies();
   drawPowerup();
   frog();
+  drawEffects();
   drawCelebration();
 }
 
@@ -1467,6 +1515,7 @@ function loop(t){
     game.croakTimer-=dt/60;
     if(game.croakTimer<=0){ if(Math.random()<.45){ initAudio(); sfxCroak(); } game.croakTimer=9+Math.random()*12; }
     updateCelebration(dt);
+    updateEffects(dt);
     game.f.vy+=.42*dt;
     game.f.y+=game.f.vy*dt;
     game.f.rot=clamp(game.f.rot+.038*dt,-.45,.95);
@@ -1483,7 +1532,7 @@ function loop(t){
 
       if(!p.scored && p.x+p.w<game.f.x){
         p.scored=true; game.snakesPassed++; checkAchievements();
-        initAudio(); sfxPass();
+        initAudio(); sfxPass(); burstEffect(p.x+p.w*.5,game.f.y+18,'pass',6);
         game.score+=1;checkEyeMilestone();checkAchievements();checkPowerupMilestone();
         scoreEl.textContent=game.score;
         if(game.score>=10 && game.score%10===0 && game.score!==lastCelebratedScore){
