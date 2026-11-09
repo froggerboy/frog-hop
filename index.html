@@ -132,6 +132,14 @@ const ACCESSORIES = [
   {id:'diamond',name:'Diamond Crown',score:100,emoji:'💎'}
 ];
 
+// V53 test reset: start this build with a clean best score and firefly balance.
+if(!localStorage.getItem('frogHopV53TestReset')){
+  localStorage.setItem('frogHopBestV6','0');
+  localStorage.setItem('frogHopFireflies','0');
+  localStorage.setItem('frogHopTotalFireflies','0');
+  localStorage.setItem('frogHopV53TestReset','1');
+}
+
 let bankedFireflies = Number(localStorage.getItem('frogHopFireflies') || 0);
 let unlockedSkins = JSON.parse(localStorage.getItem('frogHopSkins') || '["green"]');
 let selectedSkin = localStorage.getItem('frogHopSkin') || 'green';
@@ -991,7 +999,7 @@ const POWERUPS=[
   {id:'slow',name:'SLOW-MO',icon:'🐌',duration:7},
   {id:'shield',name:'LILY SHIELD',icon:'🛡️',duration:0},
   {id:'magnet',name:'FIREFLY MAGNET',icon:'🧲',duration:8},
-  {id:'double',name:'FROG FRENZY',icon:'⚡',duration:8}
+  {id:'double',name:'FROG FRENZY',icon:'⚡',duration:5}
 ];
 
 function checkPowerupMilestone(){
