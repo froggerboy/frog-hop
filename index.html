@@ -193,6 +193,19 @@ if(localStorage.getItem('frogHopFreshResetV85')!=='done'){
 }
 
 // Fresh-game reset for this test build: reset scores, firefly currency/counters and achievements once.
+// V95 one-time full fresh-game reset: clear ALL progression from previous tests.
+if(localStorage.getItem('frogHopFreshResetV95')!=='done'){
+  localStorage.removeItem('frogHopBestV6');
+  localStorage.removeItem('frogHopFireflies');
+  localStorage.removeItem('frogHopTotalFireflies');
+  localStorage.removeItem('frogHopUpgrades');
+  localStorage.removeItem('frogHopSkins');
+  localStorage.removeItem('frogHopSkin');
+  localStorage.removeItem('frogHopAccessory');
+  localStorage.removeItem('frogHopAchievements');
+  localStorage.setItem('frogHopFreshResetV95','done');
+}
+
 if(localStorage.getItem('frogHopFreshResetV94')!=='done'){
   localStorage.removeItem('frogHopBestV6');
   localStorage.removeItem('frogHopFireflies');
