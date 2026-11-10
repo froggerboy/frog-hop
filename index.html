@@ -1263,29 +1263,53 @@ function frog(){
   ctx.fillStyle=bellyGrad;
   ctx.beginPath();ctx.ellipse(8,8,20,10,-.12,0,Math.PI*2);ctx.fill();
 
-  // Main Super Cape panel — wrapped over the frog's back/body from the shoulder.
+  // Main Super Cape — a full body-and-leg drape painted over the frog so it
+  // reads clearly as a cape being worn, not as a flat panel behind the frog.
   if(selectedAccessory==='cape'){
     ctx.save();
-    const wrap=ctx.createLinearGradient(-30,-17,15,17);
-    wrap.addColorStop(0,'#8f0b1d');wrap.addColorStop(.22,'#d51b31');wrap.addColorStop(.55,'#f33343');wrap.addColorStop(.82,'#c91429');wrap.addColorStop(1,'#760717');
-    ctx.fillStyle=wrap;ctx.strokeStyle='#520711';ctx.lineWidth=2.5;
+    const wrap=ctx.createLinearGradient(-48,-20,18,30);
+    wrap.addColorStop(0,'#720715');wrap.addColorStop(.18,'#b70f29');wrap.addColorStop(.45,'#f12d43');wrap.addColorStop(.72,'#d41731');wrap.addColorStop(1,'#7d0719');
+    ctx.fillStyle=wrap;ctx.strokeStyle='#4d0712';ctx.lineWidth=3;
     ctx.beginPath();
-    ctx.moveTo(10,-16);
-    ctx.quadraticCurveTo(2,-19,-7,-17);
-    ctx.quadraticCurveTo(-18,-14,-29,-8);
-    ctx.quadraticCurveTo(-22,1,-17,10);
-    ctx.quadraticCurveTo(-11,16,-3,17);
-    ctx.quadraticCurveTo(3,10,9,2);
-    ctx.quadraticCurveTo(14,-7,10,-16);
+    // Shoulder start, then a broad drape over the torso and both rear legs.
+    ctx.moveTo(13,-18);
+    ctx.quadraticCurveTo(4,-21,-8,-18);
+    ctx.quadraticCurveTo(-25,-13,-39,-4);
+    ctx.quadraticCurveTo(-46,5,-47,17);
+    ctx.quadraticCurveTo(-46,27,-39,31);
+    ctx.quadraticCurveTo(-31,28,-27,23);
+    ctx.quadraticCurveTo(-21,30,-11,32);
+    ctx.quadraticCurveTo(-3,30,1,24);
+    ctx.quadraticCurveTo(8,28,17,25);
+    ctx.quadraticCurveTo(22,18,19,9);
+    ctx.quadraticCurveTo(18,-4,13,-18);
     ctx.closePath();ctx.fill();ctx.stroke();
-    // Gold edge and fabric folds make the panel read as cloth sitting on the body.
-    ctx.strokeStyle='#ffd84a';ctx.lineWidth=2.1;
-    ctx.beginPath();ctx.moveTo(-28,-8);ctx.quadraticCurveTo(-19,-3,-17,10);ctx.quadraticCurveTo(-10,16,-3,17);ctx.stroke();
-    ctx.strokeStyle='rgba(255,190,190,.55)';ctx.lineWidth=1.4;
-    ctx.beginPath();ctx.moveTo(-20,-10);ctx.quadraticCurveTo(-13,-2,-13,11);ctx.moveTo(-10,-14);ctx.quadraticCurveTo(-4,-4,-7,13);ctx.moveTo(0,-16);ctx.quadraticCurveTo(5,-7,0,8);ctx.stroke();
-    // Shoulder clasp sits visibly on top of the cape/body join.
-    ctx.fillStyle='#ffd84a';ctx.strokeStyle='#8b5a00';ctx.lineWidth=1.6;
-    ctx.beginPath();ctx.arc(9,-15,4.4,0,Math.PI*2);ctx.fill();ctx.stroke();
+
+    // Bright gold hem follows the lower edge of the garment.
+    ctx.strokeStyle='#ffd84a';ctx.lineWidth=2.6;
+    ctx.beginPath();
+    ctx.moveTo(-46,17);
+    ctx.quadraticCurveTo(-45,27,-39,31);
+    ctx.quadraticCurveTo(-31,28,-27,23);
+    ctx.quadraticCurveTo(-21,30,-11,32);
+    ctx.quadraticCurveTo(-3,30,1,24);
+    ctx.quadraticCurveTo(8,28,17,25);
+    ctx.quadraticCurveTo(22,18,19,9);
+    ctx.stroke();
+
+    // Strong cloth folds give the cape volume over the frog's body and legs.
+    ctx.strokeStyle='rgba(255,205,205,.52)';ctx.lineWidth=1.5;
+    ctx.beginPath();
+    ctx.moveTo(-34,-7);ctx.quadraticCurveTo(-27,4,-32,25);
+    ctx.moveTo(-22,-13);ctx.quadraticCurveTo(-16,2,-20,28);
+    ctx.moveTo(-9,-16);ctx.quadraticCurveTo(-4,2,-9,29);
+    ctx.moveTo(4,-16);ctx.quadraticCurveTo(10,0,8,22);
+    ctx.stroke();
+
+    // Shoulder clasp sits clearly at the front of the cape.
+    ctx.fillStyle='#ffd84a';ctx.strokeStyle='#8b5a00';ctx.lineWidth=1.8;
+    ctx.beginPath();ctx.arc(11,-15,5,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#fff1a0';ctx.beginPath();ctx.arc(10,-16,1.7,0,Math.PI*2);ctx.fill();
     ctx.restore();
   }
 
@@ -1325,33 +1349,45 @@ function frog(){
   ctx.beginPath();ctx.arc(25,-5,2.2,0,Math.PI*2);ctx.arc(30,-3,1.5,0,Math.PI*2);ctx.fill();
   ctx.restore();
 
-  // Clown Mohawk — five broad, curved locks sweeping over the scalp.
+  // Clown Mohawk — a larger, recognisable curved mohawk that follows the scalp.
+  // It is deliberately only rendered for the clown accessory, so no cape pieces leak through.
   if(selectedAccessory==='clown'){
     ctx.save();
+    // Dark scalp base keeps the hair visibly attached to the frog's head.
+    ctx.fillStyle='#35102f';ctx.strokeStyle='#1c091a';ctx.lineWidth=2.2;
+    ctx.beginPath();
+    ctx.moveTo(-8,-27);
+    ctx.quadraticCurveTo(8,-38,25,-37);
+    ctx.quadraticCurveTo(40,-35,48,-27);
+    ctx.quadraticCurveTo(37,-21,22,-20);
+    ctx.quadraticCurveTo(6,-21,-8,-20);
+    ctx.closePath();ctx.fill();ctx.stroke();
+
     const locks=[
-      {x:-2,h:11,c:'#ff3b55'},
-      {x:8,h:17,c:'#ff9f24'},
-      {x:18,h:21,c:'#ffe04a'},
-      {x:29,h:20,c:'#55d86a'},
-      {x:40,h:15,c:'#7d63ff'}
+      {x:-2,h:19,w:10,c:'#ff3b55'},
+      {x:8,h:25,w:11,c:'#ff9f24'},
+      {x:19,h:29,w:12,c:'#ffe04a'},
+      {x:30,h:27,w:12,c:'#55d86a'},
+      {x:41,h:21,w:11,c:'#7d63ff'}
     ];
-    // A narrow dark strip anchors the mohawk directly to the top of the head.
-    ctx.fillStyle='#35102f';ctx.strokeStyle='#1c091a';ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(-7,-27);ctx.quadraticCurveTo(14,-36,44,-27);ctx.quadraticCurveTo(39,-21,31,-19);ctx.quadraticCurveTo(13,-24,-4,-19);ctx.closePath();ctx.fill();ctx.stroke();
     locks.forEach((l)=>{
-      const x=l.x,h=l.h;
-      const g=ctx.createLinearGradient(x-2,-27-h,x+6,-18);
-      g.addColorStop(0,'#fff7d0');g.addColorStop(.14,l.c);g.addColorStop(.72,l.c);g.addColorStop(1,'#64163f');
-      ctx.fillStyle=g;ctx.strokeStyle='#4b1237';ctx.lineWidth=1.5;
-      // Curved teardrop lock: softer than spikes and swept backward over the scalp.
+      const x=l.x,h=l.h,w=l.w;
+      const g=ctx.createLinearGradient(x,-29-h,x+w/2,-17);
+      g.addColorStop(0,'#fff8d6');g.addColorStop(.12,l.c);g.addColorStop(.72,l.c);g.addColorStop(1,'#5d1741');
+      ctx.fillStyle=g;ctx.strokeStyle='#4b1237';ctx.lineWidth=1.7;
+      // Broad curved locks, leaning back together instead of sharp spikes.
       ctx.beginPath();
-      ctx.moveTo(x-5,-23);
-      ctx.quadraticCurveTo(x-7,-30-h*.30,x-1,-29-h*.82);
-      ctx.quadraticCurveTo(x+4,-28-h*.45,x+7,-22);
-      ctx.quadraticCurveTo(x+3,-19,x-3,-20);
+      ctx.moveTo(x-w*.45,-23);
+      ctx.quadraticCurveTo(x-w*.65,-29-h*.28,x-w*.12,-29-h*.72);
+      ctx.quadraticCurveTo(x+w*.18,-31-h*.92,x+w*.52,-27-h*.48);
+      ctx.quadraticCurveTo(x+w*.72,-24-h*.16,x+w*.42,-20);
+      ctx.quadraticCurveTo(x+w*.02,-17,x-w*.45,-23);
       ctx.closePath();ctx.fill();ctx.stroke();
-      ctx.strokeStyle='rgba(255,255,255,.48)';ctx.lineWidth=1.1;
-      ctx.beginPath();ctx.moveTo(x-2,-25);ctx.quadraticCurveTo(x+1,-29-h*.45,x+2,-29-h*.62);ctx.stroke();
+      ctx.strokeStyle='rgba(255,255,255,.48)';ctx.lineWidth=1.2;
+      ctx.beginPath();
+      ctx.moveTo(x-w*.16,-25);
+      ctx.quadraticCurveTo(x+w*.05,-30-h*.42,x+w*.20,-29-h*.62);
+      ctx.stroke();
     });
     ctx.restore();
   }
