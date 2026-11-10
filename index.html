@@ -179,8 +179,9 @@ const ACHIEVEMENTS=[
  {id:'combo3',title:'Combo Starter',desc:'Reach a firefly combo of x3',need:g=>g.bestFireflyCombo>=3,reward:8},
  {id:'combo5',title:'Combo King',desc:'Reach a firefly combo of x5',need:g=>g.bestFireflyCombo>=5,reward:15}
 ];
-// Fresh-game reset: run once on first launch of this build, then leave progress persistent.
-if(localStorage.getItem('frogHopFreshResetV85')!=='done'){
+// Fresh-game reset: perform BEFORE any progression variables are loaded.
+// This build is intentionally a completely clean test profile.
+if(localStorage.getItem('frogHopFreshResetV96')!=='done'){
   localStorage.removeItem('frogHopBestV6');
   localStorage.removeItem('frogHopFireflies');
   localStorage.removeItem('frogHopTotalFireflies');
@@ -189,29 +190,7 @@ if(localStorage.getItem('frogHopFreshResetV85')!=='done'){
   localStorage.removeItem('frogHopSkin');
   localStorage.removeItem('frogHopAccessory');
   localStorage.removeItem('frogHopAchievements');
-  localStorage.setItem('frogHopFreshResetV85','done');
-}
-
-// Fresh-game reset for this test build: reset scores, firefly currency/counters and achievements once.
-// V95 one-time full fresh-game reset: clear ALL progression from previous tests.
-if(localStorage.getItem('frogHopFreshResetV95')!=='done'){
-  localStorage.removeItem('frogHopBestV6');
-  localStorage.removeItem('frogHopFireflies');
-  localStorage.removeItem('frogHopTotalFireflies');
-  localStorage.removeItem('frogHopUpgrades');
-  localStorage.removeItem('frogHopSkins');
-  localStorage.removeItem('frogHopSkin');
-  localStorage.removeItem('frogHopAccessory');
-  localStorage.removeItem('frogHopAchievements');
-  localStorage.setItem('frogHopFreshResetV95','done');
-}
-
-if(localStorage.getItem('frogHopFreshResetV94')!=='done'){
-  localStorage.removeItem('frogHopBestV6');
-  localStorage.removeItem('frogHopFireflies');
-  localStorage.removeItem('frogHopTotalFireflies');
-  localStorage.removeItem('frogHopAchievements');
-  localStorage.setItem('frogHopFreshResetV94','done');
+  localStorage.setItem('frogHopFreshResetV96','done');
 }
 
 let completedAchievements=JSON.parse(localStorage.getItem('frogHopAchievements')||'[]');
