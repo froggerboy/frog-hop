@@ -136,7 +136,9 @@ const ACCESSORIES = [
   {id:'party',name:'Party Hat',score:25,emoji:'🎉'},
   {id:'tophat',name:'Top Hat',score:50,emoji:'🎩'},
   {id:'crown',name:'Gold Crown',score:75,emoji:'👑'},
-  {id:'diamond',name:'Diamond Crown',score:100,emoji:'💎'}
+  {id:'diamond',name:'Diamond Crown',score:100,emoji:'💎'},
+  {id:'cape',name:'Super Cape',score:125,emoji:'🦸'},
+  {id:'clown',name:'Clown Wig',score:150,emoji:'🤡'}
 ];
 
 const UPGRADE_COSTS=[20,50,75];
@@ -188,6 +190,16 @@ if(localStorage.getItem('frogHopFreshResetV85')!=='done'){
   localStorage.removeItem('frogHopAccessory');
   localStorage.removeItem('frogHopAchievements');
   localStorage.setItem('frogHopFreshResetV85','done');
+}
+
+// Test setup for the new accessories: grant enough currency and best score to test them.
+if(localStorage.getItem('frogHopAccessoryTestV88')!=='done'){
+  localStorage.setItem('frogHopBestV6','200');
+  localStorage.setItem('frogHopFireflies','3000');
+  localStorage.setItem('frogHopTotalFireflies','3000');
+  localStorage.setItem('frogHopAchievements','[]');
+  localStorage.setItem('frogHopAccessory','none');
+  localStorage.setItem('frogHopAccessoryTestV88','done');
 }
 
 let completedAchievements=JSON.parse(localStorage.getItem('frogHopAchievements')||'[]');
@@ -1158,6 +1170,22 @@ function frog(){
   ctx.fillStyle='rgba(3,24,29,.22)';
   ctx.beginPath();ctx.ellipse(0,25,31,6,0,0,Math.PI*2);ctx.fill();
 
+  // Super-style cape: bold red cape flowing behind the frog.
+  if(selectedAccessory==='cape'){
+    ctx.save();
+    ctx.translate(-18,-3);
+    ctx.fillStyle='#e53935';ctx.strokeStyle='#8f1717';ctx.lineWidth=2.4;
+    ctx.beginPath();
+    ctx.moveTo(14,-12);
+    ctx.quadraticCurveTo(-2,-15,-20,-8);
+    ctx.quadraticCurveTo(-32,1,-24,15);
+    ctx.quadraticCurveTo(-10,8,4,13);
+    ctx.quadraticCurveTo(12,4,16,-5);
+    ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.fillStyle='#2f66d0';ctx.beginPath();ctx.arc(14,-11,3.5,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+  }
+
   // Folded rear thigh.
   ctx.fillStyle=bodyMain;ctx.strokeStyle=bodyDark;ctx.lineWidth=3.5;
   ctx.beginPath();
@@ -1246,6 +1274,15 @@ function frog(){
   ctx.fillStyle=bodyDark;
   ctx.beginPath();ctx.arc(25,-5,2.2,0,Math.PI*2);ctx.arc(30,-3,1.5,0,Math.PI*2);ctx.fill();
   ctx.restore();
+
+  // Clown wig: colourful, fluffy curls framing the frog's head.
+  if(selectedAccessory==='clown'){
+    ctx.save();
+    const wigColors=['#ff3b30','#ff9f0a','#ffd60a','#34c759','#0a84ff','#af52de'];
+    const curls=[[-1,-29,7],[10,-35,7],[22,-39,7],[35,-40,7],[48,-36,7],[57,-29,7],[-8,-18,6],[59,-17,6]];
+    curls.forEach((c,i)=>{ctx.fillStyle=wigColors[i%wigColors.length];ctx.strokeStyle='rgba(65,25,80,.55)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(c[0],c[1],c[2],0,Math.PI*2);ctx.fill();ctx.stroke()});
+    ctx.restore();
+  }
 
   // Eye bump and eye.
   ctx.fillStyle=skin.special==='rainbow' ? '#8d4fc4' : bodyMain;
