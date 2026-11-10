@@ -1170,39 +1170,6 @@ function frog(){
   ctx.fillStyle='rgba(3,24,29,.22)';
   ctx.beginPath();ctx.ellipse(0,25,31,6,0,0,Math.PI*2);ctx.fill();
 
-  // Super-style heroic cape: deliberately oversized so it reads clearly during play.
-  if(selectedAccessory==='cape'){
-    ctx.save();
-    ctx.translate(-20,-2);
-    // Shadow/back fold.
-    ctx.fillStyle='rgba(70,8,18,.55)';
-    ctx.beginPath();
-    ctx.moveTo(17,-13);ctx.quadraticCurveTo(-8,-18,-27,-7);
-    ctx.quadraticCurveTo(-46,7,-38,27);ctx.quadraticCurveTo(-19,20,2,27);
-    ctx.quadraticCurveTo(16,15,19,-2);ctx.closePath();ctx.fill();
-    // Main red cape with broad, unmistakable silhouette.
-    const cape=ctx.createLinearGradient(0,-18,0,28);
-    cape.addColorStop(0,'#ff4a43');cape.addColorStop(.55,'#e51f2a');cape.addColorStop(1,'#9d1020');
-    ctx.fillStyle=cape;ctx.strokeStyle='#6f0d18';ctx.lineWidth=2.6;
-    ctx.beginPath();
-    ctx.moveTo(16,-16);
-    ctx.quadraticCurveTo(-5,-21,-28,-10);
-    ctx.quadraticCurveTo(-48,1,-43,24);
-    ctx.quadraticCurveTo(-31,30,-17,22);
-    ctx.quadraticCurveTo(-3,29,9,23);
-    ctx.quadraticCurveTo(20,10,20,-3);
-    ctx.closePath();ctx.fill();ctx.stroke();
-    // Gold trim and fold highlights.
-    ctx.strokeStyle='rgba(255,221,82,.9)';ctx.lineWidth=1.7;
-    ctx.beginPath();ctx.moveTo(-39,20);ctx.quadraticCurveTo(-27,25,-16,19);ctx.quadraticCurveTo(-4,25,7,19);ctx.stroke();
-    ctx.strokeStyle='rgba(255,170,170,.45)';ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(-28,-7);ctx.quadraticCurveTo(-22,7,-27,19);ctx.moveTo(-11,-12);ctx.quadraticCurveTo(-5,5,-10,22);ctx.stroke();
-    // Golden clasp at the shoulder.
-    ctx.fillStyle='#ffd84a';ctx.strokeStyle='#8b5a00';ctx.lineWidth=1.4;
-    ctx.beginPath();ctx.arc(17,-15,5,0,Math.PI*2);ctx.fill();ctx.stroke();
-    ctx.restore();
-  }
-
   // Folded rear thigh.
   ctx.fillStyle=bodyMain;ctx.strokeStyle=bodyDark;ctx.lineWidth=3.5;
   ctx.beginPath();
@@ -1274,6 +1241,51 @@ function frog(){
   ctx.fillStyle=bellyGrad;
   ctx.beginPath();ctx.ellipse(8,8,20,10,-.12,0,Math.PI*2);ctx.fill();
 
+  // Super Cape — worn around the frog, with a visible collar, shoulder clasps and side/front drape.
+  if(selectedAccessory==='cape'){
+    ctx.save();
+    // Shoulder collar sits over the upper body.
+    ctx.fillStyle='#e52a35';ctx.strokeStyle='#72101b';ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(-21,-10);ctx.quadraticCurveTo(-5,-18,12,-12);
+    ctx.quadraticCurveTo(25,-7,28,-1);
+    ctx.quadraticCurveTo(13,3,-1,-2);
+    ctx.quadraticCurveTo(-12,-6,-21,-10);ctx.closePath();ctx.fill();ctx.stroke();
+    // Large cape wings on both sides of the frog, visibly wrapping around the body.
+    const cg=ctx.createLinearGradient(-42,-5,38,24);
+    cg.addColorStop(0,'#8d1020');cg.addColorStop(.18,'#ef2634');cg.addColorStop(.55,'#ff4750');cg.addColorStop(.82,'#d7192a');cg.addColorStop(1,'#7c0c19');
+    ctx.fillStyle=cg;ctx.strokeStyle='#650b16';ctx.lineWidth=2.5;
+    ctx.beginPath();
+    ctx.moveTo(-17,-9);
+    ctx.quadraticCurveTo(-33,-6,-43,4);
+    ctx.quadraticCurveTo(-49,13,-44,28);
+    ctx.quadraticCurveTo(-32,24,-22,18);
+    ctx.quadraticCurveTo(-16,14,-10,10);
+    ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(14,-9);
+    ctx.quadraticCurveTo(29,-6,39,4);
+    ctx.quadraticCurveTo(46,13,42,28);
+    ctx.quadraticCurveTo(31,24,21,18);
+    ctx.quadraticCurveTo(15,14,9,10);
+    ctx.closePath();ctx.fill();ctx.stroke();
+    // Gold trim follows the lower edges.
+    ctx.strokeStyle='#ffd84a';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(-44,26);ctx.quadraticCurveTo(-32,22,-22,16);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(42,26);ctx.quadraticCurveTo(31,22,21,16);ctx.stroke();
+    // Cape folds.
+    ctx.strokeStyle='rgba(255,190,190,.5)';ctx.lineWidth=1.7;
+    ctx.beginPath();ctx.moveTo(-36,6);ctx.quadraticCurveTo(-30,13,-34,23);ctx.moveTo(-25,3);ctx.quadraticCurveTo(-20,11,-24,18);ctx.moveTo(34,6);ctx.quadraticCurveTo(28,13,32,23);ctx.moveTo(23,3);ctx.quadraticCurveTo(18,11,22,18);ctx.stroke();
+    // Shoulder clasps.
+    ctx.fillStyle='#ffd84a';ctx.strokeStyle='#8a5b00';ctx.lineWidth=1.4;
+    ctx.beginPath();ctx.arc(-17,-9,4.3,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.beginPath();ctx.arc(15,-9,4.3,0,Math.PI*2);ctx.fill();ctx.stroke();
+    // Small front tie makes it read as something the frog is actually wearing.
+    ctx.fillStyle='#f5c83b';ctx.strokeStyle='#7a4b00';ctx.lineWidth=1.2;
+    ctx.beginPath();ctx.arc(0,-4,3.4,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.restore();
+  }
+
   // Head.
   const head=ctx.createRadialGradient(17,-20,2,24,-10,26);
   head.addColorStop(0,bodyLight);
@@ -1292,25 +1304,28 @@ function frog(){
   ctx.beginPath();ctx.arc(25,-5,2.2,0,Math.PI*2);ctx.arc(30,-3,1.5,0,Math.PI*2);ctx.fill();
   ctx.restore();
 
-  // Clown wig: larger, layered curls with highlights and a fluffy silhouette.
+  // Clown Wig — a proper fluffy wig sitting around the top and sides of the frog's head.
   if(selectedAccessory==='clown'){
     ctx.save();
-    const wigColors=['#ff3b30','#ff7a18','#ffd60a','#34c759','#0a84ff','#af52de'];
-    const curls=[[-3,-28,8],[7,-37,9],[20,-43,9],[34,-45,9],[48,-41,9],[59,-34,8],[65,-24,8],[-10,-18,7],[62,-13,7]];
-    // Dark under-wig mass makes the curls readable against every frog skin.
-    ctx.fillStyle='rgba(62,18,70,.92)';
-    ctx.beginPath();ctx.ellipse(30,-30,38,18,0,Math.PI,Math.PI*2);ctx.fill();
+    const wigColors=['#ff334d','#ff8a00','#ffd21f','#36d65f','#2587ff','#a64cff'];
+    // Dark wig cap anchors the curls to the head.
+    const cap=ctx.createRadialGradient(29,-31,3,29,-27,28);
+    cap.addColorStop(0,'#4b194f');cap.addColorStop(.7,'#28102f');cap.addColorStop(1,'#14091c');
+    ctx.fillStyle=cap;ctx.strokeStyle='#100713';ctx.lineWidth=2;
+    ctx.beginPath();ctx.ellipse(31,-27,27,17,0,Math.PI,Math.PI*2);ctx.fill();ctx.stroke();
+    // Large curls frame the head rather than floating above it.
+    const curls=[[-1,-28,8,'#ff334d'],[7,-38,8,'#ff8a00'],[19,-44,8,'#ffd21f'],[31,-46,9,'#36d65f'],[43,-43,8,'#2587ff'],[53,-35,8,'#a64cff'],[59,-25,8,'#ff334d'],[-4,-18,7,'#ffd21f'],[59,-15,7,'#36d65f']];
     curls.forEach((c,i)=>{
       const g=ctx.createRadialGradient(c[0]-2,c[1]-3,1,c[0],c[1],c[2]);
-      g.addColorStop(0,'#fff8');g.addColorStop(.18,wigColors[i%wigColors.length]);g.addColorStop(.82,wigColors[i%wigColors.length]);g.addColorStop(1,'rgba(50,15,60,.8)');
-      ctx.fillStyle=g;ctx.strokeStyle='rgba(55,18,65,.75)';ctx.lineWidth=1.7;
+      g.addColorStop(0,'#ffffff');g.addColorStop(.16,c[3]);g.addColorStop(.78,c[3]);g.addColorStop(1,'#32102f');
+      ctx.fillStyle=g;ctx.strokeStyle='#3b123d';ctx.lineWidth=1.6;
       ctx.beginPath();ctx.arc(c[0],c[1],c[2],0,Math.PI*2);ctx.fill();ctx.stroke();
-      ctx.fillStyle='rgba(255,255,255,.32)';ctx.beginPath();ctx.arc(c[0]-2,c[1]-3,c[2]*.28,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,.38)';ctx.beginPath();ctx.arc(c[0]-2,c[1]-3,c[2]*.25,0,Math.PI*2);ctx.fill();
     });
-    // Tiny colourful bow at the back for extra personality.
-    ctx.fillStyle='#ff4da6';ctx.strokeStyle='#7b174d';ctx.lineWidth=1.4;
-    ctx.beginPath();ctx.ellipse(-5,-13,7,4,-.35,0,Math.PI*2);ctx.ellipse(4,-13,7,4,.35,0,Math.PI*2);ctx.fill();ctx.stroke();
-    ctx.fillStyle='#ffd84a';ctx.beginPath();ctx.arc(0,-13,3,0,Math.PI*2);ctx.fill();
+    // Tiny centre tuft and bow at the back.
+    ctx.fillStyle='#ff4da6';ctx.strokeStyle='#72144d';ctx.lineWidth=1.4;
+    ctx.beginPath();ctx.ellipse(-3,-11,7,4,-.3,0,Math.PI*2);ctx.ellipse(5,-11,7,4,.3,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#ffd84a';ctx.beginPath();ctx.arc(1,-11,3,0,Math.PI*2);ctx.fill();
     ctx.restore();
   }
 
