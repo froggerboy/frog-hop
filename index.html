@@ -143,6 +143,19 @@ const ACCESSORIES = [
 
 const UPGRADE_COSTS=[20,50,75];
 const UPGRADE_NAMES=['Level 1','Level 2','Level 3'];
+
+// V98 TRUE FRESH TEST RESET: clear progression BEFORE any saved values are read.
+// Music preference is intentionally preserved. This runs once for this build.
+if(localStorage.getItem('frogHopFreshResetV98')!=='done'){
+  [
+    'frogHopBestV6','frogHopBestV3','frogHopBestV2',
+    'frogHopFireflies','frogHopTotalFireflies','frogHopUpgrades',
+    'frogHopSkins','frogHopSkin','frogHopAccessory','frogHopAchievements',
+    'frogHopFreshResetV85','frogHopFreshResetV94'
+  ].forEach(k=>localStorage.removeItem(k));
+  localStorage.setItem('frogHopFreshResetV98','done');
+}
+
 let frogUpgrades=JSON.parse(localStorage.getItem('frogHopUpgrades')||'{}');
 function upgradeLevel(id){return Math.max(0,Math.min(3,Number(frogUpgrades[id]||0)));}
 function saveUpgrades(){localStorage.setItem('frogHopUpgrades',JSON.stringify(frogUpgrades));}
@@ -179,28 +192,6 @@ const ACHIEVEMENTS=[
  {id:'combo3',title:'Combo Starter',desc:'Reach a firefly combo of x3',need:g=>g.bestFireflyCombo>=3,reward:8},
  {id:'combo5',title:'Combo King',desc:'Reach a firefly combo of x5',need:g=>g.bestFireflyCombo>=5,reward:15}
 ];
-// Fresh-game reset: run once on first launch of this build, then leave progress persistent.
-if(localStorage.getItem('frogHopFreshResetV85')!=='done'){
-  localStorage.removeItem('frogHopBestV6');
-  localStorage.removeItem('frogHopFireflies');
-  localStorage.removeItem('frogHopTotalFireflies');
-  localStorage.removeItem('frogHopUpgrades');
-  localStorage.removeItem('frogHopSkins');
-  localStorage.removeItem('frogHopSkin');
-  localStorage.removeItem('frogHopAccessory');
-  localStorage.removeItem('frogHopAchievements');
-  localStorage.setItem('frogHopFreshResetV85','done');
-}
-
-// Fresh-game reset for this test build: reset scores, firefly currency/counters and achievements once.
-if(localStorage.getItem('frogHopFreshResetV94')!=='done'){
-  localStorage.removeItem('frogHopBestV6');
-  localStorage.removeItem('frogHopFireflies');
-  localStorage.removeItem('frogHopTotalFireflies');
-  localStorage.removeItem('frogHopAchievements');
-  localStorage.setItem('frogHopFreshResetV94','done');
-}
-
 let completedAchievements=JSON.parse(localStorage.getItem('frogHopAchievements')||'[]');
 function saveAchievements(){localStorage.setItem('frogHopAchievements',JSON.stringify(completedAchievements));}
 function renderAchievements(){
