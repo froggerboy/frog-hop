@@ -1170,19 +1170,36 @@ function frog(){
   ctx.fillStyle='rgba(3,24,29,.22)';
   ctx.beginPath();ctx.ellipse(0,25,31,6,0,0,Math.PI*2);ctx.fill();
 
-  // Super-style cape: bold red cape flowing behind the frog.
+  // Super-style heroic cape: deliberately oversized so it reads clearly during play.
   if(selectedAccessory==='cape'){
     ctx.save();
-    ctx.translate(-18,-3);
-    ctx.fillStyle='#e53935';ctx.strokeStyle='#8f1717';ctx.lineWidth=2.4;
+    ctx.translate(-20,-2);
+    // Shadow/back fold.
+    ctx.fillStyle='rgba(70,8,18,.55)';
     ctx.beginPath();
-    ctx.moveTo(14,-12);
-    ctx.quadraticCurveTo(-2,-15,-20,-8);
-    ctx.quadraticCurveTo(-32,1,-24,15);
-    ctx.quadraticCurveTo(-10,8,4,13);
-    ctx.quadraticCurveTo(12,4,16,-5);
+    ctx.moveTo(17,-13);ctx.quadraticCurveTo(-8,-18,-27,-7);
+    ctx.quadraticCurveTo(-46,7,-38,27);ctx.quadraticCurveTo(-19,20,2,27);
+    ctx.quadraticCurveTo(16,15,19,-2);ctx.closePath();ctx.fill();
+    // Main red cape with broad, unmistakable silhouette.
+    const cape=ctx.createLinearGradient(0,-18,0,28);
+    cape.addColorStop(0,'#ff4a43');cape.addColorStop(.55,'#e51f2a');cape.addColorStop(1,'#9d1020');
+    ctx.fillStyle=cape;ctx.strokeStyle='#6f0d18';ctx.lineWidth=2.6;
+    ctx.beginPath();
+    ctx.moveTo(16,-16);
+    ctx.quadraticCurveTo(-5,-21,-28,-10);
+    ctx.quadraticCurveTo(-48,1,-43,24);
+    ctx.quadraticCurveTo(-31,30,-17,22);
+    ctx.quadraticCurveTo(-3,29,9,23);
+    ctx.quadraticCurveTo(20,10,20,-3);
     ctx.closePath();ctx.fill();ctx.stroke();
-    ctx.fillStyle='#2f66d0';ctx.beginPath();ctx.arc(14,-11,3.5,0,Math.PI*2);ctx.fill();
+    // Gold trim and fold highlights.
+    ctx.strokeStyle='rgba(255,221,82,.9)';ctx.lineWidth=1.7;
+    ctx.beginPath();ctx.moveTo(-39,20);ctx.quadraticCurveTo(-27,25,-16,19);ctx.quadraticCurveTo(-4,25,7,19);ctx.stroke();
+    ctx.strokeStyle='rgba(255,170,170,.45)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(-28,-7);ctx.quadraticCurveTo(-22,7,-27,19);ctx.moveTo(-11,-12);ctx.quadraticCurveTo(-5,5,-10,22);ctx.stroke();
+    // Golden clasp at the shoulder.
+    ctx.fillStyle='#ffd84a';ctx.strokeStyle='#8b5a00';ctx.lineWidth=1.4;
+    ctx.beginPath();ctx.arc(17,-15,5,0,Math.PI*2);ctx.fill();ctx.stroke();
     ctx.restore();
   }
 
@@ -1275,12 +1292,25 @@ function frog(){
   ctx.beginPath();ctx.arc(25,-5,2.2,0,Math.PI*2);ctx.arc(30,-3,1.5,0,Math.PI*2);ctx.fill();
   ctx.restore();
 
-  // Clown wig: colourful, fluffy curls framing the frog's head.
+  // Clown wig: larger, layered curls with highlights and a fluffy silhouette.
   if(selectedAccessory==='clown'){
     ctx.save();
-    const wigColors=['#ff3b30','#ff9f0a','#ffd60a','#34c759','#0a84ff','#af52de'];
-    const curls=[[-1,-29,7],[10,-35,7],[22,-39,7],[35,-40,7],[48,-36,7],[57,-29,7],[-8,-18,6],[59,-17,6]];
-    curls.forEach((c,i)=>{ctx.fillStyle=wigColors[i%wigColors.length];ctx.strokeStyle='rgba(65,25,80,.55)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(c[0],c[1],c[2],0,Math.PI*2);ctx.fill();ctx.stroke()});
+    const wigColors=['#ff3b30','#ff7a18','#ffd60a','#34c759','#0a84ff','#af52de'];
+    const curls=[[-3,-28,8],[7,-37,9],[20,-43,9],[34,-45,9],[48,-41,9],[59,-34,8],[65,-24,8],[-10,-18,7],[62,-13,7]];
+    // Dark under-wig mass makes the curls readable against every frog skin.
+    ctx.fillStyle='rgba(62,18,70,.92)';
+    ctx.beginPath();ctx.ellipse(30,-30,38,18,0,Math.PI,Math.PI*2);ctx.fill();
+    curls.forEach((c,i)=>{
+      const g=ctx.createRadialGradient(c[0]-2,c[1]-3,1,c[0],c[1],c[2]);
+      g.addColorStop(0,'#fff8');g.addColorStop(.18,wigColors[i%wigColors.length]);g.addColorStop(.82,wigColors[i%wigColors.length]);g.addColorStop(1,'rgba(50,15,60,.8)');
+      ctx.fillStyle=g;ctx.strokeStyle='rgba(55,18,65,.75)';ctx.lineWidth=1.7;
+      ctx.beginPath();ctx.arc(c[0],c[1],c[2],0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.fillStyle='rgba(255,255,255,.32)';ctx.beginPath();ctx.arc(c[0]-2,c[1]-3,c[2]*.28,0,Math.PI*2);ctx.fill();
+    });
+    // Tiny colourful bow at the back for extra personality.
+    ctx.fillStyle='#ff4da6';ctx.strokeStyle='#7b174d';ctx.lineWidth=1.4;
+    ctx.beginPath();ctx.ellipse(-5,-13,7,4,-.35,0,Math.PI*2);ctx.ellipse(4,-13,7,4,.35,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#ffd84a';ctx.beginPath();ctx.arc(0,-13,3,0,Math.PI*2);ctx.fill();
     ctx.restore();
   }
 
